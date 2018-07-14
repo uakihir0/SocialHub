@@ -3,9 +3,6 @@ buildscript {
         mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
     }
-    dependencies {
-        classpath "gradle.plugin.com.github.j2objccontrib.j2objcgradle:j2objc-gradle:0.6.0-alpha"
-    }
 }
 
 group 'SocialHub'
@@ -14,7 +11,6 @@ version '1.0-SNAPSHOT'
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'maven'
-apply plugin: 'com.github.j2objccontrib.j2objcgradle'
 
 sourceCompatibility = 1.8
 
@@ -56,32 +52,4 @@ dependencies {
 
     // Test
     testCompile('junit:junit:4.12')
-}
-
-
-j2objcConfig {
-    autoConfigureDeps true
-    skipJ2objcVerification true
-    extraLinkerArgs "-liconv"
-
-    translateArgs '--build-closure'
-    translateArgs '--swift-friendly'
-    translateArgs '--prefixes', 'prefixes.properties'
-    extraObjcCompilerArgs '-fembed-bitcode'
-
-    finalConfigure()
-}
-
-j2objcPodspec.doLast {
-    [getPodspecDebug(), getPodspecRelease()].asList().each {
-
-        String text = it.text.replace(
-                "Pod::Spec.new do |spec|",
-                '''Pod::Spec.new do |spec|
-  spec.authors = 'Akihiro Urushihara'
-  spec.license = 'MIT'
-  spec.homepage = 'https://twitter.com/U_Akihir0'
-  spec.source = { :git => 'git@bitbucket.org:your/repo.git' }''')
-        it.write(text)
-    }
 }

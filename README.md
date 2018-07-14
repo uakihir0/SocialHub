@@ -76,8 +76,8 @@ After J2objC comple, ```cocoapod.spec``` will be created in ```build/j2objcOutpu
 
 ```
 def j2objc_socialhub
-    pod 'j2objc-socialhub-debug', :configuration => ['Debug'], :path => '../shared/build/j2objcOutputs'
-    pod 'j2objc-socialhub-release', :configuration => ['Release'], :path => '../shared/build/j2objcOutputs'
+    pod 'j2objc-SocialHub-debug', :configuration => ['Debug'], :path => '../shared/build/j2objcOutputs'
+    pod 'j2objc-SocialHub-release', :configuration => ['Release'], :path => '../shared/build/j2objcOutputs'
 end
 
 <SOME COMPLEX RUBY>

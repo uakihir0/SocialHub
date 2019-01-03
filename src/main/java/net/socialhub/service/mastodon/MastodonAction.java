@@ -1,18 +1,18 @@
 package net.socialhub.service.mastodon;
 
 import mastodon4j.Mastodon;
+import mastodon4j.entity.Relationship;
+import mastodon4j.entity.Status;
+import mastodon4j.entity.share.Response;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.service.ServiceAuth;
-import net.socialhub.service.action.SuperAccountAction;
+import net.socialhub.service.action.AccountActionImpl;
 
-public class MastodonAction extends SuperAccountAction {
+import static net.socialhub.define.ActionEnum.*;
+
+public class MastodonAction extends AccountActionImpl {
 
     private static Logger logger = Logger.getLogger(MastodonAction.class);
 
@@ -22,39 +22,117 @@ public class MastodonAction extends SuperAccountAction {
     // Account
     // ============================================================== //
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public User getUserMe() {
         return proceed(() -> {
+            Mastodon mastodon = auth.getToken();
             Service service = getAccount().getService();
-            mastodon4j.entity.Account account = auth.getToken().verifyCredentials();
+            Response<mastodon4j.entity.Account> account = mastodon.verifyCredentials();
 
-            return MastodonMapper.user(account, service);
+            service.getRateLimit().addInfo(GetUserMe, account);
+            return MastodonMapper.user(account.get(), service);
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public User getUser(Identify id) {
         return proceed(() -> {
+            Mastodon mastodon = auth.getToken();
             Service service = getAccount().getService();
-            mastodon4j.entity.Account account = auth.getToken().getAccount(id.getNumberId());
+            Response<mastodon4j.entity.Account> account = mastodon.getAccount(id.getNumberId());
 
-            return MastodonMapper.user(account, service);
+            service.getRateLimit().addInfo(GetUser, account);
+            return MastodonMapper.user(account.get(), service);
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void followUser(Identify id) {
         proceed(() -> {
             Mastodon mastodon = auth.getToken();
-            mastodon.follow(id.getNumberId());
+            Service service = getAccount().getService();
+            Response<Relationship> relationship = mastodon.follow(id.getNumberId());
+
+            service.getRateLimit().addInfo(FollowUser, relationship);
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unfollowUser(Identify id) {
         proceed(() -> {
             Mastodon mastodon = auth.getToken();
-            mastodon.unfollow(id.getNumberId());
+            Service service = getAccount().getService();
+            Response<Relationship> relationship = mastodon.unfollow(id.getNumberId());
+
+            service.getRateLimit().addInfo(UnfollowUser, relationship);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void muteUser(Identify id) {
+        proceed(() -> {
+            Mastodon mastodon = auth.getToken();
+            Service service = getAccount().getService();
+            Response<Relationship> relationship = mastodon.mute(id.getNumberId());
+
+            service.getRateLimit().addInfo(MuteUser, relationship);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unmuteUser(Identify id) {
+        proceed(() -> {
+            Mastodon mastodon = auth.getToken();
+            Service service = getAccount().getService();
+            Response<Relationship> relationship = mastodon.unmute(id.getNumberId());
+
+            service.getRateLimit().addInfo(UnmuteUser, relationship);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void blockUser(Identify id) {
+        proceed(() -> {
+            Mastodon mastodon = auth.getToken();
+            Service service = getAccount().getService();
+            Response<Relationship> relationship = mastodon.block(id.getNumberId());
+
+            service.getRateLimit().addInfo(BlockUser, relationship);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unblockUser(Identify id) {
+        proceed(() -> {
+            Mastodon mastodon = auth.getToken();
+            Service service = getAccount().getService();
+            Response<Relationship> relationship = mastodon.unblock(id.getNumberId());
+
+            service.getRateLimit().addInfo(UnblockUser, relationship);
         });
     }
 
@@ -62,26 +140,46 @@ public class MastodonAction extends SuperAccountAction {
     // Comment
     // ============================================================== //
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<Comment> getHomeTimeLine(Paging paging) {
         return proceed(() -> {
-            return null;
+            Mastodon mastodon = auth.getToken();
+            Service service = getAccount().getService();
+            Response<Status[]> status = mastodon.getHomeTimeline();
+
+            service.getRateLimit().addInfo(HomeTimeLine, status);
+            return MastodonMapper.timeLine(status.get(), service, paging);
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void like(Identify id){
-        proceed(() ->{
+    public void like(Identify id) {
+        proceed(() -> {
             Mastodon mastodon = auth.getToken();
-            mastodon.statuses().favourite(id.getNumberId());
+            Service service = getAccount().getService();
+            Response<Status> status = mastodon.statuses().favourite(id.getNumberId());
+
+            service.getRateLimit().addInfo(LikeComment, status);
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void unlike(Identify id){
-        proceed(() ->{
+    public void unlike(Identify id) {
+        proceed(() -> {
             Mastodon mastodon = auth.getToken();
-            mastodon.statuses().unfavourite(id.getNumberId());
+            Service service = getAccount().getService();
+            Response<Status> status = mastodon.statuses().unfavourite(id.getNumberId());
+
+            service.getRateLimit().addInfo(UnlikeComment, status);
         });
     }
 

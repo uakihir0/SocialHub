@@ -3,10 +3,15 @@ package net.socialhub.service.action;
 import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.service.*;
 
+/**
+ * Account Actions
+ * (全てのアクションを定義)
+ */
 public interface AccountAction {
 
     // ============================================================== //
-    // Account
+    // Account API
+    // アカウント関連 API
     // ============================================================== //
 
     /**
@@ -34,15 +39,49 @@ public interface AccountAction {
     }
 
     /**
-     * UnFollow User
-     * ユーザーをアンフォロー
+     * Unfollow User
+     * ユーザーをフォロー解除
      */
     default void unfollowUser(Identify id) {
         throw new NotImplimentedException();
     }
 
+    /**
+     * Mute User
+     * ユーザーをミュート
+     */
+    default void muteUser(Identify id) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Unmute User
+     * ユーザーをミュート解除
+     */
+    default void unmuteUser(Identify id) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Block User
+     * ユーザーをブロック
+     */
+    default void blockUser(Identify id) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Unblock User
+     * ユーザーをブロック解除
+     */
+    default void unblockUser(Identify id) {
+        throw new NotImplimentedException();
+    }
+
+
     // ============================================================== //
-    // Comment
+    // Comment API
+    // コメント関連 API
     // ============================================================== //
 
     /**
@@ -63,7 +102,7 @@ public interface AccountAction {
     }
 
     /**
-     * UnLike Comment
+     * Unlike Comment
      * コメントに対してのイイねを取り消す
      * (Twitter Mastodon ではお気に入りを消す)
      */
@@ -75,36 +114,39 @@ public interface AccountAction {
      * Share Comment
      * コメントをシェアする
      */
-    default void share(Identify id){
+    default void share(Identify id) {
         throw new NotImplimentedException();
     }
 
     /**
-     * UnShare Comment
+     * Unshare Comment
      * コメントのシェアを取り消す
      */
-    default void unshare(Identify id){
+    default void unshare(Identify id) {
         throw new NotImplimentedException();
     }
 
 
     // ============================================================== //
     // Alias
+    // エイリアス
     // ============================================================== //
 
     /** Like <-> Favorite */
-    default void favorite(Identify id){
+    default void favorite(Identify id) {
         like(id);
     }
-    default void unfavorite(Identify id){
+
+    default void unfavorite(Identify id) {
         unlike(id);
     }
 
     /** Share <-> Retweet */
-    default void retweet(Identify id){
+    default void retweet(Identify id) {
         share(id);
     }
-    default void unretweet(Identify id){
+
+    default void unretweet(Identify id) {
         unshare(id);
     }
 }

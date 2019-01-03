@@ -51,7 +51,7 @@ dependencies {
     // J2ObjC Network Library
     compile('com.github.uakihir0.twitter4j:twitter4j-core:4.0.6.13')
     compile('com.github.uakihir0.facebook4j:facebook4j-core:2.4.11.3')
-    compile('com.github.uakihir0:mastodon4j:0.2.3')
+    compile('com.github.uakihir0:mastodon4j:0.2.4')
     compile('com.github.uakihir0:jslack:1.0.25.4')
 
     // Test
@@ -72,16 +72,28 @@ j2objcConfig {
     finalConfigure()
 }
 
+j2objcTranslate.doLast {
+    exec {
+        executable "sh"
+        args './tool/buildheader.sh'
+    }
+}
+
 j2objcPodspec.doLast {
     [getPodspecDebug(), getPodspecRelease()].asList().each {
 
-        String text = it.text.replace(
+        String text = it.text
+                .replace(
                 "Pod::Spec.new do |spec|",
                 '''Pod::Spec.new do |spec|
   spec.authors = 'Akihiro Urushihara'
   spec.license = 'MIT'
   spec.homepage = 'https://twitter.com/U_Akihir0'
   spec.source = { :git => 'git@bitbucket.org:your/repo.git' }''')
+                .replace(
+                "icucore",
+                "icucore', 'iconv")
+
         it.write(text)
     }
 }

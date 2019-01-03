@@ -15,13 +15,13 @@ import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
 import net.socialhub.service.ServiceAuth;
-import net.socialhub.service.action.SuperAccountAction;
+import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.service.slack.SlackAuth.SlackAccessor;
 
 /**
  * Slack Actions
  */
-public class SlackAction extends SuperAccountAction {
+public class SlackAction extends AccountActionImpl {
 
     private static Logger logger = Logger.getLogger(SlackAction.class);
 
@@ -31,6 +31,9 @@ public class SlackAction extends SuperAccountAction {
     // Account
     // ============================================================== //
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public User getUserMe() {
         return proceed(() -> {
@@ -43,6 +46,9 @@ public class SlackAction extends SuperAccountAction {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public User getUser(Identify id) {
         return proceed(() -> {
@@ -58,6 +64,10 @@ public class SlackAction extends SuperAccountAction {
     // ============================================================== //
     // Comment
     // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void like(Identify id) {
         proceed(() -> {
@@ -69,6 +79,9 @@ public class SlackAction extends SuperAccountAction {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unlike(Identify id) {
         proceed(() -> {
@@ -80,6 +93,9 @@ public class SlackAction extends SuperAccountAction {
         });
     }
 
+    // ============================================================== //
+    // Utils
+    // ============================================================== //
 
     private <T> T proceed(ActionCaller<T, Exception> runner) {
         try {

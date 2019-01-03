@@ -1,14 +1,9 @@
 package net.socialhub.service.twitter;
 
 import net.socialhub.model.Account;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.service.ServiceAuth;
-import net.socialhub.service.action.SuperAccountAction;
+import net.socialhub.service.action.AccountActionImpl;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -20,7 +15,7 @@ import static net.socialhub.define.ActionEnum.*;
  * Twitter Actions
  * (All Actions)
  */
-public class TwitterAction extends SuperAccountAction {
+public class TwitterAction extends AccountActionImpl {
 
     private ServiceAuth<Twitter> auth;
 
@@ -28,6 +23,9 @@ public class TwitterAction extends SuperAccountAction {
     // Account
     // ============================================================== //
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public User getUserMe() {
         return proceed(() -> {
@@ -39,17 +37,23 @@ public class TwitterAction extends SuperAccountAction {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public User getUser(Identify id) {
         return proceed(() -> {
             Service service = getAccount().getService();
             twitter4j.User user = auth.getToken().showUser(id.getNumberId());
 
-            service.getRateLimit().addInfo(GetUserMe, user);
+            service.getRateLimit().addInfo(GetUser, user);
             return TwitterMapper.user(user, service);
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void followUser(Identify id) {
         proceed(() -> {
@@ -59,6 +63,9 @@ public class TwitterAction extends SuperAccountAction {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unfollowUser(Identify id) {
         proceed(() -> {
@@ -68,10 +75,61 @@ public class TwitterAction extends SuperAccountAction {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void muteUser(Identify id) {
+        proceed(() -> {
+            Service service = getAccount().getService();
+            twitter4j.User after = auth.getToken().createMute(id.getNumberId());
+            service.getRateLimit().addInfo(MuteUser, after);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unmuteUser(Identify id) {
+        proceed(() -> {
+            Service service = getAccount().getService();
+            twitter4j.User after = auth.getToken().destroyMute(id.getNumberId());
+            service.getRateLimit().addInfo(UnmuteUser, after);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void blockUser(Identify id) {
+        proceed(() -> {
+            Service service = getAccount().getService();
+            twitter4j.User after = auth.getToken().createBlock(id.getNumberId());
+            service.getRateLimit().addInfo(BlockUser, after);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unblockUser(Identify id) {
+        proceed(() -> {
+            Service service = getAccount().getService();
+            twitter4j.User after = auth.getToken().destroyBlock(id.getNumberId());
+            service.getRateLimit().addInfo(UnblockUser, after);
+        });
+    }
+
     // ============================================================== //
     // Comment
     // ============================================================== //
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<Comment> getHomeTimeLine(Paging paging) {
         return proceed(() -> {
@@ -85,8 +143,11 @@ public class TwitterAction extends SuperAccountAction {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void like(Identify id){
+    public void like(Identify id) {
         proceed(() -> {
             Twitter twitter = auth.getToken();
             Status status = twitter.favorites().createFavorite(id.getNumberId());
@@ -96,8 +157,11 @@ public class TwitterAction extends SuperAccountAction {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void unlike(Identify id){
+    public void unlike(Identify id) {
         proceed(() -> {
             Twitter twitter = auth.getToken();
             Status status = twitter.favorites().destroyFavorite(id.getNumberId());

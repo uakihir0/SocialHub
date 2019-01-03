@@ -1,6 +1,6 @@
 package net.socialhub.model.service;
 
-import net.socialhub.define.ServiceEnum;
+import net.socialhub.define.ServiceTypeEnum;
 import net.socialhub.model.Account;
 
 /**
@@ -11,7 +11,7 @@ public class Service {
 
     private Account account;
 
-    private ServiceEnum service;
+    private ServiceTypeEnum type;
     private RateLimit rateLimit;
 
     /** Use Only Mastodon */
@@ -22,8 +22,8 @@ public class Service {
     /**
      * For Twitter
      */
-    public Service(ServiceEnum service, Account account) {
-        this.service = service;
+    public Service(ServiceTypeEnum type, Account account) {
+        this.type = type;
         this.account = account;
         this.rateLimit = new RateLimit();
     }
@@ -37,12 +37,12 @@ public class Service {
         this.account = account;
     }
 
-    public ServiceEnum getService() {
-        return service;
+    public ServiceTypeEnum getType() {
+        return type;
     }
 
-    public void setService(ServiceEnum service) {
-        this.service = service;
+    public void setType(ServiceTypeEnum type) {
+        this.type = type;
     }
 
     public RateLimit getRateLimit() {

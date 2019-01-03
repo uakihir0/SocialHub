@@ -8,7 +8,7 @@ public class CommentRequest {
 
     private List<byte[]> images;
 
-    public CommentRequest message(String message){
+    public CommentRequest message(String message) {
         this.message = message;
         return this;
     }

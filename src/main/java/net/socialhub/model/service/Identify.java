@@ -9,11 +9,22 @@ import java.util.Map;
  */
 public class Identify {
 
+    private Service service;
+
     private Long numberId;
     private String stringId;
 
     /** 追加情報 (必要な場合のみ付与) */
     private Map<String, String> additions;
+
+    // Constructor
+    public Identify() {
+    }
+
+    // Constructor with Service
+    public Identify(Service service) {
+        this.service = service;
+    }
 
     public void setId(Long number) {
         this.numberId = number;
@@ -23,7 +34,6 @@ public class Identify {
         this.stringId = string;
     }
 
-
     @Override
     public String toString() {
         if (this.numberId != null)
@@ -32,6 +42,14 @@ public class Identify {
     }
 
     //region // Getter&Setter
+    public Service getService() {
+        return service;
+    }
+
+    public void setService(Service service) {
+        this.service = service;
+    }
+
     public Long getNumberId() {
         return numberId;
     }

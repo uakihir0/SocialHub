@@ -1,6 +1,6 @@
 package net.socialhub.service.twitter;
 
-import net.socialhub.define.ServiceEnum;
+import net.socialhub.define.ServiceTypeEnum;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.Service;
 import net.socialhub.service.ServiceAuth;
@@ -35,7 +35,7 @@ public class TwitterAuth implements ServiceAuth<Twitter> {
         this.accessSecret = accessSecret;
 
         Account account = new Account();
-        ServiceEnum type = ServiceEnum.Twitter;
+        ServiceTypeEnum type = ServiceTypeEnum.Twitter;
         Service service = new Service(type, account);
         account.setAction(new TwitterAction(account, this));
         account.setService(service);

@@ -9,15 +9,13 @@ import net.socialhub.service.action.UserAction;
 
 public class User extends Identify {
 
-    private Service service;
-
     private String name;
     private String imageUrl;
     private String screenName;
     private String description;
 
     public User(Service service) {
-        this.service = service;
+        super(service);
     }
 
     public UserAction getAction() {
@@ -41,13 +39,6 @@ public class User extends Identify {
         this.screenName = screenName;
     }
 
-    public Service getService() {
-        return service;
-    }
-
-    public void setService(Service service) {
-        this.service = service;
-    }
 
     public String getDescription() {
         return description;

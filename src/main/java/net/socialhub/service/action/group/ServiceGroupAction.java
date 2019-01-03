@@ -21,10 +21,6 @@ public class ServiceGroupAction {
                         (acc) -> acc.getAction().getUserMe()));
     }
 
-
-
-
-
     //<editor-fold desc="// Getter&Setter">
     public GroupAccount getGroupAccount() {
         return groupAccount;

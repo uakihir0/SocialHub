@@ -1,10 +1,6 @@
 package net.socialhub.service.twitter;
 
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.utils.MemoSupplier;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -17,9 +13,9 @@ public class TwitterMapper {
     /**
      * ユーザーマッピング
      */
-    public static User user( //
-                             twitter4j.User user, //
-                             Service service) {
+    public static User user(
+            twitter4j.User user, //
+            Service service) {
 
         User model = new User(service);
 
@@ -35,9 +31,9 @@ public class TwitterMapper {
     /**
      * コメントマッピング
      */
-    public static Comment comment( //
-                                   Status status,  //
-                                   Service service) {
+    public static Comment comment(
+            Status status,  //
+            Service service) {
 
         Comment model = new Comment(service);
 
@@ -52,8 +48,8 @@ public class TwitterMapper {
     /**
      * ページングマッピング
      */
-    public static Paging paging( //
-                                 twitter4j.Paging paging) {
+    public static Paging paging(
+            twitter4j.Paging paging) {
 
         Paging model = new Paging();
 
@@ -65,14 +61,22 @@ public class TwitterMapper {
         return model;
     }
 
-    public static twitter4j.Paging fromPaging( //
-                                               Paging paging) {
+    public static twitter4j.Paging fromPaging(
+            Paging paging) {
 
         twitter4j.Paging model = new twitter4j.Paging();
-        model.setPage(paging.getPage() == null ? -1 : paging.getPage().intValue());
-        model.setCount(paging.getCount() == null ? -1 : paging.getCount().intValue());
-        model.setMaxId(paging.getMaxId() == null ? -1 : paging.getMaxId());
-        model.setSinceId(paging.getSinceId() == null ? -1 : paging.getSinceId());
+        if (paging.getPage() != null) {
+            model.setPage(paging.getPage().intValue());
+        }
+        if (paging.getCount() != null) {
+            model.setCount(paging.getCount().intValue());
+        }
+        if (paging.getMaxId() != null) {
+            model.setMaxId(paging.getMaxId());
+        }
+        if (paging.getSinceId() != null) {
+            model.setSinceId(paging.getSinceId());
+        }
 
         return model;
     }
@@ -80,10 +84,10 @@ public class TwitterMapper {
     /**
      * タイムラインマッピング
      */
-    public static Pageable<Comment> timeLine( //
-                                              ResponseList<Status> statuses, //
-                                              Service service, //
-                                              Paging paging) {
+    public static Pageable<Comment> timeLine(
+            ResponseList<Status> statuses, //
+            Service service, //
+            Paging paging) {
 
         Pageable<Comment> model = new Pageable<>();
         model.setEntities(statuses.stream().map(e -> comment(e, service)) //

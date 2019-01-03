@@ -1,7 +1,7 @@
 package net.socialhub.model.service;
 
 import net.socialhub.define.ActionEnum;
-import net.socialhub.define.ServiceEnum;
+import net.socialhub.define.ServiceTypeEnum;
 import org.apache.commons.lang3.time.DateUtils;
 import twitter4j.RateLimitStatus;
 
@@ -15,7 +15,7 @@ import java.util.Map;
  */
 public class RateLimit {
 
-    private Map<ActionEnum, SHSvRateLimitValue> dictionary = new HashMap<>();
+    private Map<ActionEnum, RateLimitValue> dictionary = new HashMap<>();
 
     /**
      * レートリミット情報を格納
@@ -23,10 +23,19 @@ public class RateLimit {
      * (For Twitter)
      */
     public void addInfo(ActionEnum action, twitter4j.TwitterResponse response) {
-        SHSvRateLimitValue value = new SHSvRateLimitValue(response);
+        RateLimitValue value = new RateLimitValue(response);
         dictionary.put(action, value);
     }
 
+    /**
+     * レートリミット情報を格納
+     * Set rate limit info
+     * (For Mastodon)
+     */
+    public void addInfo(ActionEnum action, mastodon4j.entity.share.Response<?> response) {
+        RateLimitValue value = new RateLimitValue(response);
+        dictionary.put(action, value);
+    }
 
     /**
      * リクエスト可能かどうか？
@@ -37,9 +46,9 @@ public class RateLimit {
                 dictionary.get(action).isRemaining();
     }
 
-    private static class SHSvRateLimitValue {
+    private static class RateLimitValue {
 
-        private ServiceEnum service;
+        private ServiceTypeEnum service;
 
         private int limit;
         private int remaining;
@@ -48,13 +57,25 @@ public class RateLimit {
         /**
          * For Twitter
          */
-        private SHSvRateLimitValue(twitter4j.TwitterResponse response) {
+        private RateLimitValue(twitter4j.TwitterResponse response) {
             RateLimitStatus rateLimit = response.getRateLimitStatus();
-            this.service = ServiceEnum.Twitter;
+            this.service = ServiceTypeEnum.Twitter;
 
             this.limit = rateLimit.getLimit();
             this.remaining = rateLimit.getRemaining();
             this.reset = DateUtils.addSeconds(new Date(), rateLimit.getSecondsUntilReset());
+        }
+
+        /**
+         * For Mastodon
+         */
+        private RateLimitValue(mastodon4j.entity.share.Response<?> response) {
+            mastodon4j.entity.share.RateLimit rateLimit = response.getRateLimit();
+            this.service = ServiceTypeEnum.Mastodon;
+
+            this.limit = rateLimit.getLimit();
+            this.remaining = rateLimit.getRemaining();
+            this.reset = rateLimit.getReset();
         }
 
         /**

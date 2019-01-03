@@ -1,8 +1,8 @@
 package net.socialhub.service.action;
 
+import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
-import net.socialhub.service.facebook.FacebookAction.SHFacebookUserAction;
 
 public interface UserAction {
 
@@ -20,19 +20,49 @@ public interface UserAction {
      * UnFollow User
      * アカウントをアンフォロー
      */
-    default void unfollowUser(){
+    default void unfollowUser() {
         throw new IllegalStateException();
     }
 
+    /**
+     * Mute User
+     * ユーザーをミュート
+     */
+    default void muteUser() {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * UnMute User
+     * ユーザーをミュート解除
+     */
+    default void unmuteUser() {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Block User
+     * ユーザーをブロック
+     */
+    default void blockUser() {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * UnBlock User
+     * ユーザーをブロック解除
+     */
+    default void unblockUser() {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Generate UserAction from User
+     * ユーザーからユーザーアクションを生成
+     */
     static UserAction of(User user) {
         Service service = user.getService();
         AccountAction action = service.getAccount().getAction();
-
-        switch (service.getService()) {
-            case Facebook:
-                return new SHFacebookUserAction(action).user(user);
-        }
-
-        return new SuperUserAction(action).user(user);
+        return new UserActionImpl(action).user(user);
     }
 }

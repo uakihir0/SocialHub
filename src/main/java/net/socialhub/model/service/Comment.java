@@ -1,5 +1,6 @@
 package net.socialhub.model.service;
 
+import net.socialhub.service.action.CommentAction;
 import net.socialhub.utils.MemoSupplier;
 
 import java.util.Date;
@@ -10,8 +11,6 @@ import java.util.Date;
  */
 public class Comment extends Identify {
 
-    private Service service;
-
     private String comment;
 
     private Date createAt;
@@ -19,18 +18,15 @@ public class Comment extends Identify {
     private MemoSupplier<User> user;
 
     public Comment(Service service) {
-        this.service = service;
+        super(service);
     }
+
+    public CommentAction getAction() {
+        return CommentAction.of(this);
+    }
+
 
     //region // Getter&Setter
-    public Service getService() {
-        return service;
-    }
-
-    public void setService(Service service) {
-        this.service = service;
-    }
-
     public String getComment() {
         return comment;
     }

@@ -14,16 +14,17 @@ public enum ActionEnum {
     PostComment,
     DeleteComment,
     EditComment,
-
     LikeComment,
     UnlikeComment,
 
     // User
     GetUser,
     GetUserMe,
-
-    //
     FollowUser,//
     UnfollowUser,
+    MuteUser, //
+    UnmuteUser, //
+    BlockUser, //
+    UnblockUser, //
     ;
 }

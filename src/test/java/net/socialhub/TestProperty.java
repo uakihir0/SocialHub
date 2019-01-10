@@ -33,6 +33,7 @@ public class TestProperty {
     public static class MastodonProperty {
 
         public static final String Host = "";
+        public static final String RedirectUrl = "";
         public static final String ClientId = "";
         public static final String ClientSecret = "";
         public static final String AccessToken = "";
@@ -40,6 +41,7 @@ public class TestProperty {
 
     public static class SlackProperty {
 
+        public static final String RedirectUrl = "";
         public static final String ClientId = "";
         public static final String ClientSecret = "";
         public static final String Token = "";

@@ -28,7 +28,7 @@ public class MastodonAction extends AccountActionImpl {
     @Override
     public User getUserMe() {
         return proceed(() -> {
-            Mastodon mastodon = auth.getToken();
+            Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
             Response<mastodon4j.entity.Account> account = mastodon.verifyCredentials();
 
@@ -43,7 +43,7 @@ public class MastodonAction extends AccountActionImpl {
     @Override
     public User getUser(Identify id) {
         return proceed(() -> {
-            Mastodon mastodon = auth.getToken();
+            Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
             Response<mastodon4j.entity.Account> account = mastodon.getAccount(id.getNumberId());
 
@@ -58,7 +58,7 @@ public class MastodonAction extends AccountActionImpl {
     @Override
     public void followUser(Identify id) {
         proceed(() -> {
-            Mastodon mastodon = auth.getToken();
+            Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
             Response<Relationship> relationship = mastodon.follow(id.getNumberId());
 
@@ -72,7 +72,7 @@ public class MastodonAction extends AccountActionImpl {
     @Override
     public void unfollowUser(Identify id) {
         proceed(() -> {
-            Mastodon mastodon = auth.getToken();
+            Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
             Response<Relationship> relationship = mastodon.unfollow(id.getNumberId());
 
@@ -86,7 +86,7 @@ public class MastodonAction extends AccountActionImpl {
     @Override
     public void muteUser(Identify id) {
         proceed(() -> {
-            Mastodon mastodon = auth.getToken();
+            Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
             Response<Relationship> relationship = mastodon.mute(id.getNumberId());
 
@@ -100,7 +100,7 @@ public class MastodonAction extends AccountActionImpl {
     @Override
     public void unmuteUser(Identify id) {
         proceed(() -> {
-            Mastodon mastodon = auth.getToken();
+            Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
             Response<Relationship> relationship = mastodon.unmute(id.getNumberId());
 
@@ -114,7 +114,7 @@ public class MastodonAction extends AccountActionImpl {
     @Override
     public void blockUser(Identify id) {
         proceed(() -> {
-            Mastodon mastodon = auth.getToken();
+            Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
             Response<Relationship> relationship = mastodon.block(id.getNumberId());
 
@@ -128,7 +128,7 @@ public class MastodonAction extends AccountActionImpl {
     @Override
     public void unblockUser(Identify id) {
         proceed(() -> {
-            Mastodon mastodon = auth.getToken();
+            Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
             Response<Relationship> relationship = mastodon.unblock(id.getNumberId());
 
@@ -146,7 +146,7 @@ public class MastodonAction extends AccountActionImpl {
     @Override
     public Pageable<Comment> getHomeTimeLine(Paging paging) {
         return proceed(() -> {
-            Mastodon mastodon = auth.getToken();
+            Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
             Response<Status[]> status = mastodon.getHomeTimeline();
 
@@ -161,7 +161,7 @@ public class MastodonAction extends AccountActionImpl {
     @Override
     public void like(Identify id) {
         proceed(() -> {
-            Mastodon mastodon = auth.getToken();
+            Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
             Response<Status> status = mastodon.statuses().favourite(id.getNumberId());
 
@@ -175,7 +175,7 @@ public class MastodonAction extends AccountActionImpl {
     @Override
     public void unlike(Identify id) {
         proceed(() -> {
-            Mastodon mastodon = auth.getToken();
+            Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
             Response<Status> status = mastodon.statuses().unfavourite(id.getNumberId());
 

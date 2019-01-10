@@ -10,9 +10,9 @@ public final class SlackMapper {
     /**
      * ユーザーマッピング
      */
-    public static User user( //
-                             UsersIdentityResponse response, //
-                             Service service) {
+    public static User user(
+            UsersIdentityResponse response, //
+            Service service) {
 
         User model = new User(service);
 
@@ -23,9 +23,9 @@ public final class SlackMapper {
         return model;
     }
 
-    public static User user( //
-                             UsersInfoResponse response, //
-                             Service service) {
+    public static User user(
+            UsersInfoResponse response, //
+            Service service) {
 
         User model = new User(service);
 

@@ -8,7 +8,7 @@ import com.github.seratch.jslack.api.methods.response.reactions.ReactionsAddResp
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsRemoveResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersIdentityResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
-import net.socialhub.define.service.SlackConstants;
+import net.socialhub.define.service.SlackConstant;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.Identify;
@@ -38,9 +38,10 @@ public class SlackAction extends AccountActionImpl {
     public User getUserMe() {
         return proceed(() -> {
             Service service = getAccount().getService();
-            UsersIdentityResponse account = auth.getToken().getSlack() //
+            UsersIdentityResponse account = auth.getAccessor().getSlack() //
                     .methods().usersIdentity(UsersIdentityRequest.builder() //
-                            .token(auth.getToken().getToken()).build());
+                            .token(auth.getAccessor().getToken()) //
+                            .build());
 
             return SlackMapper.user(account, service);
         });
@@ -53,9 +54,11 @@ public class SlackAction extends AccountActionImpl {
     public User getUser(Identify id) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            UsersInfoResponse account = auth.getToken().getSlack() //
+            UsersInfoResponse account = auth.getAccessor().getSlack() //
                     .methods().usersInfo(UsersInfoRequest.builder() //
-                            .token(auth.getToken().getToken()).user(id.getStringId()).build());
+                            .token(auth.getAccessor().getToken()) //
+                            .user(id.getStringId()) //
+                            .build());
 
             return SlackMapper.user(account, service);
         });
@@ -72,10 +75,11 @@ public class SlackAction extends AccountActionImpl {
     public void like(Identify id) {
         proceed(() -> {
             Service service = getAccount().getService();
-            ReactionsAddResponse response = auth.getToken().getSlack() //
+            ReactionsAddResponse response = auth.getAccessor().getSlack() //
                     .methods().reactionsAdd(ReactionsAddRequest.builder() //
-                            .channel(id.getInfo(SlackConstants.CHANNEL_KEY)) //
-                            .token(auth.getToken().getToken()).build());
+                            .channel(id.getInfo(SlackConstant.CHANNEL_KEY)) //
+                            .token(auth.getAccessor().getToken()) //
+                            .build());
         });
     }
 
@@ -86,10 +90,11 @@ public class SlackAction extends AccountActionImpl {
     public void unlike(Identify id) {
         proceed(() -> {
             Service service = getAccount().getService();
-            ReactionsRemoveResponse response = auth.getToken().getSlack() //
+            ReactionsRemoveResponse response = auth.getAccessor().getSlack() //
                     .methods().reactionsRemove(ReactionsRemoveRequest.builder() //
-                            .channel(id.getInfo(SlackConstants.CHANNEL_KEY)) //
-                            .token(auth.getToken().getToken()).build());
+                            .channel(id.getInfo(SlackConstant.CHANNEL_KEY)) //
+                            .token(auth.getAccessor().getToken()) //
+                            .build());
         });
     }
 

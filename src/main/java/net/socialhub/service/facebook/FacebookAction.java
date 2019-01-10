@@ -27,7 +27,7 @@ public class FacebookAction extends AccountActionImpl {
     public User getUserMe() {
         return proceed(() -> {
             Service service = getAccount().getService();
-            facebook4j.User user = auth.getToken().users().getMe();
+            facebook4j.User user = auth.getAccessor().users().getMe();
 
             return FacebookMapper.user(user, service);
         });
@@ -40,7 +40,7 @@ public class FacebookAction extends AccountActionImpl {
     public User getUser(Identify id) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            facebook4j.User user = auth.getToken().users().getUser(id.getStringId());
+            facebook4j.User user = auth.getAccessor().users().getUser(id.getStringId());
 
             return FacebookMapper.user(user, service);
         });
@@ -56,7 +56,7 @@ public class FacebookAction extends AccountActionImpl {
     @Override
     public void like(Identify id) {
         proceed(() -> {
-            auth.getToken().comments().likeComment(id.getStringId());
+            auth.getAccessor().comments().likeComment(id.getStringId());
         });
     }
 
@@ -66,7 +66,7 @@ public class FacebookAction extends AccountActionImpl {
     @Override
     public void unlike(Identify id) {
         proceed(() -> {
-            auth.getToken().comments().unlikeComment(id.getStringId());
+            auth.getAccessor().comments().unlikeComment(id.getStringId());
         });
     }
 

@@ -9,6 +9,22 @@ public interface CommentAction {
     CommentAction comment(Comment comment);
 
     /**
+     * Add Reaction
+     * リアクションをする
+     */
+    default void reaction(String action) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Remove Reaction
+     * リアクションをする
+     */
+    default void unreaction(String action) {
+        throw new NotImplimentedException();
+    }
+
+    /**
      * Like Comment
      * コメントをいいねする
      */

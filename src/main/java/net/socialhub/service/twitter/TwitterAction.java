@@ -30,7 +30,7 @@ public class TwitterAction extends AccountActionImpl {
     public User getUserMe() {
         return proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User user = auth.getToken().verifyCredentials();
+            twitter4j.User user = auth.getAccessor().verifyCredentials();
             service.getRateLimit().addInfo(GetUserMe, user);
 
             return TwitterMapper.user(user, service);
@@ -44,7 +44,7 @@ public class TwitterAction extends AccountActionImpl {
     public User getUser(Identify id) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User user = auth.getToken().showUser(id.getNumberId());
+            twitter4j.User user = auth.getAccessor().showUser(id.getNumberId());
 
             service.getRateLimit().addInfo(GetUser, user);
             return TwitterMapper.user(user, service);
@@ -58,7 +58,7 @@ public class TwitterAction extends AccountActionImpl {
     public void followUser(Identify id) {
         proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User after = auth.getToken().createFriendship(id.getNumberId());
+            twitter4j.User after = auth.getAccessor().createFriendship(id.getNumberId());
             service.getRateLimit().addInfo(FollowUser, after);
         });
     }
@@ -70,7 +70,7 @@ public class TwitterAction extends AccountActionImpl {
     public void unfollowUser(Identify id) {
         proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User after = auth.getToken().destroyFriendship(id.getNumberId());
+            twitter4j.User after = auth.getAccessor().destroyFriendship(id.getNumberId());
             service.getRateLimit().addInfo(UnfollowUser, after);
         });
     }
@@ -82,7 +82,7 @@ public class TwitterAction extends AccountActionImpl {
     public void muteUser(Identify id) {
         proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User after = auth.getToken().createMute(id.getNumberId());
+            twitter4j.User after = auth.getAccessor().createMute(id.getNumberId());
             service.getRateLimit().addInfo(MuteUser, after);
         });
     }
@@ -94,7 +94,7 @@ public class TwitterAction extends AccountActionImpl {
     public void unmuteUser(Identify id) {
         proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User after = auth.getToken().destroyMute(id.getNumberId());
+            twitter4j.User after = auth.getAccessor().destroyMute(id.getNumberId());
             service.getRateLimit().addInfo(UnmuteUser, after);
         });
     }
@@ -106,7 +106,7 @@ public class TwitterAction extends AccountActionImpl {
     public void blockUser(Identify id) {
         proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User after = auth.getToken().createBlock(id.getNumberId());
+            twitter4j.User after = auth.getAccessor().createBlock(id.getNumberId());
             service.getRateLimit().addInfo(BlockUser, after);
         });
     }
@@ -118,7 +118,7 @@ public class TwitterAction extends AccountActionImpl {
     public void unblockUser(Identify id) {
         proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User after = auth.getToken().destroyBlock(id.getNumberId());
+            twitter4j.User after = auth.getAccessor().destroyBlock(id.getNumberId());
             service.getRateLimit().addInfo(UnblockUser, after);
         });
     }
@@ -133,7 +133,7 @@ public class TwitterAction extends AccountActionImpl {
     @Override
     public Pageable<Comment> getHomeTimeLine(Paging paging) {
         return proceed(() -> {
-            Twitter twitter = auth.getToken();
+            Twitter twitter = auth.getAccessor();
             Service service = getAccount().getService();
             ResponseList<Status> statues = (paging == null) ? twitter.getHomeTimeline() //
                     : twitter.getHomeTimeline(TwitterMapper.fromPaging(paging));
@@ -149,7 +149,7 @@ public class TwitterAction extends AccountActionImpl {
     @Override
     public void like(Identify id) {
         proceed(() -> {
-            Twitter twitter = auth.getToken();
+            Twitter twitter = auth.getAccessor();
             Status status = twitter.favorites().createFavorite(id.getNumberId());
 
             Service service = getAccount().getService();
@@ -163,7 +163,7 @@ public class TwitterAction extends AccountActionImpl {
     @Override
     public void unlike(Identify id) {
         proceed(() -> {
-            Twitter twitter = auth.getToken();
+            Twitter twitter = auth.getAccessor();
             Status status = twitter.favorites().destroyFavorite(id.getNumberId());
 
             Service service = getAccount().getService();

@@ -84,7 +84,7 @@ public class FacebookAuth implements ServiceAuth<Facebook> {
      */
     public AccessToken getOAuthAccessToken(String oauthCode, String callbackUrl) {
         try {
-            return getToken().getOAuthAccessToken(oauthCode, callbackUrl);
+            return getAccessor().getOAuthAccessToken(oauthCode, callbackUrl);
         } catch (FacebookException e) {
             handleFacebookException(e);
             return null;
@@ -97,7 +97,7 @@ public class FacebookAuth implements ServiceAuth<Facebook> {
      */
     public void getExtendAccessToken() {
         try {
-            AccessToken token = getToken().extendTokenExpiration();
+            AccessToken token = getAccessor().extendTokenExpiration();
             this.accessTokenExpired = new Date(token.getExpires() * 1000);
             this.accessToken = token.getToken();
 
@@ -115,7 +115,7 @@ public class FacebookAuth implements ServiceAuth<Facebook> {
      * Get Request Token for Facebook
      * Facebook のリクエストトークンの取得
      */
-    public Facebook getToken() {
+    public Facebook getAccessor() {
         ConfigurationBuilder builder = new ConfigurationBuilder();
         Facebook facebook = new FacebookFactory(builder.build()).getInstance();
         facebook.setOAuthAppId(appId, appSecret);

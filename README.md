@@ -1,7 +1,6 @@
-# SocialHub
+# SocialHub [![](https://jitpack.io/v/uakihir0/socialhub.svg)](https://jitpack.io/#uakihir0/socialhub)
 
-Cross SocialNetworkService API Library for Java and Objective-C by [J2ObjC].   
-*It's WIP (work in progress) project.*
+Cross SocialNetworkService API Library written in Java and can use with Objective-C by [J2ObjC]. *It's WIP (work in progress) project.*
 
 ## List of SNS
 
@@ -15,7 +14,6 @@ Cross SocialNetworkService API Library for Java and Objective-C by [J2ObjC].
   * use [library](https://github.com/uakihir0/mastodon4j) based on [mastodon4j](https://github.com/hecateball/mastodon4j)
 
 
-* [**Google+**]() (future work)
 * [**LinkedIn**]() (future work)
 
 * [**Discord**]() (future work)

@@ -90,6 +90,7 @@ public class TwitterAuth implements ServiceAuth<Twitter> {
     public Account getAccountWithVerifier(String verifier) {
         ConfigurationBuilder builder = new ConfigurationBuilder();
         Twitter twitter = new TwitterFactory(builder.build()).getInstance();
+        twitter.setOAuthConsumer(consumerKey, consumerSecret);
 
         try {
             AccessToken accessToken = twitter.getOAuthAccessToken(requestToken, verifier);

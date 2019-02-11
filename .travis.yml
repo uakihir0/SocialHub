@@ -15,7 +15,7 @@ script:
 after_success:
   - git config --global user.email "a.urusihara@gmail.com"
   - git config --global user.name "Akihiro Urushihara"
-  - cp ./build/j2objcOutputs/
+  - cd ./build/j2objcOutputs/
   - git init
   - git add --all
   - git commit -m "by Travis CI (JOB $TRAVIS_JOB_NUMBER)"

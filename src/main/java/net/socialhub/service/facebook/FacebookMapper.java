@@ -21,8 +21,10 @@ public class FacebookMapper {
 
         model.setId(user.getId());
         model.setName(user.getName());
-        model.setImageUrl(user.getPicture().getURL().toString());
         model.setDescription(user.getBio());
+
+        model.setIconImageUrl(user.getPicture().getURL().toString());
+        model.setCoverImageUrl(user.getCover().getSource());
 
         return model;
     }

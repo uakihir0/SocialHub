@@ -30,8 +30,10 @@ public class MastodonMapper {
 
         model.setId(account.getId());
         model.setName(account.getDisplayName());
-        model.setImageUrl(account.getAvatarStatic());
         model.setDescription(account.getNote());
+
+        model.setIconImageUrl(account.getAvatarStatic());
+        model.setCoverImageUrl(account.getHeaderStatic());
 
         return model;
     }

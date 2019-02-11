@@ -21,6 +21,7 @@ public class FacebookAuth implements ServiceAuth<Facebook> {
 
     private static Logger logger = Logger.getLogger(FacebookAuth.class);
 
+
     private String appId;
     private String appSecret;
 
@@ -55,11 +56,6 @@ public class FacebookAuth implements ServiceAuth<Facebook> {
             this.accessToken = accessToken;
         return this;
     }
-
-    public String getAccessToken() {
-        return accessToken;
-    }
-
 
     /**
      * Authentication with AccessToken / AccessSecret
@@ -136,4 +132,38 @@ public class FacebookAuth implements ServiceAuth<Facebook> {
     private static void handleFacebookException(FacebookException e) {
         logger.debug(e.getMessage(), e);
     }
+
+    //region // Getter&Setter
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public String getAppId() {
+        return appId;
+    }
+
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
+
+    public String getAppSecret() {
+        return appSecret;
+    }
+
+    public void setAppSecret(String appSecret) {
+        this.appSecret = appSecret;
+    }
+
+    public Date getAccessTokenExpired() {
+        return accessTokenExpired;
+    }
+
+    public void setAccessTokenExpired(Date accessTokenExpired) {
+        this.accessTokenExpired = accessTokenExpired;
+    }
+    //endregion
 }

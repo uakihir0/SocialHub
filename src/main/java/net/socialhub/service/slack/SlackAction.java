@@ -43,7 +43,8 @@ public class SlackAction extends AccountActionImpl {
                             .token(auth.getAccessor().getToken()) //
                             .build());
 
-            return SlackMapper.user(account, service);
+            // One more request to get full information.
+            return getUser(SlackMapper.user(account, service));
         });
     }
 

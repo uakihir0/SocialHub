@@ -16,16 +16,38 @@ public class Service {
 
     /** Use Only Mastodon */
     private String apiHost;
+
     /** Use Only Mastodon */
     private String streamApiHost;
 
     /**
-     * For Twitter
+     * Constructor
      */
     public Service(ServiceTypeEnum type, Account account) {
         this.type = type;
         this.account = account;
         this.rateLimit = new RateLimit();
+    }
+
+
+    /** Is Twitter Account ? */
+    public boolean isTwitter() {
+        return (ServiceTypeEnum.Twitter == type);
+    }
+
+    /** Is Mastodon Account ? */
+    public boolean isMastodon() {
+        return (ServiceTypeEnum.Mastodon == type);
+    }
+
+    /** Is Slack Account ? */
+    public boolean isSlack() {
+        return (ServiceTypeEnum.Slack == type);
+    }
+
+    /** Is Facebook Account ? */
+    public boolean isFacebook() {
+        return (ServiceTypeEnum.Facebook == type);
     }
 
     //region // Getter&Setter

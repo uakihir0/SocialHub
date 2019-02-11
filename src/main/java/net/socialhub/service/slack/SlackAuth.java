@@ -19,6 +19,8 @@ public class SlackAuth implements ServiceAuth<SlackAccessor> {
 
     private String clientId;
     private String clientSecret;
+    private String accessToken;
+
     private SlackAccessor accessor;
 
     public SlackAuth(String clientId,
@@ -42,6 +44,7 @@ public class SlackAuth implements ServiceAuth<SlackAccessor> {
         this.accessor.setSlack(Slack.getInstance());
         this.accessor.setToken(token);
 
+        this.accessToken = token;
         Account account = new Account();
         ServiceTypeEnum type = ServiceTypeEnum.Slack;
         Service service = new Service(type, account);
@@ -103,6 +106,14 @@ public class SlackAuth implements ServiceAuth<SlackAccessor> {
 
     public void setClientSecret(String clientSecret) {
         this.clientSecret = clientSecret;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
     //endregion
 

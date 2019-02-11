@@ -1,6 +1,7 @@
 package net.socialhub.service.twitter;
 
 import net.socialhub.model.service.*;
+import net.socialhub.model.service.addition.TwitterUser;
 import net.socialhub.utils.MemoSupplier;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -18,12 +19,25 @@ public class TwitterMapper {
             Service service) {
 
         User model = new User(service);
+        TwitterUser addition = new TwitterUser();
+
+        model.setAdditions(new User.UserAdditions());
+        model.getAdditions().setTwitter(addition);
 
         model.setId(user.getId());
         model.setName(user.getName());
         model.setScreenName(user.getScreenName());
         model.setDescription(user.getDescription());
-        model.setImageUrl(user.getOriginalProfileImageURLHttps());
+        model.setIconImageUrl(user.getBiggerProfileImageURLHttps());
+        model.setCoverImageUrl(user.getProfileBannerMobileRetinaURL());
+
+        addition.setTweetsCount((long) user.getStatusesCount());
+        addition.setFavoritesCount((long) user.getFavouritesCount());
+        addition.setFollowingsCount((long) user.getFriendsCount());
+        addition.setFollowersCount((long) user.getFollowersCount());
+
+        addition.setLocation(user.getLocation());
+        addition.setUrl(user.getURL());
 
         return model;
     }

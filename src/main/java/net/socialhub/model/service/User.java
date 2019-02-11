@@ -1,5 +1,7 @@
 package net.socialhub.model.service;
 
+import net.socialhub.model.service.addition.SlackUser;
+import net.socialhub.model.service.addition.TwitterUser;
 import net.socialhub.service.action.UserAction;
 
 /**
@@ -10,9 +12,13 @@ import net.socialhub.service.action.UserAction;
 public class User extends Identify {
 
     private String name;
-    private String imageUrl;
     private String screenName;
     private String description;
+
+    private String iconImageUrl;
+    private String coverImageUrl;
+
+    private UserAdditions additions;
 
     public User(Service service) {
         super(service);
@@ -48,12 +54,57 @@ public class User extends Identify {
         this.description = description;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getIconImageUrl() {
+        return iconImageUrl;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setIconImageUrl(String iconImageUrl) {
+        this.iconImageUrl = iconImageUrl;
+    }
+
+    public String getCoverImageUrl() {
+        return coverImageUrl;
+    }
+
+    public void setCoverImageUrl(String coverImageUrl) {
+        this.coverImageUrl = coverImageUrl;
+    }
+
+    public UserAdditions getAdditions() {
+        return additions;
+    }
+
+    public void setAdditions(UserAdditions additions) {
+        this.additions = additions;
     }
     //endregion
+
+    /**
+     * SNS 毎の要素
+     * SNS specified attributes
+     */
+    public static class UserAdditions {
+
+        private SlackUser slack;
+
+        private TwitterUser twitter;
+
+        //region // Getter&Setter
+        public SlackUser getSlack() {
+            return slack;
+        }
+
+        public void setSlack(SlackUser slack) {
+            this.slack = slack;
+        }
+
+        public TwitterUser getTwitter() {
+            return twitter;
+        }
+
+        public void setTwitter(TwitterUser twitter) {
+            this.twitter = twitter;
+        }
+        //endregion
+    }
 }

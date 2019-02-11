@@ -8,13 +8,13 @@ echo "#ifndef _SOCIALHUB_HEADER_GLOBAL" > ${header}
 echo "#define _SOCIALHUB_HEADER_GLOBAL" >> ${header}
 
 echo "#import \"JreEmulation.h\"" >> ${header}
-echo "#import \"JreEmulation.h\""
+#echo "#import \"JreEmulation.h\""
 
 for file in `\find . -name '*.h'`; do
 	if [[ $file != *${header}* ]]; then
         name=$(echo $file | sed -e "s/\.\///")
         echo "#include \"${name}\"" >> ${header}
-        echo "#include \"${name}\""
+        #echo "#include \"${name}\""
     fi
 done
 

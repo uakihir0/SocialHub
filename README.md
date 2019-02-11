@@ -1,4 +1,4 @@
-# SocialHub [![](https://jitpack.io/v/uakihir0/socialhub.svg)](https://jitpack.io/#uakihir0/socialhub)
+# SocialHub [![](https://jitpack.io/v/uakihir0/socialhub.svg)](https://jitpack.io/#uakihir0/socialhub) [![Build Status](https://travis-ci.com/uakihir0/SocialHub.svg?branch=master)](https://travis-ci.com/uakihir0/SocialHub)
 
 Cross SocialNetworkService API Library written in Java and can use with Objective-C by [J2ObjC]. *It's WIP (work in progress) project.*
 

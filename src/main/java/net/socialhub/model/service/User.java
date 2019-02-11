@@ -1,5 +1,6 @@
 package net.socialhub.model.service;
 
+import net.socialhub.model.service.addition.MastodonUser;
 import net.socialhub.model.service.addition.SlackUser;
 import net.socialhub.model.service.addition.TwitterUser;
 import net.socialhub.service.action.UserAction;
@@ -8,16 +9,24 @@ import net.socialhub.service.action.UserAction;
  * SNS ユーザーモデル
  * SNS User Model
  */
-
 public class User extends Identify {
 
+    /** User's display name */
     private String name;
+
+    /** User's identified name */
     private String screenName;
+
+    /** User's description */
     private String description;
 
+    /** Icon image url */
     private String iconImageUrl;
+
+    /** Cover image url*/
     private String coverImageUrl;
 
+    /** User addition data*/
     private UserAdditions additions;
 
     public User(Service service) {
@@ -89,6 +98,8 @@ public class User extends Identify {
 
         private TwitterUser twitter;
 
+        private MastodonUser mastodon;
+
         //region // Getter&Setter
         public SlackUser getSlack() {
             return slack;
@@ -104,6 +115,14 @@ public class User extends Identify {
 
         public void setTwitter(TwitterUser twitter) {
             this.twitter = twitter;
+        }
+
+        public MastodonUser getMastodon() {
+            return mastodon;
+        }
+
+        public void setMastodon(MastodonUser mastodon) {
+            this.mastodon = mastodon;
         }
         //endregion
     }

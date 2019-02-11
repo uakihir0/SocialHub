@@ -13,9 +13,9 @@ public class FacebookMapper {
     /**
      * ユーザーマッピング
      */
-    public static User user( //
-                             facebook4j.User user, //
-                             Service service) {
+    public static User user(
+            facebook4j.User user, //
+            Service service) {
 
         User model = new User(service);
 
@@ -32,10 +32,10 @@ public class FacebookMapper {
     /**
      * コメントマッピング
      */
-    public static Comment comment( //
-                                   Message message, //
-                                   Supplier<facebook4j.User> user, //
-                                   Service service) {
+    public static Comment comment(
+            Message message, //
+            Supplier<facebook4j.User> user, //
+            Service service) {
 
         Comment model = new Comment(service);
 

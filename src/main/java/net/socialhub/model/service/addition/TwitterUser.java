@@ -12,14 +12,20 @@ public class TwitterUser {
     /** User setting location */
     private String location;
 
+    /** Is verified account? */
+    private Boolean isVerified;
+
+    /** Is protected account? */
+    private Boolean isProtected;
+
     /** Count of followings */
     private Long followingsCount;
 
     /** Count of followers */
     private Long followersCount;
 
-    /** Count of Tweets */
-    private Long tweetsCount;
+    /** Count of Statuses */
+    private Long statusesCount;
 
     /** Count of Favorites */
     private Long favoritesCount;
@@ -57,12 +63,12 @@ public class TwitterUser {
         this.followersCount = followersCount;
     }
 
-    public Long getTweetsCount() {
-        return tweetsCount;
+    public Long getStatusesCount() {
+        return statusesCount;
     }
 
-    public void setTweetsCount(Long tweetsCount) {
-        this.tweetsCount = tweetsCount;
+    public void setStatusesCount(Long statusesCount) {
+        this.statusesCount = statusesCount;
     }
 
     public Long getFavoritesCount() {
@@ -72,5 +78,22 @@ public class TwitterUser {
     public void setFavoritesCount(Long favoritesCount) {
         this.favoritesCount = favoritesCount;
     }
+
+    public Boolean getVerified() {
+        return isVerified;
+    }
+
+    public void setVerified(Boolean verified) {
+        isVerified = verified;
+    }
+
+    public Boolean getProtected() {
+        return isProtected;
+    }
+
+    public void setProtected(Boolean aProtected) {
+        isProtected = aProtected;
+    }
+
     //endregion
 }

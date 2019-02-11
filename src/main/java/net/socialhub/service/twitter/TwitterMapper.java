@@ -31,10 +31,13 @@ public class TwitterMapper {
         model.setIconImageUrl(user.getBiggerProfileImageURLHttps());
         model.setCoverImageUrl(user.getProfileBannerMobileRetinaURL());
 
-        addition.setTweetsCount((long) user.getStatusesCount());
+        addition.setStatusesCount((long) user.getStatusesCount());
         addition.setFavoritesCount((long) user.getFavouritesCount());
         addition.setFollowingsCount((long) user.getFriendsCount());
         addition.setFollowersCount((long) user.getFollowersCount());
+
+        addition.setVerified(user.isVerified());
+        addition.setProtected(user.isProtected());
 
         addition.setLocation(user.getLocation());
         addition.setUrl(user.getURL());

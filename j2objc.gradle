@@ -25,6 +25,7 @@ idea {
     }
 }
 
+// j2objcgradle restriction!!
 task wrapper(type: Wrapper) {
     gradleVersion = '2.8'
 }

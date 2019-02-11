@@ -13,14 +13,11 @@ script:
     - ./gradlew -b j2objc.gradle clean :j2objcAssemble -x test
 
 after_success:
-  - openssl aes-256-cbc -K $encrypted_97f0af857c33_key -iv $encrypted_97f0af857c33_iv -in ./tool/travis_key.enc -out ~/.ssh/id_rsa -d
-  - chmod 600 ~/.ssh/id_rsa
-  - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
   - git config --global user.email "a.urusihara@gmail.com"
   - git config --global user.name "Akihiro Urushihara"
   - cp ./build/j2objcOutputs/
   - git init
   - git add --all
   - git commit -m "by Travis CI (JOB $TRAVIS_JOB_NUMBER)"
-  - git remote add origin git@github.com:uakihir0/SocialHub-ObjC-Binary.git
+  - git remote add origin https://${GH_TOKEN}@github.com/uakihir0/SocialHub-ObjC-Binary.git
   - git push -f origin master

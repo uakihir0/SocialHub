@@ -1,33 +1,45 @@
 # SocialHub [![](https://jitpack.io/v/uakihir0/socialhub.svg)](https://jitpack.io/#uakihir0/socialhub) [![Build Status](https://travis-ci.com/uakihir0/SocialHub.svg?branch=master)](https://travis-ci.com/uakihir0/SocialHub)
 
-Cross SocialNetworkService API Library written in Java and can use with Objective-C by [J2ObjC]. *It's WIP (work in progress) project.*
+SocialHub is a multi social network service's API library written in **Java**, and can be complied to **Objective-C** by [J2ObjC]. and we can also use it with **Kotlin** and **Swift** too. 
+
+*It's WIP (work in progress) project.*
 
 ## List of SNS
 
-* [**Twitter**](https://twitter.com/)
-  * use [library](https://github.com/uakihir0/twitter4j) based on [twitter4j](https://github.com/yusuke/twitter4j)
-* [**Facebook**](https://www.facebook.com/)
-  * use [library](https://github.com/uakihir0/facebook4j) based on [facebook4j](https://github.com/roundrop/facebook4j)
-* [**Slack**](https://slack.com/)
-  * use [library](https://github.com/uakihir0/jslack) based on [jslack](https://github.com/seratch/jslack)
-* [**Mastodon**](https://github.com/tootsuite/mastodon)
-  * use [library](https://github.com/uakihir0/mastodon4j) based on [mastodon4j](https://github.com/hecateball/mastodon4j)
+### Available 
 
+* [**Twitter**](https://twitter.com/) ( use [library](https://github.com/uakihir0/twitter4j) based on [twitter4j](https://github.com/yusuke/twitter4j) )
+* [**Facebook**](https://www.facebook.com/) ( use [library](https://github.com/uakihir0/facebook4j) based on [facebook4j](https://github.com/roundrop/facebook4j) )
+* [**Slack**](https://slack.com/) ( use [library](https://github.com/uakihir0/jslack) based on [jslack](https://github.com/seratch/jslack) )
+* [**Mastodon**](https://github.com/tootsuite/mastodon) ( use [library](https://github.com/uakihir0/mastodon4j) based on [mastodon4j](https://github.com/hecateball/mastodon4j) )
 
-* [**LinkedIn**]() (future work)
+### Future Works
 
-* [**Discord**]() (future work)
-  * [Discord API](https://discordapp.com) does not provide write messege api to channel.
-* [**Instagram**]() (future work)
+* [**LinkedIn**](https://www.linkedin.com/)
+* [**Pinterest**](https://www.pinterest.com/)
+* [**Tumblr**](https://www.tumblr.com/)
+* [**Snapchat**](https://www.snapchat.com/)
+* [**Discord**](https://discordapp.com/)
+  * [Discord API](https://discordapp.com) does not provide the way to write messege api as user to channel.
+* [**Instagram**](https://www.instagram.com/)
   * [Instagram API](https://www.instagram.com/developer/) is deplicated, and [new Graph API](https://developers.facebook.com/products/instagram/) is buissiness use.
 
 
 Most of all libraries are modified (remove complex dependency and unused functions in SocialHub) for compilation to Objective-C with [J2ObjC].
 
-## Sample
-Sample of getting authorized account Information.
+
+## Detail Documents
+
+[**See Detail Documents**](./docs/README.md)
+
+## Code Sample
+
+### Authorization
+
+Code sample to authorize account and get account information.
 
 ```java
+/* JAVA */
 // 1. Make Authorized Account Object
 
 // For Twitter
@@ -44,58 +56,64 @@ SHSvUser user = account.getAction().getUserMe();
 System.out.println(user.getName());
 ```
 
-if you want more samples, please watch test code.
+if you want more samples, please see [detail documents](./docs/README.md) and test code.
 
-### J2ObjC
+## J2ObjC
 
-[J2ObjC] is project aim to compile Java code to Objective-C code.
+[**J2ObjC**] is project aim to compile **Java** code to **Objective-C** code. SocialHub is adapted with J2ObjC compilation So, you can use SocialHub as an Objective-C library (also use in Swift) in MacOS or iOS application development. Travis CI compiles SocialHub and make [**SocialHub CocoaPods Repository**](https://dev.azure.com/SocialHub/_git/ObjCBinary). It's easy way to use this repository rather than compiling yourself.
 
 ### Compile to Objective-C
-SocialHub is adapted with J2ObjC compilation. So, you can use SocialHub as an Objective-C library (also use in Swift) in MacOS or iOS application development, if you want to do, do following instructions. (It's only executable on MacOS)
+To compile SocialHub to Objective=C framework, do following instructions. **It's only executable on MacOS environment** ([This file](./travis,yml) is script of followings.)
 
-###### Download latest J2ObjC builds and unzip
-See: https://github.com/google/j2objc/releases
 
-###### Set J2ObjC path in ```local.properties``` file
-```shell
-j2objc.home=${PATH}
-```
+1. Download latest J2ObjC builds and unzip
 
-###### Build Objective-C library
-build commands in ```j2objc.sh``` file. ```j2objc.gradle``` is gradle settings to make Objective-C library.
+    See: https://github.com/google/j2objc/releases
 
-```shell
-./gradlew -b j2objc.gradle clean :j2objcAssembleDebug :j2objcAssembleRelease
-sh ./tool/buildscript.sh
-```
+2. Set J2ObjC path in ```local.properties``` file
 
-###### Add dependency in your project
-After J2objC comple, ```cocoapod.spec``` will be created in ```build/j2objcOutputs``` folder, so you write SocialHub dependency in your project's ```Podfile``` like
+    ```shell
+    j2objc.home=${PATH}
+    ```
 
-```
-def j2objc_socialhub
-    pod 'j2objc-SocialHub-debug', :configuration => ['Debug'], :path => '../shared/build/j2objcOutputs'
-    pod 'j2objc-SocialHub-release', :configuration => ['Release'], :path => '../shared/build/j2objcOutputs'
-end
+3. Build Objective-C libraries
 
-<SOME COMPLEX RUBY>
-    ...
-    NOTE: this line must be added manually for the relevant targets:
-    j2objc_socialhub
-    ...
-end
-```
+    Build commands is written in ```j2objc.sh``` file. so execute it or do following commands. ```j2objc.gradle``` is gradle settings to make Objective-C library.
 
-###### Use SocialHub in Swift
-Make bridging header, and write as following.
+    ```shell
+    ./gradlew -b j2objc.gradle clean :j2objcAssemble -x test
+    ```
 
-```
-#include "SocialHubHeader.h"
-```
+4. Add dependency in your project
 
-### License
-[@U_Akihir0](https://twitter.com/U_AKihir0)  
-MIT
+    After J2ObjC comple, ```cocoapod.spec``` will be created in ```./build/j2objcOutputs``` folder, so you write SocialHub dependency in your CocoaPods project's ```Podfile``` like
+
+    ```
+    def j2objc_socialhub
+        pod 'j2objc-SocialHub-debug', :configuration => ['Debug'], :path => '../shared/build/j2objcOutputs'
+        pod 'j2objc-SocialHub-release', :configuration => ['Release'], :path => '../shared/build/j2objcOutputs'
+    end
+    
+        ...
+        NOTE: this line must be added manually for the relevant targets:
+        j2objc_socialhub
+        ...
+    ```
+
+5. Use SocialHub in Swift
+
+    Make bridging header, and write as following.
+
+    ```
+    #include "SocialHubHeader.h"
+    ```
+    
+## License
+
+
+Author: [@U_Akihir0](https://twitter.com/U_AKihir0)
+
+**MIT**
 
 
   [J2ObjC]: https://developers.google.com/j2objc/

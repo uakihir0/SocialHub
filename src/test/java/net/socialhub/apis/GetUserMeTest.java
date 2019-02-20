@@ -1,8 +1,8 @@
 package net.socialhub.apis;
 
+import net.socialhub.SocialAuthUtil;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.User;
-import net.socialhub.utils.SocialAuthUtil;
 import org.junit.Test;
 
 public class GetUserMeTest extends AbstractApiTest {

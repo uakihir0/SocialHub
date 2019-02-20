@@ -4,6 +4,7 @@ import facebook4j.Message;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
+import net.socialhub.model.service.common.AttributedString;
 import net.socialhub.utils.MemoSupplier;
 
 import java.util.function.Supplier;
@@ -21,7 +22,7 @@ public class FacebookMapper {
 
         model.setId(user.getId());
         model.setName(user.getName());
-        model.setDescription(user.getBio());
+        model.setDescription(new AttributedString(user.getBio()));
 
         model.setIconImageUrl(user.getPicture().getURL().toString());
         model.setCoverImageUrl(user.getCover().getSource());

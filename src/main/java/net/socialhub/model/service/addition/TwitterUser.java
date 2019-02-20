@@ -1,10 +1,16 @@
 package net.socialhub.model.service.addition;
 
+import net.socialhub.model.service.Service;
+
 /**
  * Twitter における User 要素
  * Twitter specified user's attributes
  */
-public class TwitterUser {
+public class TwitterUser extends MiniBlogUser {
+
+    public TwitterUser(Service service) {
+        super(service);
+    }
 
     /** User setting url */
     private String url;
@@ -14,18 +20,6 @@ public class TwitterUser {
 
     /** Is verified account? */
     private Boolean isVerified;
-
-    /** Is protected account? */
-    private Boolean isProtected;
-
-    /** Count of followings */
-    private Long followingsCount;
-
-    /** Count of followers */
-    private Long followersCount;
-
-    /** Count of Statuses */
-    private Long statusesCount;
 
     /** Count of Favorites */
     private Long favoritesCount;
@@ -47,30 +41,6 @@ public class TwitterUser {
         this.location = location;
     }
 
-    public Long getFollowingsCount() {
-        return followingsCount;
-    }
-
-    public void setFollowingsCount(Long followingsCount) {
-        this.followingsCount = followingsCount;
-    }
-
-    public Long getFollowersCount() {
-        return followersCount;
-    }
-
-    public void setFollowersCount(Long followersCount) {
-        this.followersCount = followersCount;
-    }
-
-    public Long getStatusesCount() {
-        return statusesCount;
-    }
-
-    public void setStatusesCount(Long statusesCount) {
-        this.statusesCount = statusesCount;
-    }
-
     public Long getFavoritesCount() {
         return favoritesCount;
     }
@@ -86,14 +56,5 @@ public class TwitterUser {
     public void setVerified(Boolean verified) {
         isVerified = verified;
     }
-
-    public Boolean getProtected() {
-        return isProtected;
-    }
-
-    public void setProtected(Boolean aProtected) {
-        isProtected = aProtected;
-    }
-
     //endregion
 }

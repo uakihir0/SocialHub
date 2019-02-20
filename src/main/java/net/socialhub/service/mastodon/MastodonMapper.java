@@ -5,6 +5,7 @@ import mastodon4j.entity.Status;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.MastodonUser;
+import net.socialhub.model.service.common.AttributedString;
 import net.socialhub.utils.MemoSupplier;
 import net.socialhub.utils.StringUtil;
 
@@ -27,23 +28,21 @@ public class MastodonMapper {
             Account account, //
             Service service) {
 
-        User model = new User(service);
-        MastodonUser addition = new MastodonUser();
-        model.setAdditions(new User.UserAdditions());
-        model.getAdditions().setMastodon(addition);
+        MastodonUser model = new MastodonUser(service);
 
         model.setId(account.getId());
         model.setName(account.getDisplayName());
-        model.setDescription(account.getNote());
+        model.setIconImageUrl(account.getUserName());
+        model.setDescription(new AttributedString(account.getNote()));
 
         model.setIconImageUrl(account.getAvatarStatic());
         model.setCoverImageUrl(account.getHeaderStatic());
 
-        addition.setFollowersCount(account.getFollowersCount());
-        addition.setFollowingsCount(account.getFollowingCount());
-        addition.setStatusesCount(account.getStatusesCount());
+        model.setFollowersCount(account.getFollowersCount());
+        model.setFollowingsCount(account.getFollowingCount());
+        model.setStatusesCount(account.getStatusesCount());
 
-        addition.setProtected(account.isLocked());
+        model.setProtected(account.isLocked());
 
         return model;
     }

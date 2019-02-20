@@ -1,10 +1,17 @@
 package net.socialhub.model.service.addition;
 
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
+
 /**
  * Slack における User 要素
  * Slack specified user's attributes
  */
-public class SlackUser {
+public class SlackUser extends User {
+
+    public SlackUser(Service service) {
+        super(service);
+    }
 
     /** email */
     private String email;

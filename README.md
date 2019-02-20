@@ -60,10 +60,10 @@ if you want more samples, please see [detail documents](./docs/README.md) and te
 
 ## J2ObjC
 
-[**J2ObjC**] is project aim to compile **Java** code to **Objective-C** code. SocialHub is adapted with J2ObjC compilation So, you can use SocialHub as an Objective-C library (also use in Swift) in MacOS or iOS application development. Travis CI compiles SocialHub and make [**SocialHub CocoaPods Repository**](https://dev.azure.com/SocialHub/_git/ObjCBinary). It's easy way to use this repository rather than compiling yourself.
+[J2ObjC] is project aim to compile **Java** code to **Objective-C** code. SocialHub is adapted with J2ObjC compilation So, you can use SocialHub as an Objective-C library (also use in Swift) in MacOS or iOS application development. Travis CI compiles SocialHub and make [**SocialHub CocoaPods Repository**](https://dev.azure.com/SocialHub/_git/ObjCBinary). It's easy way to use this repository rather than compiling yourself.
 
 ### Compile to Objective-C
-To compile SocialHub to Objective=C framework, do following instructions. **It's only executable on MacOS environment** ([This file](./travis,yml) is script of followings.)
+To compile SocialHub to Objective=C framework, do following instructions. **It's only executable on MacOS environment** ([This file](./.travis,yml) is script of followings.)
 
 
 1. Download latest J2ObjC builds and unzip

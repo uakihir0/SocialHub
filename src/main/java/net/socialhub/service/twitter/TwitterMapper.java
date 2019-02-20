@@ -2,9 +2,12 @@ package net.socialhub.service.twitter;
 
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.TwitterUser;
+import net.socialhub.model.service.common.AttributedString;
+import net.socialhub.model.service.common.AttributedString.AttributedElements;
 import net.socialhub.utils.MemoSupplier;
 import twitter4j.ResponseList;
 import twitter4j.Status;
+import twitter4j.URLEntity;
 
 import java.util.Comparator;
 import java.util.stream.Collectors;
@@ -18,29 +21,36 @@ public class TwitterMapper {
             twitter4j.User user, //
             Service service) {
 
-        User model = new User(service);
-        TwitterUser addition = new TwitterUser();
-
-        model.setAdditions(new User.UserAdditions());
-        model.getAdditions().setTwitter(addition);
+        TwitterUser model = new TwitterUser(service);
 
         model.setId(user.getId());
         model.setName(user.getName());
         model.setScreenName(user.getScreenName());
-        model.setDescription(user.getDescription());
         model.setIconImageUrl(user.getBiggerProfileImageURLHttps());
         model.setCoverImageUrl(user.getProfileBannerMobileRetinaURL());
 
-        addition.setStatusesCount((long) user.getStatusesCount());
-        addition.setFavoritesCount((long) user.getFavouritesCount());
-        addition.setFollowingsCount((long) user.getFriendsCount());
-        addition.setFollowersCount((long) user.getFollowersCount());
+        model.setStatusesCount((long) user.getStatusesCount());
+        model.setFavoritesCount((long) user.getFavouritesCount());
+        model.setFollowingsCount((long) user.getFriendsCount());
+        model.setFollowersCount((long) user.getFollowersCount());
 
-        addition.setVerified(user.isVerified());
-        addition.setProtected(user.isProtected());
+        model.setVerified(user.isVerified());
+        model.setProtected(user.isProtected());
+        model.setLocation(user.getLocation());
+        model.setUrl(user.getURL());
 
-        addition.setLocation(user.getLocation());
-        addition.setUrl(user.getURL());
+        AttributedString desc = new AttributedString(user.getDescription());
+        model.setDescription(desc);
+
+        // URL の DisplayURL ExpandedURL を設定
+        for (URLEntity entity : user.getDescriptionURLEntities()) {
+            for (AttributedElements elem : desc.getAttribute()) {
+                if (elem.getText().equals(entity.getText())) {
+                    elem.setDisplayText(entity.getDisplayURL());
+                    elem.setExpandedText(entity.getExpandedURL());
+                }
+            }
+        }
 
         return model;
     }

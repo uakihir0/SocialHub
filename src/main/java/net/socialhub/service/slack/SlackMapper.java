@@ -6,6 +6,7 @@ import com.github.seratch.jslack.api.model.User.Profile;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.SlackUser;
+import net.socialhub.model.service.common.AttributedString;
 
 public final class SlackMapper {
 
@@ -29,10 +30,7 @@ public final class SlackMapper {
             UsersInfoResponse response, //
             Service service) {
 
-        User model = new User(service);
-        SlackUser addition = new SlackUser();
-        model.setAdditions(new User.UserAdditions());
-        model.getAdditions().setSlack(addition);
+        SlackUser model = new SlackUser(service);
 
         model.setId(response.getUser().getId());
         model.setName(response.getUser().getName());
@@ -42,16 +40,20 @@ public final class SlackMapper {
         Profile profile = response.getUser().getProfile();
         model.setIconImageUrl(profile.getImage512());
 
-        addition.setEmail(profile.getEmail());
-        addition.setPhone(profile.getPhone());
+        model.setEmail(profile.getEmail());
+        model.setPhone(profile.getPhone());
 
-        if (profile.getTitle() != null && !profile.getTitle().isEmpty()) {
-            model.setDescription(profile.getTitle());
-            addition.setTitle(profile.getTitle());
+        if ((profile.getTitle() != null) &&
+                !profile.getTitle().isEmpty()) {
+
+            model.setDescription(new AttributedString(profile.getTitle()));
+            model.setTitle(profile.getTitle());
         }
 
-        if (profile.getDisplayName() != null && !profile.getDisplayName().isEmpty()) {
-            addition.setDisplayName(profile.getDisplayName());
+        if ((profile.getDisplayName() != null) &&
+                !profile.getDisplayName().isEmpty()) {
+
+            model.setDisplayName(profile.getDisplayName());
             model.setName(profile.getDisplayName());
         }
 

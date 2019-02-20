@@ -1,4 +1,4 @@
-package net.socialhub.utils;
+package net.socialhub;
 
 import net.socialhub.SocialHub;
 import net.socialhub.TestProperty;

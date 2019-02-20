@@ -44,10 +44,22 @@ public class TwitterAction extends AccountActionImpl {
     public User getUser(Identify id) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User user = auth.getAccessor().showUser(id.getNumberId());
 
-            service.getRateLimit().addInfo(GetUser, user);
-            return TwitterMapper.user(user, service);
+            // ID
+            if (id.isNumberId()) {
+                twitter4j.User user = auth.getAccessor().showUser(id.getNumberId());
+                service.getRateLimit().addInfo(GetUser, user);
+                return TwitterMapper.user(user, service);
+            }
+
+            // Screen Name
+            if (id.isStringId()) {
+                twitter4j.User user = auth.getAccessor().showUser(id.getStringId());
+                service.getRateLimit().addInfo(GetUser, user);
+                return TwitterMapper.user(user, service);
+            }
+
+            return null;
         });
     }
 

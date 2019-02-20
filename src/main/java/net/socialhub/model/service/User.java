@@ -1,8 +1,6 @@
 package net.socialhub.model.service;
 
-import net.socialhub.model.service.addition.MastodonUser;
-import net.socialhub.model.service.addition.SlackUser;
-import net.socialhub.model.service.addition.TwitterUser;
+import net.socialhub.model.service.common.AttributedString;
 import net.socialhub.service.action.UserAction;
 
 /**
@@ -18,16 +16,13 @@ public class User extends Identify {
     private String screenName;
 
     /** User's description */
-    private String description;
+    private AttributedString description;
 
     /** Icon image url */
     private String iconImageUrl;
 
-    /** Cover image url*/
+    /** Cover image url */
     private String coverImageUrl;
-
-    /** User addition data*/
-    private UserAdditions additions;
 
     public User(Service service) {
         super(service);
@@ -54,12 +49,11 @@ public class User extends Identify {
         this.screenName = screenName;
     }
 
-
-    public String getDescription() {
+    public AttributedString getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(AttributedString description) {
         this.description = description;
     }
 
@@ -78,52 +72,5 @@ public class User extends Identify {
     public void setCoverImageUrl(String coverImageUrl) {
         this.coverImageUrl = coverImageUrl;
     }
-
-    public UserAdditions getAdditions() {
-        return additions;
-    }
-
-    public void setAdditions(UserAdditions additions) {
-        this.additions = additions;
-    }
     //endregion
-
-    /**
-     * SNS 毎の要素
-     * SNS specified attributes
-     */
-    public static class UserAdditions {
-
-        private SlackUser slack;
-
-        private TwitterUser twitter;
-
-        private MastodonUser mastodon;
-
-        //region // Getter&Setter
-        public SlackUser getSlack() {
-            return slack;
-        }
-
-        public void setSlack(SlackUser slack) {
-            this.slack = slack;
-        }
-
-        public TwitterUser getTwitter() {
-            return twitter;
-        }
-
-        public void setTwitter(TwitterUser twitter) {
-            this.twitter = twitter;
-        }
-
-        public MastodonUser getMastodon() {
-            return mastodon;
-        }
-
-        public void setMastodon(MastodonUser mastodon) {
-            this.mastodon = mastodon;
-        }
-        //endregion
-    }
 }

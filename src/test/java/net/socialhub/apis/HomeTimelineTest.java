@@ -4,7 +4,7 @@ import net.socialhub.model.Account;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
-import net.socialhub.utils.SocialAuthUtil;
+import net.socialhub.SocialAuthUtil;
 import org.junit.Test;
 
 public class HomeTimelineTest extends AbstractApiTest {

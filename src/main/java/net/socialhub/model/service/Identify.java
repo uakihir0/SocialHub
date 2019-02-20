@@ -34,6 +34,14 @@ public class Identify {
         this.stringId = string;
     }
 
+    public boolean isNumberId() {
+        return (numberId != null);
+    }
+
+    public boolean isStringId() {
+        return (stringId != null);
+    }
+
     @Override
     public String toString() {
         if (this.numberId != null)

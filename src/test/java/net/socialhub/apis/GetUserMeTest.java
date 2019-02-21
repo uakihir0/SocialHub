@@ -30,6 +30,7 @@ public class GetUserMeTest extends AbstractApiTest {
 
         Account account = SocialAuthUtil.getMastodonAccount();
         User user = account.getAction().getUserMe();
+        System.out.println(user.getName());
 
         if (user instanceof MastodonUser) {
             MastodonUser mastodonUser = (MastodonUser) user;

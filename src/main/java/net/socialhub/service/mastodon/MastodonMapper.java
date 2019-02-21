@@ -56,7 +56,7 @@ public class MastodonMapper {
                 model.setFields(new ArrayList<>());
                 for (Field field : source.getFields()) {
                     MastodonUserFiled f = new MastodonUserFiled();
-                    f.setValue(field.getValue());
+                    f.setValue(new AttributedString(field.getValue()));
                     f.setName(field.getName());
                     model.getFields().add(f);
                 }

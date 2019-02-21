@@ -2,8 +2,8 @@ package net.socialhub.service.twitter;
 
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.TwitterUser;
-import net.socialhub.model.service.common.AttributedString;
-import net.socialhub.model.service.common.AttributedString.AttributedElements;
+import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.common.AttributedString.AttributedElements;
 import net.socialhub.utils.MemoSupplier;
 import twitter4j.ResponseList;
 import twitter4j.Status;

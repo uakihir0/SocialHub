@@ -1,6 +1,6 @@
 package net.socialhub.model.service;
 
-import net.socialhub.model.service.common.AttributedString;
+import net.socialhub.model.common.AttributedString;
 import net.socialhub.service.action.UserAction;
 
 /**

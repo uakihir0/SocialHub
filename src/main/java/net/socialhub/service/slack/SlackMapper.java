@@ -6,7 +6,7 @@ import com.github.seratch.jslack.api.model.User.Profile;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.SlackUser;
-import net.socialhub.model.service.common.AttributedString;
+import net.socialhub.model.common.AttributedString;
 
 public final class SlackMapper {
 

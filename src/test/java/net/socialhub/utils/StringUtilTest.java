@@ -1,7 +1,7 @@
 package net.socialhub.utils;
 
-import net.socialhub.model.service.common.AttributedString;
-import net.socialhub.model.service.common.AttributedString.AttributedElements;
+import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.common.AttributedString.AttributedElements;
 import org.junit.Test;
 
 public class StringUtilTest {
@@ -44,17 +44,35 @@ public class StringUtilTest {
         printAttributedString(string);
     }
 
+    @Test
+    public void testDisplayText() {
+
+        AttributedString string = new AttributedString( //
+                "\nLINK: " //
+                        + "https://t.co/rx5cgtsmIj " //
+                        + "https://t.co/scawU8ske9 " //
+                        + "END");
+
+        for (AttributedElements element : string.getAttribute()) {
+            element.setDisplayText("www.google.com");
+        }
+
+        printAttributedString(string);
+    }
+
     private void printAttributedString(AttributedString string) {
 
         System.out.println("====================================");
-        System.out.println("Whole  : " + string.getText());
+        System.out.println("Whole   : " + string.getText());
+        System.out.println("Display : " + string.getDisplayText());
 
         for (AttributedElements attribute : string.getAttribute()) {
             System.out.println("------------------------------------");
-            System.out.println("Test  : " + attribute.getText());
-            System.out.println("Type  : " + attribute.getType());
-            System.out.println("Start : " + attribute.getRange().getStart());
-            System.out.println("End   : " + attribute.getRange().getEnd());
+            System.out.println("Type    : " + attribute.getType());
+            System.out.println("Test    : " + attribute.getText());
+            System.out.println("Display : " + attribute.getDisplayText());
+            System.out.println("Start   : " + attribute.getRange().getStart());
+            System.out.println("End     : " + attribute.getRange().getEnd());
         }
     }
 }

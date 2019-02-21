@@ -1,4 +1,4 @@
-package net.socialhub.model.service.common;
+package net.socialhub.model.common;
 
 import net.socialhub.define.AttributeEnum;
 
@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * String With Attributes
@@ -37,9 +38,13 @@ public class AttributedString {
 
     private String text;
 
+    private String displayText;
+
     private List<AttributeEnum> kinds;
 
     private List<AttributedElements> attribute;
+
+    private List<AttributedElements> displayAttribute;
 
     /**
      * Attributed String
@@ -54,6 +59,7 @@ public class AttributedString {
      * (属性文字列に変換)
      */
     public AttributedString(String text, List<AttributeEnum> kinds) {
+        this.displayAttribute = null;
         this.attribute = null;
         this.kinds = kinds;
         this.text = text;
@@ -65,6 +71,7 @@ public class AttributedString {
     }
 
     /**
+     * Get Attributes (with calc)
      * アトリビュートを取得
      * (この際に計算が実行される)
      */
@@ -76,7 +83,7 @@ public class AttributedString {
         // 初期化
         attribute = new ArrayList<>();
 
-        // リンクを取得 (Full)
+        // リンクを取得 (プロトコル含む)
         scanElements(AttributeEnum.Link, FULL_URL_REGEX);
 
         // Mastodon アカウントを取得
@@ -85,7 +92,7 @@ public class AttributedString {
         // Email を取得
         scanElements(AttributeEnum.Email, SIMPLE_EMAIL_REGEX);
 
-        // リンクを取得 (Short)
+        // リンクを取得 (プロトコル含めず)
         scanElements(AttributeEnum.Link, SHORT_URL_REGEX);
 
         // 電話番号を取得
@@ -101,6 +108,59 @@ public class AttributedString {
         attribute.sort(Comparator.comparingInt(e -> e.getRange().getStart()));
 
         return attribute;
+    }
+
+    /**
+     * Get Display Attributes (with calc)
+     * 表示向け Attribute の計算
+     */
+    public List<AttributedElements> getDisplayAttribute() {
+        if (displayAttribute != null) {
+            return displayAttribute;
+        }
+
+        // 初期化
+        String tmp = text;
+        List<AttributedElements> elements = getAttribute().stream() //
+                .map(AttributedElements::copy) //
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < elements.size(); i++) {
+            AttributedElements elem = elements.get(i);
+
+            // 表示するテキストを変更
+            String before = tmp.substring(0, elem.getRange().getStart());
+            String after = tmp.substring(elem.getRange().getEnd());
+            tmp = (before + elem.getDisplayText() + after);
+
+            // レンジ幅を変えて属性を修正
+            int diff = (elem.getText().length() - elem.getDisplayText().length());
+            elem.getRange().setEnd(elem.getRange().getEnd() - diff);
+            elem.setText(elem.getDisplayText());
+
+            // 後の属性に対してもレンジ幅を変更
+            for (int j = (i + 1); j < elements.size(); j++) {
+                AttributedElements next = elements.get(j);
+                next.getRange().setStart(next.getRange().getStart() - diff);
+                next.getRange().setEnd(next.getRange().getEnd() - diff);
+            }
+        }
+
+        displayText = tmp;
+        displayAttribute = elements;
+        return displayAttribute;
+    }
+
+    /**
+     * 表示向けテキストの計算
+     */
+    public String getDisplayText() {
+        if (displayText != null) {
+            return displayText;
+        }
+
+        getDisplayAttribute();
+        return displayText;
     }
 
     /**
@@ -149,7 +209,10 @@ public class AttributedString {
     }
 
     public void setText(String text) {
-        this.attribute = null; // Reset
+        this.displayAttribute = null;
+        this.attribute = null;
+
+        this.displayText = null;
         this.text = text;
     }
 
@@ -158,7 +221,10 @@ public class AttributedString {
     }
 
     public void setKinds(List<AttributeEnum> kinds) {
-        this.attribute = null; // Reset
+        this.displayAttribute = null;
+        this.attribute = null;
+
+        this.displayText = null;
         this.kinds = kinds;
     }
     //endregion
@@ -169,6 +235,8 @@ public class AttributedString {
      */
     public static class AttributedElements {
 
+        private AttributeEnum type;
+
         /** オリジナルテキスト */
         private String text;
 
@@ -178,9 +246,18 @@ public class AttributedString {
         /** 実際に処理するテキスト */
         private String expandedText;
 
-        private AttributeEnum type;
-
         private AttributedRange range;
+
+        public AttributedElements copy() {
+            AttributedElements model = new AttributedElements();
+
+            model.setType(type);
+            model.setText(text);
+            model.setDisplayText(displayText);
+            model.setExpandedText(expandedText);
+            model.setRange(range.copy());
+            return model;
+        }
 
         //region // Getter&Setter
         public String getText() {
@@ -192,8 +269,9 @@ public class AttributedString {
         }
 
         public String getDisplayText() {
-            if (displayText != null)
+            if (displayText != null) {
                 return displayText;
+            }
             return text;
         }
 
@@ -202,8 +280,9 @@ public class AttributedString {
         }
 
         public String getExpandedText() {
-            if (expandedText != null)
+            if (expandedText != null) {
                 return expandedText;
+            }
             return text;
         }
 
@@ -243,6 +322,10 @@ public class AttributedString {
         public AttributedRange(int start, int end) {
             this.start = start;
             this.end = end;
+        }
+
+        public AttributedRange copy() {
+            return new AttributedRange(start, end);
         }
 
         /** Included Index */

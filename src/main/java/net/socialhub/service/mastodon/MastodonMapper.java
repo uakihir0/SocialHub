@@ -5,7 +5,7 @@ import mastodon4j.entity.Status;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.MastodonUser;
-import net.socialhub.model.service.common.AttributedString;
+import net.socialhub.model.common.AttributedString;
 import net.socialhub.utils.MemoSupplier;
 import net.socialhub.utils.StringUtil;
 

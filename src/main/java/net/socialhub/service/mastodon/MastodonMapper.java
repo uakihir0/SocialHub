@@ -1,16 +1,20 @@
 package net.socialhub.service.mastodon;
 
 import mastodon4j.entity.Account;
+import mastodon4j.entity.AccountSource;
+import mastodon4j.entity.Field;
 import mastodon4j.entity.Status;
 import net.socialhub.logger.Logger;
+import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.MastodonUser;
-import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.service.addition.MastodonUser.MastodonUserFiled;
 import net.socialhub.utils.MemoSupplier;
 import net.socialhub.utils.StringUtil;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,11 +33,11 @@ public class MastodonMapper {
             Service service) {
 
         MastodonUser model = new MastodonUser(service);
+        AccountSource source = account.getSource();
 
         model.setId(account.getId());
         model.setName(account.getDisplayName());
         model.setIconImageUrl(account.getUserName());
-        model.setDescription(new AttributedString(account.getNote()));
 
         model.setIconImageUrl(account.getAvatarStatic());
         model.setCoverImageUrl(account.getHeaderStatic());
@@ -41,8 +45,23 @@ public class MastodonMapper {
         model.setFollowersCount(account.getFollowersCount());
         model.setFollowingsCount(account.getFollowingCount());
         model.setStatusesCount(account.getStatusesCount());
-
         model.setProtected(account.isLocked());
+
+        if (source != null) {
+            model.setDescription(new AttributedString(source.getNote()));
+
+            if ((source.getFields() != null) &&  //
+                    (source.getFields().length > 0)) {
+
+                model.setFields(new ArrayList<>());
+                for (Field field : source.getFields()) {
+                    MastodonUserFiled f = new MastodonUserFiled();
+                    f.setValue(field.getValue());
+                    f.setName(field.getName());
+                    model.getFields().add(f);
+                }
+            }
+        }
 
         return model;
     }

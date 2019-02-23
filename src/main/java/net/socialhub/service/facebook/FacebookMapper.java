@@ -1,10 +1,10 @@
 package net.socialhub.service.facebook;
 
 import facebook4j.Message;
+import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
-import net.socialhub.model.common.AttributedString;
 import net.socialhub.utils.MemoSupplier;
 
 import java.util.function.Supplier;

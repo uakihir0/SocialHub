@@ -110,7 +110,7 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
 
         Response<AccessToken> accessToken =
                 MastodonFactory.getInstance(this.host, null).oauth() //
-                .issueAccessToken(this.clientId, this.clientSecret, redirectUri, code);
+                        .issueAccessToken(this.clientId, this.clientSecret, redirectUri, code);
 
         return getAccountWithAccessToken(accessToken.get().getAccessToken());
     }

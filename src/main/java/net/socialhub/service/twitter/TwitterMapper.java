@@ -1,9 +1,9 @@
 package net.socialhub.service.twitter;
 
+import net.socialhub.model.common.AttributedElement;
+import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.TwitterUser;
-import net.socialhub.model.common.AttributedString;
-import net.socialhub.model.common.AttributedString.AttributedElements;
 import net.socialhub.utils.MemoSupplier;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -44,7 +44,7 @@ public class TwitterMapper {
 
         // URL の DisplayURL ExpandedURL を設定
         for (URLEntity entity : user.getDescriptionURLEntities()) {
-            for (AttributedElements elem : desc.getAttribute()) {
+            for (AttributedElement elem : desc.getAttribute()) {
                 if (elem.getText().equals(entity.getText())) {
                     elem.setDisplayText(entity.getDisplayURL());
                     elem.setExpandedText(entity.getExpandedURL());

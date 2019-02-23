@@ -42,9 +42,9 @@ public class AttributedString {
 
     private List<AttributeEnum> kinds;
 
-    private List<AttributedElements> attribute;
+    private List<AttributedElement> attribute;
 
-    private List<AttributedElements> displayAttribute;
+    private List<AttributedElement> displayAttribute;
 
     /**
      * Attributed String
@@ -75,7 +75,7 @@ public class AttributedString {
      * アトリビュートを取得
      * (この際に計算が実行される)
      */
-    public List<AttributedElements> getAttribute() {
+    public List<AttributedElement> getAttribute() {
         if (attribute != null) {
             return attribute;
         }
@@ -114,19 +114,19 @@ public class AttributedString {
      * Get Display Attributes (with calc)
      * 表示向け Attribute の計算
      */
-    public List<AttributedElements> getDisplayAttribute() {
+    public List<AttributedElement> getDisplayAttribute() {
         if (displayAttribute != null) {
             return displayAttribute;
         }
 
         // 初期化
         String tmp = text;
-        List<AttributedElements> elements = getAttribute().stream() //
-                .map(AttributedElements::copy) //
+        List<AttributedElement> elements = getAttribute().stream() //
+                .map(AttributedElement::copy) //
                 .collect(Collectors.toList());
 
         for (int i = 0; i < elements.size(); i++) {
-            AttributedElements elem = elements.get(i);
+            AttributedElement elem = elements.get(i);
 
             // 表示するテキストを変更
             String before = tmp.substring(0, elem.getRange().getStart());
@@ -140,7 +140,7 @@ public class AttributedString {
 
             // 後の属性に対してもレンジ幅を変更
             for (int j = (i + 1); j < elements.size(); j++) {
-                AttributedElements next = elements.get(j);
+                AttributedElement next = elements.get(j);
                 next.getRange().setStart(next.getRange().getStart() - diff);
                 next.getRange().setEnd(next.getRange().getEnd() - diff);
             }
@@ -175,7 +175,7 @@ public class AttributedString {
 
                 // 範囲が被っていない事を確認
                 if (this.isUnusedRange(m)) {
-                    AttributedElements element = new AttributedElements();
+                    AttributedElement element = new AttributedElement();
                     element.setRange(new AttributedRange(m));
                     element.setType(attributeType);
                     element.setText(m.group());
@@ -228,132 +228,4 @@ public class AttributedString {
         this.kinds = kinds;
     }
     //endregion
-
-    /**
-     * Attributes Elements
-     * 属性情報
-     */
-    public static class AttributedElements {
-
-        private AttributeEnum type;
-
-        /** オリジナルテキスト */
-        private String text;
-
-        /** 表示するテキスト */
-        private String displayText;
-
-        /** 実際に処理するテキスト */
-        private String expandedText;
-
-        private AttributedRange range;
-
-        public AttributedElements copy() {
-            AttributedElements model = new AttributedElements();
-
-            model.setType(type);
-            model.setText(text);
-            model.setDisplayText(displayText);
-            model.setExpandedText(expandedText);
-            model.setRange(range.copy());
-            return model;
-        }
-
-        //region // Getter&Setter
-        public String getText() {
-            return text;
-        }
-
-        public void setText(String text) {
-            this.text = text;
-        }
-
-        public String getDisplayText() {
-            if (displayText != null) {
-                return displayText;
-            }
-            return text;
-        }
-
-        public void setDisplayText(String displayText) {
-            this.displayText = displayText;
-        }
-
-        public String getExpandedText() {
-            if (expandedText != null) {
-                return expandedText;
-            }
-            return text;
-        }
-
-        public void setExpandedText(String expandedText) {
-            this.expandedText = expandedText;
-        }
-
-        public AttributeEnum getType() {
-            return type;
-        }
-
-        public void setType(AttributeEnum type) {
-            this.type = type;
-        }
-
-        public AttributedRange getRange() {
-            return range;
-        }
-
-        public void setRange(AttributedRange range) {
-            this.range = range;
-        }
-        //endregion
-    }
-
-    /**
-     * Attributes Range
-     * 文字列レンジ情報
-     */
-    public static class AttributedRange {
-
-        public AttributedRange(Matcher m) {
-            this.start = m.start();
-            this.end = m.end();
-        }
-
-        public AttributedRange(int start, int end) {
-            this.start = start;
-            this.end = end;
-        }
-
-        public AttributedRange copy() {
-            return new AttributedRange(start, end);
-        }
-
-        /** Included Index */
-        private int start;
-
-        /** Excluded Index */
-        private int end;
-
-        public int getLength() {
-            return (end - start);
-        }
-
-        //region // Getter&Setter
-        public int getStart() {
-            return start;
-        }
-
-        public void setStart(int start) {
-            this.start = start;
-        }
-
-        public int getEnd() {
-            return end;
-        }
-
-        public void setEnd(int end) {
-            this.end = end;
-        }
-        //endregion
-    }
 }

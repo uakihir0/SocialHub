@@ -22,7 +22,7 @@ public class SlackUser extends User {
     /** what user's do */
     private String title;
 
-    /** display name*/
+    /** display name */
     private String displayName;
 
     //region // Getter&Setter

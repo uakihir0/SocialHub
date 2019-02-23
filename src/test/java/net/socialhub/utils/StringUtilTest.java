@@ -1,7 +1,7 @@
 package net.socialhub.utils;
 
+import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
-import net.socialhub.model.common.AttributedString.AttributedElements;
 import org.junit.Test;
 
 public class StringUtilTest {
@@ -53,7 +53,7 @@ public class StringUtilTest {
                         + "https://t.co/scawU8ske9 " //
                         + "END");
 
-        for (AttributedElements element : string.getAttribute()) {
+        for (AttributedElement element : string.getAttribute()) {
             element.setDisplayText("www.google.com");
         }
 
@@ -66,7 +66,7 @@ public class StringUtilTest {
         System.out.println("Whole   : " + string.getText());
         System.out.println("Display : " + string.getDisplayText());
 
-        for (AttributedElements attribute : string.getAttribute()) {
+        for (AttributedElement attribute : string.getAttribute()) {
             System.out.println("------------------------------------");
             System.out.println("Type    : " + attribute.getType());
             System.out.println("Test    : " + attribute.getText());

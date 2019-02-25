@@ -1,5 +1,7 @@
 package net.socialhub.model.service.addition;
 
+import net.socialhub.model.common.AttributedElement;
+import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Service;
 
 /**
@@ -13,7 +15,7 @@ public class TwitterUser extends MiniBlogUser {
     }
 
     /** User setting url */
-    private String url;
+    private AttributedString url;
 
     /** User setting location */
     private String location;
@@ -25,11 +27,11 @@ public class TwitterUser extends MiniBlogUser {
     private Long favoritesCount;
 
     //region // Getter&Setter
-    public String getUrl() {
+    public AttributedString getUrl() {
         return url;
     }
 
-    public void setUrl(String url) {
+    public void setUrl(AttributedString url) {
         this.url = url;
     }
 

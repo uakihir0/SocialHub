@@ -37,8 +37,22 @@ public class TwitterMapper {
         model.setVerified(user.isVerified());
         model.setProtected(user.isProtected());
         model.setLocation(user.getLocation());
-        model.setUrl(user.getURL());
 
+        // URL の情報を設定
+        if (user.getURL() != null && !user.getURL().isEmpty()) {
+            AttributedString url = new AttributedString(user.getURL());
+            model.setUrl(url);
+
+            URLEntity entity = user.getURLEntity();
+            for (AttributedElement elem : url.getAttribute()) {
+                if (elem.getText().equals(entity.getText())) {
+                    elem.setDisplayText(entity.getDisplayURL());
+                    elem.setExpandedText(entity.getExpandedURL());
+                }
+            }
+        }
+
+        // 説明文の情報を設定
         AttributedString desc = new AttributedString(user.getDescription());
         model.setDescription(desc);
 

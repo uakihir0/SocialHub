@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 public class TwitterMapper {
 
+    private static final String HOST = "https://twitter.com/";
+
     /**
      * ユーザーマッピング
      */
@@ -51,6 +53,10 @@ public class TwitterMapper {
                 }
             }
         }
+
+        // プロフィールページの設定
+        String profile = HOST + user.getScreenName();
+        model.setProfileUrl(new AttributedString(profile));
 
         // 説明文の情報を設定
         AttributedString desc = new AttributedString(user.getDescription());

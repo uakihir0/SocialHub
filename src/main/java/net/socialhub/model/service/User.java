@@ -32,6 +32,15 @@ public class User extends Identify {
         return UserAction.of(this);
     }
 
+    /**
+     * SNS アカウント ID 表現を取得
+     * Get SNS Account Identify
+     * Need each SNS implementation
+     */
+    public String getAccountIdentify() {
+        return screenName;
+    }
+
     //region // Getter&Setter
     public String getName() {
         return name;

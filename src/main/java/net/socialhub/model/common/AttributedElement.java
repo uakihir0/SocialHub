@@ -1,6 +1,7 @@
 package net.socialhub.model.common;
 
 import net.socialhub.define.AttributeEnum;
+import net.socialhub.utils.StringUtil;
 
 /**
  * Attributes Elements
@@ -45,6 +46,12 @@ public class AttributedElement {
         if (displayText != null) {
             return displayText;
         }
+
+        // URL の場合は短縮
+        if (type == AttributeEnum.Link) {
+            return StringUtil.getDisplayUrl(text);
+        }
+
         return text;
     }
 

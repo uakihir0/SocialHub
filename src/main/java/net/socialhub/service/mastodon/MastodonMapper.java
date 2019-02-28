@@ -47,6 +47,10 @@ public class MastodonMapper {
         model.setStatusesCount(account.getStatusesCount());
         model.setProtected(account.isLocked());
 
+        // プロフィールページの設定
+        AttributedString profile = new AttributedString(account.getUrl());
+        model.setProfileUrl(profile);
+
         if (source != null) {
             model.setDescription(new AttributedString(source.getNote()));
 

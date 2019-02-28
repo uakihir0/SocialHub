@@ -60,6 +60,18 @@ public class StringUtilTest {
         printAttributedString(string);
     }
 
+    @Test
+    public void testGetDisplayUrl() {
+
+        System.out.println(StringUtil.getDisplayUrl( //
+                "http://www.example.com/path?query=10&query=20"));
+
+        System.out.println(StringUtil.getDisplayUrl( //
+                "http://www.example.com/path?12345"));
+        System.out.println(StringUtil.getDisplayUrl( //
+                "http://www.example.com/path?123456"));
+    }
+
     private void printAttributedString(AttributedString string) {
 
         System.out.println("====================================");

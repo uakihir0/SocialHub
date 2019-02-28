@@ -3,6 +3,7 @@ package net.socialhub.model.service.addition;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Service;
 
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -16,6 +17,17 @@ public class MastodonUser extends MiniBlogUser {
     public MastodonUser(Service service) {
         super(service);
     }
+
+    @Override
+    public String getAccountIdentify() {
+        try {
+            URL url = new URL(getProfileUrl().getText());
+            return "@" + getScreenName() + "@" + url.getHost();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 
     //region // Getter&Setter
     public List<MastodonUserFiled> getFields() {
@@ -52,7 +64,6 @@ public class MastodonUser extends MiniBlogUser {
         public void setValue(AttributedString value) {
             this.value = value;
         }
-
         //endregion
     }
 }

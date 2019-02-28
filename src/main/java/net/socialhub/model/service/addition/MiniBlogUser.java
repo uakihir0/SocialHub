@@ -1,5 +1,6 @@
 package net.socialhub.model.service.addition;
 
+import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
 
@@ -24,6 +25,9 @@ public class MiniBlogUser extends User {
 
     /** Is protected account? */
     private Boolean isProtected;
+
+    /** Profile url */
+    private AttributedString profileUrl;
 
     //region // Getter&Setter
     public Long getFollowingsCount() {
@@ -56,6 +60,14 @@ public class MiniBlogUser extends User {
 
     public void setProtected(Boolean aProtected) {
         isProtected = aProtected;
+    }
+
+    public AttributedString getProfileUrl() {
+        return profileUrl;
+    }
+
+    public void setProfileUrl(AttributedString profileUrl) {
+        this.profileUrl = profileUrl;
     }
     //endregion
 }

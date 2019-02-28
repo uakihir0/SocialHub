@@ -1,6 +1,5 @@
 package net.socialhub.model.service.addition;
 
-import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Service;
 
@@ -25,6 +24,11 @@ public class TwitterUser extends MiniBlogUser {
 
     /** Count of Favorites */
     private Long favoritesCount;
+
+    @Override
+    public String getAccountIdentify() {
+        return "@" + getScreenName();
+    }
 
     //region // Getter&Setter
     public AttributedString getUrl() {

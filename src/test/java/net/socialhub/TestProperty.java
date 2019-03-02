@@ -46,4 +46,9 @@ public class TestProperty {
         public static final String ClientSecret = "";
         public static final String Token = "";
     }
+
+    public static class MastodonInstancesProperty {
+
+        public static final String AccessToken = "";
+    }
 }

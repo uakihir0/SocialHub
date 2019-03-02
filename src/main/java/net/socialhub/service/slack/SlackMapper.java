@@ -40,8 +40,8 @@ public final class SlackMapper {
         Profile profile = response.getUser().getProfile();
         model.setIconImageUrl(profile.getImage512());
 
-        model.setEmail(profile.getEmail());
-        model.setPhone(profile.getPhone());
+        model.setEmail(new AttributedString(profile.getEmail()));
+        model.setPhone(new AttributedString(profile.getPhone()));
 
         if ((profile.getTitle() != null) &&
                 !profile.getTitle().isEmpty()) {

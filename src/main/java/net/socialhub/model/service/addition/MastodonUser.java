@@ -1,6 +1,6 @@
 package net.socialhub.model.service.addition;
 
-import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.service.Service;
 
 import java.net.URL;
@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class MastodonUser extends MiniBlogUser {
 
-    private List<MastodonUserFiled> fields;
+    private List<AttributedFiled> fields;
 
     public MastodonUser(Service service) {
         super(service);
@@ -28,43 +28,19 @@ public class MastodonUser extends MiniBlogUser {
         }
     }
 
+    @Override
+    public List<AttributedFiled> getAdditionalFields() {
+        return getFields();
+    }
 
     //region // Getter&Setter
-    public List<MastodonUserFiled> getFields() {
+    public List<AttributedFiled> getFields() {
         return fields;
     }
 
-    public void setFields(List<MastodonUserFiled> fields) {
+    public void setFields(List<AttributedFiled> fields) {
         this.fields = fields;
     }
     //endregions
-
-    /**
-     * Mastodon User における追加フィールド
-     * Mastodon Extra Fields
-     */
-    public static class MastodonUserFiled {
-
-        private String name;
-        private AttributedString value;
-
-        //region // Getter&Setter
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public AttributedString getValue() {
-            return value;
-        }
-
-        public void setValue(AttributedString value) {
-            this.value = value;
-        }
-        //endregion
-    }
 }
 

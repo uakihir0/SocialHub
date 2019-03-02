@@ -2,9 +2,9 @@ package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
 import net.socialhub.model.Account;
+import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.MastodonUser;
-import net.socialhub.model.service.addition.MastodonUser.MastodonUserFiled;
 import org.junit.Test;
 
 public class GetUserMeTest extends AbstractApiTest {
@@ -34,7 +34,7 @@ public class GetUserMeTest extends AbstractApiTest {
 
         if (user instanceof MastodonUser) {
             MastodonUser mastodonUser = (MastodonUser) user;
-            for (MastodonUserFiled filed : mastodonUser.getFields()) {
+            for (AttributedFiled filed : mastodonUser.getFields()) {
                 System.out.println(filed.getName() + ":" + filed.getValue());
             }
         }

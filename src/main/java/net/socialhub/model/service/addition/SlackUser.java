@@ -1,7 +1,12 @@
 package net.socialhub.model.service.addition;
 
+import net.socialhub.model.common.AttributedFiled;
+import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Slack における User 要素
@@ -14,10 +19,10 @@ public class SlackUser extends User {
     }
 
     /** email */
-    private String email;
+    private AttributedString email;
 
     /** phone */
-    private String phone;
+    private AttributedString phone;
 
     /** what user's do */
     private String title;
@@ -25,20 +30,28 @@ public class SlackUser extends User {
     /** display name */
     private String displayName;
 
+    @Override
+    public List<AttributedFiled> getAdditionalFields() {
+        List<AttributedFiled> fields = new ArrayList<>();
+        fields.add(new AttributedFiled("Email", getEmail()));
+        fields.add(new AttributedFiled("Phone", getPhone()));
+        return fields;
+    }
+
     //region // Getter&Setter
-    public String getEmail() {
+    public AttributedString getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(AttributedString email) {
         this.email = email;
     }
 
-    public String getPhone() {
+    public AttributedString getPhone() {
         return phone;
     }
 
-    public void setPhone(String phone) {
+    public void setPhone(AttributedString phone) {
         this.phone = phone;
     }
 

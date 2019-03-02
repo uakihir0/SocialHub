@@ -1,7 +1,11 @@
 package net.socialhub.model.service.addition;
 
+import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Twitter における User 要素
@@ -28,6 +32,14 @@ public class TwitterUser extends MiniBlogUser {
     @Override
     public String getAccountIdentify() {
         return "@" + getScreenName();
+    }
+
+    @Override
+    public List<AttributedFiled> getAdditionalFields() {
+        List<AttributedFiled> fields = new ArrayList<>();
+        fields.add(new AttributedFiled("Location", getLocation()));
+        fields.add(new AttributedFiled("URL", getUrl()));
+        return fields;
     }
 
     //region // Getter&Setter

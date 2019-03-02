@@ -5,10 +5,10 @@ import mastodon4j.entity.AccountSource;
 import mastodon4j.entity.Field;
 import mastodon4j.entity.Status;
 import net.socialhub.logger.Logger;
+import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.MastodonUser;
-import net.socialhub.model.service.addition.MastodonUser.MastodonUserFiled;
 import net.socialhub.utils.MemoSupplier;
 import net.socialhub.utils.StringUtil;
 
@@ -60,7 +60,7 @@ public class MastodonMapper {
 
                 model.setFields(new ArrayList<>());
                 for (Field field : source.getFields()) {
-                    MastodonUserFiled f = new MastodonUserFiled();
+                    AttributedFiled f = new AttributedFiled();
                     f.setValue(new AttributedString(field.getValue()));
                     f.setName(field.getName());
                     model.getFields().add(f);

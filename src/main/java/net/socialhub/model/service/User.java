@@ -1,7 +1,11 @@
 package net.socialhub.model.service;
 
+import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.service.action.UserAction;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * SNS ユーザーモデル
@@ -39,6 +43,16 @@ public class User extends Identify {
      */
     public String getAccountIdentify() {
         return screenName;
+    }
+
+    /**
+     * SNS アカウント毎の特殊属性を取得
+     * 特定のクラスに変換する事を推奨
+     * Get SNS Additional Fields
+     * (recommend to cast specified SNS model)
+     */
+    public List<AttributedFiled> getAdditionalFields() {
+        return new ArrayList<>();
     }
 
     //region // Getter&Setter

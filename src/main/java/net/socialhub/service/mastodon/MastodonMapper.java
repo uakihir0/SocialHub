@@ -37,6 +37,7 @@ public class MastodonMapper {
 
         model.setId(account.getId());
         model.setName(account.getDisplayName());
+        model.setScreenName(account.getAccount());
         model.setIconImageUrl(account.getUserName());
 
         model.setIconImageUrl(account.getAvatarStatic());

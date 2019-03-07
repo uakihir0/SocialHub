@@ -15,11 +15,17 @@ public class Instance {
 
     private String iconImageUrl;
 
-    private Long userCount;
+    private Long usersCount;
 
     private Long statusesCount;
 
     private Long connectionCount;
+
+    private Service service;
+
+    public Instance(Service service) {
+        this.service = service;
+    }
 
     //region // Getter&Setter
     public String getName() {
@@ -54,12 +60,12 @@ public class Instance {
         this.iconImageUrl = iconImageUrl;
     }
 
-    public Long getUserCount() {
-        return userCount;
+    public Long getUsersCount() {
+        return usersCount;
     }
 
-    public void setUserCount(Long userCount) {
-        this.userCount = userCount;
+    public void setUsersCount(Long usersCount) {
+        this.usersCount = usersCount;
     }
 
     public Long getStatusesCount() {
@@ -76,6 +82,14 @@ public class Instance {
 
     public void setConnectionCount(Long connectionCount) {
         this.connectionCount = connectionCount;
+    }
+
+    public Service getService() {
+        return service;
+    }
+
+    public void setService(Service service) {
+        this.service = service;
     }
     //endregion
 }

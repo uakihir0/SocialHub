@@ -1,9 +1,11 @@
 package net.socialhub.service.mastodon.support;
 
 import msinstance4j.entity.Instances;
+import net.socialhub.define.ServiceTypeEnum;
 import net.socialhub.define.service.MsInstanceOrderEnum;
 import net.socialhub.define.service.MsInstanceSortEnum;
 import net.socialhub.model.service.Instance;
+import net.socialhub.model.service.Service;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +33,7 @@ public class MastodonInstances {
      * インスタンスリスト取得
      * Get Instances List
      */
-    public List<Instance> listInstances(Integer count, MsInstanceSortEnum sort, MsInstanceOrderEnum order) {
+    public List<Instance> listInstances(int count, MsInstanceSortEnum sort, MsInstanceOrderEnum order) {
 
         Instances instances = action.instances().listInstances(
                 count, false, false, false, null,
@@ -48,7 +50,7 @@ public class MastodonInstances {
      * インスタンス検索
      * Search Instances
      */
-    public List<Instance> searchInstances(Integer count, String query) {
+    public List<Instance> searchInstances(int count, String query) {
 
         Instances instances = action.instances().searchInstances(count, query);
 
@@ -62,7 +64,8 @@ public class MastodonInstances {
      * Instance model
      */
     private Instance mappingInstance(msinstance4j.entity.Instance instance) {
-        Instance model = new Instance();
+        Service service = new Service(ServiceTypeEnum.Mastodon, null);
+        Instance model = new Instance(service);
 
         model.setName(instance.getName());
         model.setHost(instance.getName());
@@ -82,7 +85,7 @@ public class MastodonInstances {
             }
         }
 
-        model.setUserCount(ignore(() -> Long.valueOf(instance.getUsers())));
+        model.setUsersCount(ignore(() -> Long.valueOf(instance.getUsers())));
         model.setStatusesCount(ignore(() -> Long.valueOf(instance.getStatuses())));
         model.setConnectionCount(ignore(() -> Long.valueOf(instance.getConnections())));
 

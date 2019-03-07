@@ -7,14 +7,20 @@ header="SocialHubHeader.h"
 echo "#ifndef _SOCIALHUB_HEADER_GLOBAL" > ${header}
 echo "#define _SOCIALHUB_HEADER_GLOBAL" >> ${header}
 
+# Add Global Header
 echo "#import \"JreEmulation.h\"" >> ${header}
-#echo "#import \"JreEmulation.h\""
 
+# Add Common Header
+echo "#include \"java/lang/Integer.h\"" >> ${header}
+echo "#include \"java/lang/Long.h\"" >> ${header}
+echo "#include \"java/lang/Float.h\"" >> ${header}
+echo "#include \"java/lang/Double.h\"" >> ${header}
+
+# Add SocialHub Header
 for file in `\find . -name '*.h'`; do
 	if [[ $file != *${header}* ]]; then
         name=$(echo $file | sed -e "s/\.\///")
         echo "#include \"${name}\"" >> ${header}
-        #echo "#include \"${name}\""
     fi
 done
 

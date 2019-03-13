@@ -1,8 +1,9 @@
 package net.socialhub.apis;
 
-import mastodon4j.entity.Application;
 import net.socialhub.SocialHub;
 import net.socialhub.TestProperty;
+import net.socialhub.define.service.MastodonInstance;
+import net.socialhub.define.service.MastodonScope;
 import net.socialhub.define.service.SlackScope;
 import net.socialhub.model.Account;
 import net.socialhub.service.mastodon.MastodonAuth;
@@ -19,14 +20,14 @@ public class AuthorizationTest extends AbstractApiTest {
     @Test
     public void testMastodonAppRegister() {
 
-        MastodonAuth auth = SocialHub.getMastodonAuth("");
+        MastodonAuth auth = SocialHub.getMastodonAuth(MastodonInstance.MSTDN_JP);
 
-        Application application = new Application();
-        application.setName("SocialHub for iOS");
+        auth.requestClientApplication("SocialHub", null,
+                MastodonAuth.REDIRECT_NONE,
+                MastodonScope.FULL_ACCESS);
 
-        auth.getAccessor().apps().registerApplication(application,
-                TestProperty.MastodonProperty.RedirectUrl,
-                MastodonAuth.REDIRECT_NONE);
+        System.out.println(auth.getClientId());
+        System.out.println(auth.getClientSecret());
     }
 
 

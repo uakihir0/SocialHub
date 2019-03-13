@@ -3,6 +3,11 @@ language: java
 os: osx
 osx_image: xcode9.3
 
+env:
+  matrix:
+    - TEST_TARGET=Debug
+    - TEST_TARGET=Release
+
 before_script:
   - wget -q https://github.com/google/j2objc/releases/download/2.3.1/j2objc-2.3.1.zip
   - unzip -q j2objc-2.3.1.zip
@@ -10,7 +15,7 @@ before_script:
   - echo "j2objc.home=./j2objc-2.3.1/" > local.properties
 
 script:
-    - ./gradlew -b j2objc.gradle clean :j2objcAssemble -x test
+    - ./gradlew -b j2objc.gradle clean :j2objcAssemble$TEST_TARGET -x test
 
 after_success:
   - git config --global user.email "a.urusihara@gmail.com"
@@ -20,4 +25,4 @@ after_success:
   - git add --all
   - git commit -m "by Travis CI (JOB $TRAVIS_JOB_NUMBER)"
   - git remote add origin https://${AZ_TOKEN}@dev.azure.com/SocialHub/ObjCBinary/_git/ObjCBinary
-  - git push -f origin master
+  - git push -f origin ${TEST_TARGET}

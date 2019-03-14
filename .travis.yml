@@ -20,8 +20,8 @@ cache:
 
 before_script:
   - if [ ! -d j2objc-2.3.1 ]; then
-        wget -q https://github.com/google/j2objc/releases/download/2.3.1/j2objc-2.3.1.zip
-        unzip -q j2objc-2.3.1.zip
+        wget -q https://github.com/google/j2objc/releases/download/2.3.1/j2objc-2.3.1.zip;
+        unzip -q j2objc-2.3.1.zip;
     fi
   - echo "j2objc.home=./j2objc-2.3.1/" > local.properties
 

@@ -16,7 +16,7 @@ cache:
   directories:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
-    - $HOME/j2objc-2.3.1/
+    - $TRAVIS_BUILD_DIR/j2objc-2.3.1/
 
 before_script:
   - if [ ! -d j2objc-2.3.1 ]; then

@@ -8,10 +8,21 @@ env:
     - RUN_TARGET=Debug
     - RUN_TARGET=Release
 
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - $HOME/j2objc-2.3.1/
+
 before_script:
-  - wget -q https://github.com/google/j2objc/releases/download/2.3.1/j2objc-2.3.1.zip
-  - unzip -q j2objc-2.3.1.zip
-  - rm local.properties
+  - if [ ! -d j2objc-2.3.1 ]; then
+        wget -q https://github.com/google/j2objc/releases/download/2.3.1/j2objc-2.3.1.zip
+        unzip -q j2objc-2.3.1.zip
+    fi
   - echo "j2objc.home=./j2objc-2.3.1/" > local.properties
 
 script:
@@ -22,6 +33,7 @@ after_success:
   - git config --global user.name "Akihiro Urushihara"
   - cd ./build/j2objcOutputs/
   - git init
+  - git checkout -b ${RUN_TARGET}
   - git add --all
   - git commit -m "by Travis CI (JOB $TRAVIS_JOB_NUMBER)"
   - git remote add origin https://${AZ_TOKEN}@dev.azure.com/SocialHub/ObjCBinary/_git/ObjCBinary

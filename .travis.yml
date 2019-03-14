@@ -19,7 +19,7 @@ cache:
     - $TRAVIS_BUILD_DIR/j2objc-2.3.1/
 
 before_script:
-  - if [ ! -d j2objc-2.3.1 ]; then
+  - if [ ! -e ./j2objc-2.3.1/j2objc ]; then
         wget -q https://github.com/google/j2objc/releases/download/2.3.1/j2objc-2.3.1.zip;
         unzip -q j2objc-2.3.1.zip;
     fi

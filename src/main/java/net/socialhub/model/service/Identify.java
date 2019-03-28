@@ -1,5 +1,6 @@
 package net.socialhub.model.service;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,7 +8,7 @@ import java.util.Map;
  * 識別
  * Identify
  */
-public class Identify {
+public class Identify implements Serializable {
 
     private Service service;
 

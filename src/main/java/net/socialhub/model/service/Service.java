@@ -3,11 +3,13 @@ package net.socialhub.model.service;
 import net.socialhub.define.ServiceTypeEnum;
 import net.socialhub.model.Account;
 
+import java.io.Serializable;
+
 /**
  * SNS サービス情報
  * SNS Service Info
  */
-public class Service {
+public class Service implements Serializable {
 
     private Account account;
 

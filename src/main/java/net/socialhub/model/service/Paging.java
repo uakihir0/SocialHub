@@ -1,6 +1,8 @@
 package net.socialhub.model.service;
 
-public class Paging {
+import java.io.Serializable;
+
+public class Paging implements Serializable {
 
     private Long page;
     private Long count;

@@ -5,6 +5,7 @@ import net.socialhub.define.ServiceTypeEnum;
 import org.apache.commons.lang3.time.DateUtils;
 import twitter4j.RateLimitStatus;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +14,7 @@ import java.util.Map;
  * SNS レートリミット
  * SNS RateLimit
  */
-public class RateLimit {
+public class RateLimit implements Serializable {
 
     private Map<ActionEnum, RateLimitValue> dictionary = new HashMap<>();
 

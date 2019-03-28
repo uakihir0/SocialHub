@@ -1,12 +1,13 @@
 package net.socialhub.model.service;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * ページング可能レスポンス
  * Pageable Response
  */
-public class Pageable<T> {
+public class Pageable<T> implements Serializable {
 
     /** ページング情報 */
     private Paging paging;

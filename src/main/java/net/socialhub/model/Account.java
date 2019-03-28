@@ -4,13 +4,15 @@ package net.socialhub.model;
 import net.socialhub.model.service.Service;
 import net.socialhub.service.action.AccountAction;
 
+import java.io.Serializable;
+
 /**
  * Account Model
  * (Not SNS User model)
  * アカウント情報を扱うモデル
  * (各サービス毎のユーザーではない点に注意)
  */
-public class Account {
+public class Account implements Serializable {
 
     private Service service;
 

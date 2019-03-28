@@ -1,11 +1,13 @@
 package net.socialhub.model.service;
 
+import java.io.Serializable;
+
 /**
  * インスタンス情報
  * Instance Info
  * (for distributed SNS)
  */
-public class Instance {
+public class Instance implements Serializable {
 
     private String name;
 

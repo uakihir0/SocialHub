@@ -1,5 +1,6 @@
 package net.socialhub.service.twitter;
 
+import net.socialhub.define.service.TwitterIconSizeEnum;
 import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.*;
@@ -16,6 +17,8 @@ public class TwitterMapper {
 
     private static final String HOST = "https://twitter.com/";
 
+    public static TwitterIconSizeEnum DEFAULT_ICON_SIZE = TwitterIconSizeEnum.W200H200;
+
     /**
      * ユーザーマッピング
      */
@@ -28,7 +31,7 @@ public class TwitterMapper {
         model.setId(user.getId());
         model.setName(user.getName());
         model.setScreenName(user.getScreenName());
-        model.setIconImageUrl(user.getBiggerProfileImageURLHttps());
+        model.setIconImageUrl(getDefaultIconSize(user));
         model.setCoverImageUrl(user.getProfileBannerMobileRetinaURL());
 
         model.setStatusesCount((long) user.getStatusesCount());
@@ -155,5 +158,14 @@ public class TwitterMapper {
         }
 
         return model;
+    }
+
+    /**
+     * デフォルトアイコンサイズを取得
+     */
+    private static String getDefaultIconSize(twitter4j.User user) {
+        return user.getProfileImageURLHttps().replace(
+                TwitterIconSizeEnum.Normal.getSuffix(),
+                DEFAULT_ICON_SIZE.getSuffix());
     }
 }

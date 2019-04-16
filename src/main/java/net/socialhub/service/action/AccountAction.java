@@ -1,7 +1,12 @@
 package net.socialhub.service.action;
 
 import net.socialhub.model.error.NotImplimentedException;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.User;
 
 /**
  * Account Actions
@@ -78,7 +83,6 @@ public interface AccountAction {
         throw new NotImplimentedException();
     }
 
-
     // ============================================================== //
     // Comment API
     // コメント関連 API
@@ -126,6 +130,18 @@ public interface AccountAction {
         throw new NotImplimentedException();
     }
 
+    // ============================================================== //
+    // Channel (List) API
+    // チャンネル (リスト) 関連 API
+    // ============================================================== //
+
+    /**
+     * Get Channels (or Owned Lists)
+     * 自分の閲覧可能なチャンネルを取得する
+     */
+    default Pageable<Channel> getChannels() {
+        throw new NotImplimentedException();
+    }
 
     // ============================================================== //
     // Alias
@@ -148,5 +164,10 @@ public interface AccountAction {
 
     default void unretweet(Identify id) {
         unshare(id);
+    }
+
+    /** Channel <-> List */
+    default Pageable<Channel> getLists() {
+        return getChannels();
     }
 }

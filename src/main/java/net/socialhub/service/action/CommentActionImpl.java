@@ -11,7 +11,6 @@ public class CommentActionImpl implements CommentAction {
         this.action = action;
     }
 
-    @Override
     public CommentAction comment(Comment comment) {
         this.comment = comment;
         return this;

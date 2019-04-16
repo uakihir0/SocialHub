@@ -18,8 +18,6 @@ public class Service implements Serializable {
 
     /** Use Only Mastodon */
     private String apiHost;
-
-    /** Use Only Mastodon */
     private String streamApiHost;
 
     /**

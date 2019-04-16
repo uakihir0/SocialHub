@@ -1,7 +1,12 @@
 package net.socialhub.service.twitter;
 
 import net.socialhub.model.Account;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import twitter4j.ResponseList;
@@ -9,7 +14,17 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
-import static net.socialhub.define.ActionEnum.*;
+import static net.socialhub.define.ActionEnum.BlockUser;
+import static net.socialhub.define.ActionEnum.FollowUser;
+import static net.socialhub.define.ActionEnum.GetUser;
+import static net.socialhub.define.ActionEnum.GetUserMe;
+import static net.socialhub.define.ActionEnum.HomeTimeLine;
+import static net.socialhub.define.ActionEnum.LikeComment;
+import static net.socialhub.define.ActionEnum.MuteUser;
+import static net.socialhub.define.ActionEnum.UnblockUser;
+import static net.socialhub.define.ActionEnum.UnfollowUser;
+import static net.socialhub.define.ActionEnum.UnlikeComment;
+import static net.socialhub.define.ActionEnum.UnmuteUser;
 
 /**
  * Twitter Actions
@@ -46,15 +61,15 @@ public class TwitterAction extends AccountActionImpl {
             Service service = getAccount().getService();
 
             // ID
-            if (id.isNumberId()) {
-                twitter4j.User user = auth.getAccessor().showUser(id.getNumberId());
+            if (id.getId(Long.class).isPresent()) {
+                twitter4j.User user = auth.getAccessor().showUser((Long) id.getId());
                 service.getRateLimit().addInfo(GetUser, user);
                 return TwitterMapper.user(user, service);
             }
 
             // Screen Name
-            if (id.isStringId()) {
-                twitter4j.User user = auth.getAccessor().showUser(id.getStringId());
+            if (id.getId(String.class).isPresent()) {
+                twitter4j.User user = auth.getAccessor().showUser((String) id.getId());
                 service.getRateLimit().addInfo(GetUser, user);
                 return TwitterMapper.user(user, service);
             }
@@ -70,7 +85,7 @@ public class TwitterAction extends AccountActionImpl {
     public void followUser(Identify id) {
         proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User after = auth.getAccessor().createFriendship(id.getNumberId());
+            twitter4j.User after = auth.getAccessor().createFriendship((Long) id.getId());
             service.getRateLimit().addInfo(FollowUser, after);
         });
     }
@@ -82,7 +97,7 @@ public class TwitterAction extends AccountActionImpl {
     public void unfollowUser(Identify id) {
         proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User after = auth.getAccessor().destroyFriendship(id.getNumberId());
+            twitter4j.User after = auth.getAccessor().destroyFriendship((Long) id.getId());
             service.getRateLimit().addInfo(UnfollowUser, after);
         });
     }
@@ -94,7 +109,7 @@ public class TwitterAction extends AccountActionImpl {
     public void muteUser(Identify id) {
         proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User after = auth.getAccessor().createMute(id.getNumberId());
+            twitter4j.User after = auth.getAccessor().createMute((Long) id.getId());
             service.getRateLimit().addInfo(MuteUser, after);
         });
     }
@@ -106,7 +121,7 @@ public class TwitterAction extends AccountActionImpl {
     public void unmuteUser(Identify id) {
         proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User after = auth.getAccessor().destroyMute(id.getNumberId());
+            twitter4j.User after = auth.getAccessor().destroyMute((Long) id.getId());
             service.getRateLimit().addInfo(UnmuteUser, after);
         });
     }
@@ -118,7 +133,7 @@ public class TwitterAction extends AccountActionImpl {
     public void blockUser(Identify id) {
         proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User after = auth.getAccessor().createBlock(id.getNumberId());
+            twitter4j.User after = auth.getAccessor().createBlock((Long) id.getId());
             service.getRateLimit().addInfo(BlockUser, after);
         });
     }
@@ -130,7 +145,7 @@ public class TwitterAction extends AccountActionImpl {
     public void unblockUser(Identify id) {
         proceed(() -> {
             Service service = getAccount().getService();
-            twitter4j.User after = auth.getAccessor().destroyBlock(id.getNumberId());
+            twitter4j.User after = auth.getAccessor().destroyBlock((Long) id.getId());
             service.getRateLimit().addInfo(UnblockUser, after);
         });
     }
@@ -162,7 +177,7 @@ public class TwitterAction extends AccountActionImpl {
     public void like(Identify id) {
         proceed(() -> {
             Twitter twitter = auth.getAccessor();
-            Status status = twitter.favorites().createFavorite(id.getNumberId());
+            Status status = twitter.favorites().createFavorite((Long) id.getId());
 
             Service service = getAccount().getService();
             service.getRateLimit().addInfo(LikeComment, status);
@@ -176,7 +191,7 @@ public class TwitterAction extends AccountActionImpl {
     public void unlike(Identify id) {
         proceed(() -> {
             Twitter twitter = auth.getAccessor();
-            Status status = twitter.favorites().destroyFavorite(id.getNumberId());
+            Status status = twitter.favorites().destroyFavorite((Long) id.getId());
 
             Service service = getAccount().getService();
             service.getRateLimit().addInfo(UnlikeComment, status);

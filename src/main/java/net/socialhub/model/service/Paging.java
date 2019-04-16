@@ -1,45 +1,33 @@
 package net.socialhub.model.service;
 
+import net.socialhub.model.service.paging.BorderPaging;
+import net.socialhub.model.service.paging.CursorPaging;
+import net.socialhub.model.service.paging.IndexPaging;
+
 import java.io.Serializable;
 
+/**
+ * Paging
+ * ページング情報
+ *
+ * Specified Paging
+ * {@link BorderPaging}
+ * {@link CursorPaging}
+ * {@link IndexPaging}
+ */
 public class Paging implements Serializable {
 
-    private Long page;
     private Long count;
-    private Long maxId;
-    private Long sinceId;
+
+
 
     //region // Getter&Setter
-    public Long getPage() {
-        return page;
-    }
-
-    public void setPage(Long page) {
-        this.page = page;
-    }
-
     public Long getCount() {
         return count;
     }
 
     public void setCount(Long count) {
         this.count = count;
-    }
-
-    public Long getMaxId() {
-        return maxId;
-    }
-
-    public void setMaxId(Long maxId) {
-        this.maxId = maxId;
-    }
-
-    public Long getSinceId() {
-        return sinceId;
-    }
-
-    public void setSinceId(Long sinceId) {
-        this.sinceId = sinceId;
     }
     //endregion
 }

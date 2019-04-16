@@ -2,7 +2,9 @@ package net.socialhub.model.service;
 
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.service.action.AccountAction;
 import net.socialhub.service.action.UserAction;
+import net.socialhub.service.action.UserActionImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +34,9 @@ public class User extends Identify {
         super(service);
     }
 
-    public UserAction getAction() {
-        return UserAction.of(this);
+    public UserAction action() {
+        AccountAction action = getService().getAccount().action();
+        return new UserActionImpl(action).user(this);
     }
 
     /**

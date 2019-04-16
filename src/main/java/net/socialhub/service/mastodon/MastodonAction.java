@@ -6,11 +6,27 @@ import mastodon4j.entity.Status;
 import mastodon4j.entity.share.Response;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
+import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 
-import static net.socialhub.define.ActionEnum.*;
+import static net.socialhub.define.ActionEnum.BlockUser;
+import static net.socialhub.define.ActionEnum.FollowUser;
+import static net.socialhub.define.ActionEnum.GetUser;
+import static net.socialhub.define.ActionEnum.GetUserMe;
+import static net.socialhub.define.ActionEnum.HomeTimeLine;
+import static net.socialhub.define.ActionEnum.LikeComment;
+import static net.socialhub.define.ActionEnum.MuteUser;
+import static net.socialhub.define.ActionEnum.UnblockUser;
+import static net.socialhub.define.ActionEnum.UnfollowUser;
+import static net.socialhub.define.ActionEnum.UnlikeComment;
+import static net.socialhub.define.ActionEnum.UnmuteUser;
 
 public class MastodonAction extends AccountActionImpl {
 
@@ -45,7 +61,7 @@ public class MastodonAction extends AccountActionImpl {
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<mastodon4j.entity.Account> account = mastodon.getAccount(id.getNumberId());
+            Response<mastodon4j.entity.Account> account = mastodon.getAccount((Long) id.getId());
 
             service.getRateLimit().addInfo(GetUser, account);
             return MastodonMapper.user(account.get(), service);
@@ -60,7 +76,7 @@ public class MastodonAction extends AccountActionImpl {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Relationship> relationship = mastodon.follow(id.getNumberId());
+            Response<Relationship> relationship = mastodon.follow((Long) id.getId());
 
             service.getRateLimit().addInfo(FollowUser, relationship);
         });
@@ -74,7 +90,7 @@ public class MastodonAction extends AccountActionImpl {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Relationship> relationship = mastodon.unfollow(id.getNumberId());
+            Response<Relationship> relationship = mastodon.unfollow((Long) id.getId());
 
             service.getRateLimit().addInfo(UnfollowUser, relationship);
         });
@@ -88,7 +104,7 @@ public class MastodonAction extends AccountActionImpl {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Relationship> relationship = mastodon.mute(id.getNumberId());
+            Response<Relationship> relationship = mastodon.mute((Long) id.getId());
 
             service.getRateLimit().addInfo(MuteUser, relationship);
         });
@@ -102,7 +118,7 @@ public class MastodonAction extends AccountActionImpl {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Relationship> relationship = mastodon.unmute(id.getNumberId());
+            Response<Relationship> relationship = mastodon.unmute((Long) id.getId());
 
             service.getRateLimit().addInfo(UnmuteUser, relationship);
         });
@@ -116,7 +132,7 @@ public class MastodonAction extends AccountActionImpl {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Relationship> relationship = mastodon.block(id.getNumberId());
+            Response<Relationship> relationship = mastodon.block((Long) id.getId());
 
             service.getRateLimit().addInfo(BlockUser, relationship);
         });
@@ -130,7 +146,7 @@ public class MastodonAction extends AccountActionImpl {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Relationship> relationship = mastodon.unblock(id.getNumberId());
+            Response<Relationship> relationship = mastodon.unblock((Long) id.getId());
 
             service.getRateLimit().addInfo(UnblockUser, relationship);
         });
@@ -148,9 +164,23 @@ public class MastodonAction extends AccountActionImpl {
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Status[]> status = mastodon.getHomeTimeline();
 
+            Long count = null;
+            Long maxId = null;
+            Long sinceId = null;
+            if (paging != null) {
+                count = paging.getCount();
+
+                if (paging instanceof BorderPaging) {
+                    BorderPaging border = (BorderPaging) paging;
+                    maxId = border.getMaxId();
+                    sinceId = border.getSinceId();
+                }
+            }
+
+            Response<Status[]> status = mastodon.getHomeTimeline(maxId, sinceId, count);
             service.getRateLimit().addInfo(HomeTimeLine, status);
+
             return MastodonMapper.timeLine(status.get(), service, paging);
         });
     }
@@ -163,7 +193,7 @@ public class MastodonAction extends AccountActionImpl {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Status> status = mastodon.statuses().favourite(id.getNumberId());
+            Response<Status> status = mastodon.statuses().favourite((Long) id.getId());
 
             service.getRateLimit().addInfo(LikeComment, status);
         });
@@ -177,7 +207,7 @@ public class MastodonAction extends AccountActionImpl {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Status> status = mastodon.statuses().unfavourite(id.getNumberId());
+            Response<Status> status = mastodon.statuses().unfavourite((Long) id.getId());
 
             service.getRateLimit().addInfo(UnlikeComment, status);
         });
@@ -208,7 +238,7 @@ public class MastodonAction extends AccountActionImpl {
         logger.debug(e.getMessage(), e);
     }
 
-    //<editor-fold desc="// Getter&Setter">
+    //region // Getter&Setter
     MastodonAction(Account account, ServiceAuth<Mastodon> auth) {
         this.account(account);
         this.auth(auth);
@@ -218,5 +248,5 @@ public class MastodonAction extends AccountActionImpl {
         this.auth = auth;
         return this;
     }
-    //</editor-fold>
+    //endregion
 }

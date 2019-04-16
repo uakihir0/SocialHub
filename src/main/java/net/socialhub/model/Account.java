@@ -1,6 +1,5 @@
 package net.socialhub.model;
 
-
 import net.socialhub.model.service.Service;
 import net.socialhub.service.action.AccountAction;
 
@@ -18,6 +17,10 @@ public class Account implements Serializable {
 
     private AccountAction action;
 
+    public AccountAction action() {
+        return action;
+    }
+
     //region // Getter&Setter
     public Service getService() {
         return service;
@@ -25,10 +28,6 @@ public class Account implements Serializable {
 
     public void setService(Service service) {
         this.service = service;
-    }
-
-    public AccountAction getAction() {
-        return action;
     }
 
     public void setAction(AccountAction action) {

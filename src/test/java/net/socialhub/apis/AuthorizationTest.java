@@ -58,6 +58,6 @@ public class AuthorizationTest extends AbstractApiTest {
 
         String code = "PLEASE SET CODE HERE";
         Account account = auth.getAccountWithCode(TestProperty.SlackProperty.RedirectUrl, code);
-        System.out.println(account.getAction().getUserMe().getName());
+        System.out.println(account.action().getUserMe().getName());
     }
 }

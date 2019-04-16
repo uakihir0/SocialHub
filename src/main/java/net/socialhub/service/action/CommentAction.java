@@ -6,8 +6,6 @@ import net.socialhub.model.service.Service;
 
 public interface CommentAction {
 
-    CommentAction comment(Comment comment);
-
     /**
      * Add Reaction
      * リアクションをする
@@ -77,15 +75,5 @@ public interface CommentAction {
 
     default void unretweet() {
         unshare();
-    }
-
-    /**
-     * Generate CommentAction from Comment
-     * コメントからコメントアクションを生成
-     */
-    static CommentAction of(Comment comment) {
-        Service service = comment.getService();
-        AccountAction action = service.getAccount().getAction();
-        return new CommentActionImpl(action).comment(comment);
     }
 }

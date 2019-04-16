@@ -1,6 +1,8 @@
 package net.socialhub.model.group;
 
 import net.socialhub.model.Account;
+import net.socialhub.service.action.group.AccountGroupAction;
+import net.socialhub.service.action.group.AccountGroupActionImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +11,7 @@ import java.util.List;
  * Account Group Model
  * 複数のアカウントを束ねるモデル
  */
-public class GroupAccount {
+public class AccountGroup {
 
     private List<Account> accounts = new ArrayList<>();
 
@@ -21,6 +23,9 @@ public class GroupAccount {
         this.accounts.add(account);
     }
 
+    public AccountGroupAction action() {
+        return new AccountGroupActionImpl(this);
+    }
 
     //region // Getter&Setter
     public List<Account> getAccounts() {

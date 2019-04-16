@@ -15,11 +15,11 @@ public class GetInstancesTest {
     @Test
     public void testMastodonListInstances() {
 
-        MastodonInstances client = MastodonSupport.getMastodonInstances(
+        MastodonInstances client = MastodonSupport.getMastodonInstances( //
                 TestProperty.MastodonInstancesProperty.AccessToken);
 
         // Get Most Users Instances
-        List<Instance> instances = client.listInstances(
+        List<Instance> instances = client.listInstances( //
                 200, MsInstanceSortEnum.USERS, MsInstanceOrderEnum.DESC);
 
         for (Instance instance : instances) {
@@ -30,7 +30,7 @@ public class GetInstancesTest {
     @Test
     public void testMastodonSearchInstances() {
 
-        MastodonInstances client = MastodonSupport.getMastodonInstances(
+        MastodonInstances client = MastodonSupport.getMastodonInstances( //
                 TestProperty.MastodonInstancesProperty.AccessToken);
 
         List<Instance> instances = client.searchInstances(10, "Anime");

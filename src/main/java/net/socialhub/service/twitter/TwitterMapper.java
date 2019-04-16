@@ -3,8 +3,15 @@ package net.socialhub.service.twitter;
 import net.socialhub.define.service.TwitterIconSizeEnum;
 import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.TwitterUser;
+import net.socialhub.model.service.paging.BorderPaging;
+import net.socialhub.model.service.paging.IndexPaging;
+import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.MemoSupplier;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -22,7 +29,7 @@ public class TwitterMapper {
     /**
      * ユーザーマッピング
      */
-    public static User user(
+    public static User user( //
             twitter4j.User user, //
             Service service) {
 
@@ -81,7 +88,7 @@ public class TwitterMapper {
     /**
      * コメントマッピング
      */
-    public static Comment comment(
+    public static Comment comment( //
             Status status,  //
             Service service) {
 
@@ -98,34 +105,44 @@ public class TwitterMapper {
     /**
      * ページングマッピング
      */
-    public static Paging paging(
+    public static Paging paging( //
             twitter4j.Paging paging) {
 
-        Paging model = new Paging();
+        if (paging.getPage() > 0) {
+            IndexPaging model = new IndexPaging();
+            model.setPage((long) paging.getPage());
+            model.setCount((long) paging.getCount());
+            return model;
 
-        model.setPage(((long) paging.getPage()));
-        model.setCount(((long) paging.getCount()));
-        model.setMaxId(paging.getMaxId());
-        model.setSinceId(paging.getSinceId());
-
-        return model;
+        } else {
+            BorderPaging model = new BorderPaging();
+            model.setMaxId(paging.getMaxId());
+            model.setSinceId(paging.getSinceId());
+            model.setCount(((long) paging.getCount()));
+            return model;
+        }
     }
 
-    public static twitter4j.Paging fromPaging(
+    public static twitter4j.Paging fromPaging( //
             Paging paging) {
 
         twitter4j.Paging model = new twitter4j.Paging();
-        if (paging.getPage() != null) {
-            model.setPage(paging.getPage().intValue());
+        model.setCount(paging.getCount().intValue());
+
+        if (paging instanceof IndexPaging) {
+            IndexPaging index = (IndexPaging) paging;
+            model.setPage(index.getPage().intValue());
         }
-        if (paging.getCount() != null) {
-            model.setCount(paging.getCount().intValue());
-        }
-        if (paging.getMaxId() != null) {
-            model.setMaxId(paging.getMaxId());
-        }
-        if (paging.getSinceId() != null) {
-            model.setSinceId(paging.getSinceId());
+
+        if (paging instanceof BorderPaging) {
+            BorderPaging border = (BorderPaging) paging;
+
+            if (border.getMaxId() != null) {
+                model.setMaxId(border.getMaxId());
+            }
+            if (border.getSinceId() != null) {
+                model.setSinceId(border.getSinceId());
+            }
         }
 
         return model;
@@ -134,7 +151,7 @@ public class TwitterMapper {
     /**
      * タイムラインマッピング
      */
-    public static Pageable<Comment> timeLine(
+    public static Pageable<Comment> timeLine( //
             ResponseList<Status> statuses, //
             Service service, //
             Paging paging) {
@@ -144,19 +161,7 @@ public class TwitterMapper {
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(Collectors.toList()));
 
-        if (paging != null) {
-            model.setPaging(paging);
-
-        } else {
-            // make paging info from response
-            Paging pg = new Paging();
-            int count = statuses.size();
-
-            pg.setCount((long) count);
-            pg.setMaxId(model.getEntities().get(0).getNumberId());
-            pg.setSinceId(model.getEntities().get(count - 1).getNumberId());
-        }
-
+        model.setPaging(MapperUtil.mappingBorderPaging(model, paging));
         return model;
     }
 
@@ -164,8 +169,7 @@ public class TwitterMapper {
      * デフォルトアイコンサイズを取得
      */
     private static String getDefaultIconSize(twitter4j.User user) {
-        return user.getProfileImageURLHttps().replace(
-                TwitterIconSizeEnum.Normal.getSuffix(),
-                DEFAULT_ICON_SIZE.getSuffix());
+        return user.getProfileImageURLHttps() //
+                .replace(TwitterIconSizeEnum.Normal.getSuffix(), DEFAULT_ICON_SIZE.getSuffix());
     }
 }

@@ -26,8 +26,9 @@ public class TwitterAuth implements ServiceAuth<Twitter> {
     // For Authorization
     private RequestToken requestToken;
 
-    public TwitterAuth(String consumerKey,
-                       String consumerSecret) {
+    public TwitterAuth( //
+            String consumerKey, //
+            String consumerSecret) {
 
         this.consumerKey = consumerKey;
         this.consumerSecret = consumerSecret;
@@ -51,8 +52,9 @@ public class TwitterAuth implements ServiceAuth<Twitter> {
      * Authentication with AccessToken Secret
      * アクセストークンから生成
      */
-    public Account getAccountWithAccessToken(String accessToken,
-                                             String accessSecret) {
+    public Account getAccountWithAccessToken( //
+            String accessToken, //
+            String accessSecret) {
 
         this.accessToken = accessToken;
         this.accessSecret = accessSecret;
@@ -70,6 +72,7 @@ public class TwitterAuth implements ServiceAuth<Twitter> {
      * Twitter の認証ページの URL を取得
      */
     public String getAuthorizationURL(String callbackUrl) {
+
         ConfigurationBuilder builder = new ConfigurationBuilder();
         Twitter twitter = new TwitterFactory(builder.build()).getInstance();
         twitter.setOAuthConsumer(consumerKey, consumerSecret);
@@ -88,6 +91,7 @@ public class TwitterAuth implements ServiceAuth<Twitter> {
      * 認証してアクセストークンを取得し格納
      */
     public Account getAccountWithVerifier(String verifier) {
+
         ConfigurationBuilder builder = new ConfigurationBuilder();
         Twitter twitter = new TwitterFactory(builder.build()).getInstance();
         twitter.setOAuthConsumer(consumerKey, consumerSecret);

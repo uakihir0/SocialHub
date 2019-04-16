@@ -27,7 +27,6 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
     private String clientSecret;
     private String accessToken;
 
-
     public MastodonAuth(String host) {
         this.host = host;
     }
@@ -38,7 +37,7 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
      */
     @Override
     public Mastodon getAccessor() {
-        return MastodonFactory.getInstance(
+        return MastodonFactory.getInstance( //
                 this.host, this.accessToken);
     }
 
@@ -61,8 +60,9 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
      * Set Client Info
      * 申請済みクライアント情報を設定
      */
-    public void setClientInfo(String clientId,
-                              String clientSecret) {
+    public void setClientInfo( //
+            String clientId, //
+            String clientSecret) {
 
         this.clientId = clientId;
         this.clientSecret = clientSecret;
@@ -72,10 +72,11 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
      * Request Client Application
      * クライアント情報を申請して設定
      */
-    public void requestClientApplication(String appName,
-                                         String website,
-                                         String redirectUris,
-                                         String scopes) {
+    public void requestClientApplication( //
+            String appName, //
+            String website, //
+            String redirectUris, //
+            String scopes) {
 
         Application application = new Application();
         application.setName(appName);
@@ -93,22 +94,23 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
      * Get Authorization URL
      * Mastodon の認証ページの URL を取得
      */
-    public String getAuthorizationURL(String redirectUri,
-                                      String scopes) {
+    public String getAuthorizationURL( //
+            String redirectUri, //
+            String scopes) {
 
         Mastodon mastodon = MastodonFactory.getInstance(this.host, null);
         return mastodon.getAuthorizationUrl(this.clientId, redirectUri, scopes);
     }
 
-
     /**
      * Authentication with Code
      * 認証コードよりアカウントモデルを生成
      */
-    public Account getAccountWithCode(String redirectUri,
-                                      String code) {
+    public Account getAccountWithCode( //
+            String redirectUri, //
+            String code) {
 
-        Response<AccessToken> accessToken =
+        Response<AccessToken> accessToken = //
                 MastodonFactory.getInstance(this.host, null).oauth() //
                         .issueAccessToken(this.clientId, this.clientSecret, redirectUri, code);
 

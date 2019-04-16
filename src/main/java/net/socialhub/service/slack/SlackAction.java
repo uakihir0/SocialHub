@@ -1,19 +1,25 @@
 package net.socialhub.service.slack;
 
+import com.github.seratch.jslack.api.methods.request.channels.ChannelsListRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsAddRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsRemoveRequest;
+import com.github.seratch.jslack.api.methods.request.team.TeamInfoRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersIdentityRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersInfoRequest;
+import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsAddResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsRemoveResponse;
+import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersIdentityResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
-import net.socialhub.define.service.SlackConstant;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
+import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
+import net.socialhub.model.service.addition.SlackTeam;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.service.slack.SlackAuth.SlackAccessor;
@@ -27,6 +33,12 @@ public class SlackAction extends AccountActionImpl {
 
     private ServiceAuth<SlackAccessor> auth;
 
+    /** Cached team info */
+    private SlackTeam team;
+
+    /** Cached General Channel Id */
+    private String generalChannelId;
+
     // ============================================================== //
     // Account
     // ============================================================== //
@@ -38,13 +50,18 @@ public class SlackAction extends AccountActionImpl {
     public User getUserMe() {
         return proceed(() -> {
             Service service = getAccount().getService();
-            UsersIdentityResponse account = auth.getAccessor().getSlack() //
+            UsersIdentityResponse identity = auth.getAccessor().getSlack() //
                     .methods().usersIdentity(UsersIdentityRequest.builder() //
                             .token(auth.getAccessor().getToken()) //
                             .build());
 
-            // One more request to get full information.
-            return getUser(SlackMapper.user(account, service));
+            UsersInfoResponse account = auth.getAccessor().getSlack() //
+                    .methods().usersInfo(UsersInfoRequest.builder() //
+                            .token(auth.getAccessor().getToken()) //
+                            .user(identity.getUser().getId()) //
+                            .build());
+
+            return SlackMapper.user(account, getTeam(), service);
         });
     }
 
@@ -58,10 +75,10 @@ public class SlackAction extends AccountActionImpl {
             UsersInfoResponse account = auth.getAccessor().getSlack() //
                     .methods().usersInfo(UsersInfoRequest.builder() //
                             .token(auth.getAccessor().getToken()) //
-                            .user(id.getStringId()) //
+                            .user((String) id.getId()) //
                             .build());
 
-            return SlackMapper.user(account, service);
+            return SlackMapper.user(account, getTeam(), service);
         });
     }
 
@@ -75,11 +92,10 @@ public class SlackAction extends AccountActionImpl {
     @Override
     public void like(Identify id) {
         proceed(() -> {
-            Service service = getAccount().getService();
             ReactionsAddResponse response = auth.getAccessor().getSlack() //
                     .methods().reactionsAdd(ReactionsAddRequest.builder() //
-                            .channel(id.getInfo(SlackConstant.CHANNEL_KEY)) //
                             .token(auth.getAccessor().getToken()) //
+                            .channel((String) id.getId()) //
                             .build());
         });
     }
@@ -90,18 +106,79 @@ public class SlackAction extends AccountActionImpl {
     @Override
     public void unlike(Identify id) {
         proceed(() -> {
-            Service service = getAccount().getService();
             ReactionsRemoveResponse response = auth.getAccessor().getSlack() //
                     .methods().reactionsRemove(ReactionsRemoveRequest.builder() //
-                            .channel(id.getInfo(SlackConstant.CHANNEL_KEY)) //
+                            .token(auth.getAccessor().getToken()) //
+                            .channel((String) id.getId()) //
+                            .build());
+        });
+    }
+
+    // ============================================================== //
+    // Channels
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Channel> getChannels() {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            ChannelsListResponse response = auth.getAccessor().getSlack() //
+                    .methods().channelsList(ChannelsListRequest.builder() //
                             .token(auth.getAccessor().getToken()) //
                             .build());
+
+            // General のチャンネルを記録
+            response.getChannels().stream() //
+                    .filter((c) -> c.isGeneral()).findFirst() //
+                    .map((c) -> generalChannelId = c.getId());
+
+            return SlackMapper.channel(response, service);
+        });
+    }
+
+    // ============================================================== //
+    // Only Slack Action
+    // ============================================================== //
+
+    /**
+     * Get Team Information
+     * (Return cached information if already requested)
+     * チーム情報を返却 (既にリクエスト済みの場合はキャッシュを返す)
+     */
+    public SlackTeam getTeam() {
+        if (this.team != null) {
+            return this.team;
+        }
+
+        return proceed(() -> {
+            TeamInfoResponse team = auth.getAccessor().getSlack() //
+                    .methods().teamInfo(TeamInfoRequest.builder() //
+                            .token(auth.getAccessor().getToken()) //
+                            .build());
+
+            this.team = SlackMapper.team(team);
+            return this.team;
         });
     }
 
     // ============================================================== //
     // Utils
     // ============================================================== //
+
+    /**
+     * General マークされたチャンネルを取得
+     */
+    public String getGeneralChannelId() {
+
+        // 不明な場合はチャンネル一覧を先に取得
+        if (generalChannelId == null) {
+            getChannels();
+        }
+        return generalChannelId;
+    }
 
     private <T> T proceed(ActionCaller<T, Exception> runner) {
         try {

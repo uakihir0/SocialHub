@@ -1,12 +1,8 @@
 package net.socialhub.service.action;
 
 import net.socialhub.model.error.NotImplimentedException;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
 
 public interface UserAction {
-
-    UserAction user(User user);
 
     /**
      * Follow User
@@ -54,15 +50,5 @@ public interface UserAction {
      */
     default void unblockUser() {
         throw new NotImplimentedException();
-    }
-
-    /**
-     * Generate UserAction from User
-     * ユーザーからユーザーアクションを生成
-     */
-    static UserAction of(User user) {
-        Service service = user.getService();
-        AccountAction action = service.getAccount().getAction();
-        return new UserActionImpl(action).user(user);
     }
 }

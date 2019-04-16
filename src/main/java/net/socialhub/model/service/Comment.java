@@ -1,6 +1,8 @@
 package net.socialhub.model.service;
 
+import net.socialhub.service.action.AccountAction;
 import net.socialhub.service.action.CommentAction;
+import net.socialhub.service.action.CommentActionImpl;
 import net.socialhub.utils.MemoSupplier;
 
 import java.util.Date;
@@ -21,10 +23,10 @@ public class Comment extends Identify {
         super(service);
     }
 
-    public CommentAction getAction() {
-        return CommentAction.of(this);
+    public CommentAction action() {
+        AccountAction action = getService().getAccount().action();
+        return new CommentActionImpl(action).comment(this);
     }
-
 
     //region // Getter&Setter
     public String getComment() {

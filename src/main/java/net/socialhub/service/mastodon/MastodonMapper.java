@@ -7,8 +7,13 @@ import mastodon4j.entity.Status;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.MastodonUser;
+import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.MemoSupplier;
 import net.socialhub.utils.StringUtil;
 
@@ -16,6 +21,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,7 +34,7 @@ public class MastodonMapper {
     /**
      * ユーザーマッピング
      */
-    public static User user(
+    public static User user( //
             Account account, //
             Service service) {
 
@@ -74,11 +80,12 @@ public class MastodonMapper {
     /**
      * コメントマッピング
      */
-    public static Comment comment(
+    public static Comment comment( //
             Status status, //
             Service service) {
 
         SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
         Comment model = new Comment(service);
 
         try {
@@ -98,7 +105,7 @@ public class MastodonMapper {
     /**
      * タイムラインマッピング
      */
-    public static Pageable<Comment> timeLine(
+    public static Pageable<Comment> timeLine( //
             Status[] statuses, //
             Service service, //
             Paging paging) {
@@ -108,19 +115,7 @@ public class MastodonMapper {
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(Collectors.toList()));
 
-        if (paging != null) {
-            model.setPaging(paging);
-
-        } else {
-            // make paging info from response
-            Paging pg = new Paging();
-            int count = statuses.length;
-
-            pg.setCount((long) count);
-            pg.setMaxId(model.getEntities().get(0).getNumberId());
-            pg.setSinceId(model.getEntities().get(count - 1).getNumberId());
-        }
-
+        model.setPaging(MapperUtil.mappingBorderPaging(model, paging));
         return model;
     }
 }

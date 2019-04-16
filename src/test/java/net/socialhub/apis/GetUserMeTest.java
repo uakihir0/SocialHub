@@ -13,7 +13,7 @@ public class GetUserMeTest extends AbstractApiTest {
     public void testGetUserMeTwitter() {
 
         Account account = SocialAuthUtil.getTwitterAccount();
-        User user = account.getAction().getUserMe();
+        User user = account.action().getUserMe();
         System.out.println(user.getName());
     }
 
@@ -21,7 +21,7 @@ public class GetUserMeTest extends AbstractApiTest {
     public void testGetUserMeFacebook() {
 
         Account account = SocialAuthUtil.getFacebookAccount();
-        User user = account.getAction().getUserMe();
+        User user = account.action().getUserMe();
         System.out.println(user.getName());
     }
 
@@ -29,7 +29,7 @@ public class GetUserMeTest extends AbstractApiTest {
     public void testGetUserMastodon() {
 
         Account account = SocialAuthUtil.getMastodonAccount();
-        User user = account.getAction().getUserMe();
+        User user = account.action().getUserMe();
         System.out.println(user.getName());
 
         if (user instanceof MastodonUser) {
@@ -44,7 +44,7 @@ public class GetUserMeTest extends AbstractApiTest {
     public void testGetUserSlack() {
 
         Account account = SocialAuthUtil.getSlackAccount();
-        User user = account.getAction().getUserMe();
+        User user = account.action().getUserMe();
         System.out.println(user.getName());
     }
 }

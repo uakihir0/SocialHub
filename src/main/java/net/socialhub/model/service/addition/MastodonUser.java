@@ -24,7 +24,7 @@ public class MastodonUser extends MiniBlogUser {
             URL url = new URL(getProfileUrl().getText());
             return "@" + getScreenName() + "@" + url.getHost();
         } catch (Exception e) {
-            return null;
+            return getScreenName();
         }
     }
 
@@ -41,6 +41,6 @@ public class MastodonUser extends MiniBlogUser {
     public void setFields(List<AttributedFiled> fields) {
         this.fields = fields;
     }
-    //endregions
+    //endregion
 }
 

@@ -49,9 +49,8 @@ public class TwitterUser extends MiniBlogUser {
      * 特定のサイズの画像アイコンを取得
      */
     public String getIconImageUrl(TwitterIconSizeEnum size) {
-        return getIconImageUrl().replace(
-                TwitterMapper.DEFAULT_ICON_SIZE.getSuffix(),
-                size.getSuffix());
+        TwitterIconSizeEnum beforeSize = TwitterMapper.DEFAULT_ICON_SIZE;
+        return getIconImageUrl().replace(beforeSize.getSuffix(), size.getSuffix());
     }
 
     //region // Getter&Setter

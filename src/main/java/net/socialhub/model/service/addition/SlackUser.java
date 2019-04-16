@@ -30,6 +30,17 @@ public class SlackUser extends User {
     /** display name */
     private String displayName;
 
+    /** team information */
+    private SlackTeam team;
+
+    @Override
+    public String getAccountIdentify() {
+        if ((team != null) && (team.getName() != null)) {
+            return team.getName() + ":" + getScreenName();
+        }
+        return getScreenName();
+    }
+
     @Override
     public List<AttributedFiled> getAdditionalFields() {
         List<AttributedFiled> fields = new ArrayList<>();
@@ -69,6 +80,14 @@ public class SlackUser extends User {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public SlackTeam getTeam() {
+        return team;
+    }
+
+    public void setTeam(SlackTeam team) {
+        this.team = team;
     }
     //endregion
 }

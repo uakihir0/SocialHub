@@ -15,7 +15,7 @@ import twitter4j.conf.ConfigurationBuilder;
 /**
  * Twitter Authorization Functions
  */
-public class TwitterAuth implements ServiceAuth<Twitter> {
+public class    TwitterAuth implements ServiceAuth<Twitter> {
 
     // For OAuth
     private String consumerKey;

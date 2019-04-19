@@ -1,28 +1,42 @@
 package net.socialhub.service.slack;
 
+import com.github.seratch.jslack.api.methods.request.channels.ChannelsHistoryRequest;
+import com.github.seratch.jslack.api.methods.request.channels.ChannelsHistoryRequest.ChannelsHistoryRequestBuilder;
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsListRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsAddRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsRemoveRequest;
 import com.github.seratch.jslack.api.methods.request.team.TeamInfoRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersIdentityRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersInfoRequest;
+import com.github.seratch.jslack.api.methods.response.channels.ChannelsHistoryResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsAddResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsRemoveResponse;
 import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersIdentityResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
+import com.github.seratch.jslack.api.model.Message;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.addition.SlackTeam;
+import net.socialhub.model.service.addition.slack.SlackTeam;
+import net.socialhub.model.service.paging.DatePaging;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.service.slack.SlackAuth.SlackAccessor;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Slack Actions
@@ -115,6 +129,54 @@ public class SlackAction extends AccountActionImpl {
     }
 
     // ============================================================== //
+    // Comment
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getHomeTimeLine(Paging paging) {
+        return proceed(() -> {
+            ChannelsHistoryRequestBuilder request = ChannelsHistoryRequest.builder() //
+                    .channel(getGeneralChannelId()).token(auth.getAccessor().getToken());
+
+            if (paging != null) {
+                if (paging.getCount() != null) {
+                    request.count(paging.getCount().intValue());
+                }
+
+                if (paging instanceof DatePaging) {
+                    DatePaging date = (DatePaging) paging;
+                    if (date.getLatest() != null) {
+                        request.latest(timeStampString(date.getLatest()));
+                    }
+                    if (date.getOldest() != null) {
+                        request.oldest(timeStampString(date.getOldest()));
+                    }
+                    if (date.getInclusive() != null) {
+                        request.inclusive(date.getInclusive());
+                    }
+                }
+            }
+
+            Service service = getAccount().getService();
+            ChannelsHistoryResponse response = auth.getAccessor() //
+                    .getSlack().methods().channelsHistory(request.build());
+
+            List<String> users = response.getMessages().stream() //
+                    .map(Message::getUser).filter(Objects::nonNull) //
+                    .distinct().collect(Collectors.toList());
+
+            Map<String, User> userMap = users.parallelStream() //
+                    .collect(Collectors.toMap(Function.identity(), //
+                            (id) -> getUser(new Identify(service, id))));
+
+            return SlackMapper.timeLine(response, userMap, service, paging);
+        });
+    }
+
+    // ============================================================== //
     // Channels
     // ============================================================== //
 
@@ -180,6 +242,19 @@ public class SlackAction extends AccountActionImpl {
         return generalChannelId;
     }
 
+    // ============================================================== //
+    // Support
+    // ============================================================== //
+
+    private String timeStampString(Date date) {
+        long number = date.getTime() / 1000L;
+        return Long.toString(number);
+    }
+
+    // ============================================================== //
+    // Proceed
+    // ============================================================== //
+
     private <T> T proceed(ActionCaller<T, Exception> runner) {
         try {
             return runner.proceed();
@@ -207,9 +282,13 @@ public class SlackAction extends AccountActionImpl {
         this.auth(auth);
     }
 
-    SlackAction auth(ServiceAuth<SlackAccessor> auth) {
+    public SlackAction auth(ServiceAuth<SlackAccessor> auth) {
         this.auth = auth;
         return this;
+    }
+
+    public ServiceAuth<SlackAccessor> getAuth() {
+        return auth;
     }
     //endregion
 

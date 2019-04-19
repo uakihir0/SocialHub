@@ -1,23 +1,37 @@
 package net.socialhub.service.slack;
 
+import com.github.seratch.jslack.api.methods.response.channels.ChannelsHistoryResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
 import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersIdentityResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
+import com.github.seratch.jslack.api.model.File;
+import com.github.seratch.jslack.api.model.Message;
 import com.github.seratch.jslack.api.model.User.Profile;
+import net.socialhub.define.MediaTypeEnum;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Media;
 import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.addition.SlackTeam;
-import net.socialhub.model.service.addition.SlackUser;
+import net.socialhub.model.service.addition.slack.SlackMedia;
+import net.socialhub.model.service.addition.slack.SlackTeam;
+import net.socialhub.model.service.addition.slack.SlackUser;
 import net.socialhub.model.service.paging.CursorPaging;
+import net.socialhub.service.action.AccountAction;
+import net.socialhub.utils.MapperUtil;
+import net.socialhub.utils.MemoSupplier;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public final class SlackMapper {
 
@@ -39,6 +53,9 @@ public final class SlackMapper {
         return model;
     }
 
+    /**
+     * ユーザーマッピング
+     */
     public static User user( //
             UsersInfoResponse user, //
             SlackTeam team, //
@@ -75,6 +92,95 @@ public final class SlackMapper {
         return model;
     }
 
+    /**
+     * コメントマッピング
+     */
+    public static Comment comment( //
+            Message message, //
+            User user, //
+            Service service) {
+
+        Comment model = new Comment(service);
+
+        model.setId(message.getTs());
+        model.setComment(new AttributedString(message.getText()));
+        model.setCreateAt(getDateFromTimeStamp(message.getTs()));
+        model.setUser(MemoSupplier.of(() -> user));
+
+        // Action
+        AccountAction action = service.getAccount().action();
+
+        if (action instanceof SlackAction) {
+            String token = ((SlackAction) action) //
+                    .getAuth().getAccessor().getToken();
+
+            // メディア情報は Token が取れた場合にのみ取得
+            model.setMedias(MemoSupplier.of(() -> medias(message, token)));
+        }
+
+        return model;
+    }
+
+    /**
+     * メディアマッピング
+     * see https://api.slack.com/events/message/file_share
+     */
+    public static List<Media> medias( //
+            Message message, //
+            String token) {
+
+        List<Media> medias = new ArrayList<>();
+
+        if (message.getFile() != null) {
+            medias.add(media(message.getFile(), token));
+        }
+
+        return medias;
+    }
+
+    /**
+     * メディアマッピング
+     * see https://api.slack.com/events/message/file_share
+     */
+    public static Media media( //
+            File file, //
+            String token) {
+
+        SlackMedia model = new SlackMedia();
+
+        model.setAccessToken(token);
+        model.setSourceUrl(file.getUrlPrivate());
+        model.setPreviewUrl(file.getUrlPrivate());
+
+        if (file.getMimetype().startsWith("image")) {
+            model.setType(MediaTypeEnum.Image);
+        }
+
+        return model;
+    }
+
+    /**
+     * タイムラインマッピング
+     */
+    public static Pageable<Comment> timeLine( //
+            ChannelsHistoryResponse history, //
+            Map<String, User> userMap, //
+            Service service, //
+            Paging paging) {
+
+        Pageable<Comment> model = new Pageable<>();
+        model.setEntities(history.getMessages().stream() //
+                .map(e -> comment(e, userMap.get(e.getUser()), service)) //
+                .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
+                .collect(Collectors.toList()));
+
+        model.setPaging(MapperUtil.mappingDatePaging(model, paging));
+        return model;
+    }
+
+    /**
+     * チャンネルマッピング
+     */
     public static Pageable<Channel> channel( //
             ChannelsListResponse channels, //
             Service service) {
@@ -93,9 +199,15 @@ public final class SlackMapper {
         });
 
         CursorPaging pg = new CursorPaging();
-        pg.setNextCursor(channels.getResponseMetadata().getNextCursor());
         pg.setCount((long) entities.size());
 
+        // カーソル情報が存在する場合は設定
+        if (channels.getResponseMetadata() != null) {
+            pg.setNextCursor(channels.getResponseMetadata().getNextCursor());
+        }
+
+        model.setEntities(entities);
+        model.setPaging(pg);
         return model;
     }
 
@@ -118,5 +230,18 @@ public final class SlackMapper {
         team.setIconImageUrl(response.getTeam().getIcon().getImage132());
 
         return team;
+    }
+
+    // ============================================================== //
+    // Support
+    // ============================================================== //
+
+    private static Date getDateFromTimeStamp(String ts) {
+
+        if (ts != null && !ts.isEmpty()) {
+            String unixTime = ts.split("\\.")[0];
+            return new Date(Long.valueOf(unixTime) * 1000);
+        }
+        return null;
     }
 }

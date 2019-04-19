@@ -1,4 +1,4 @@
-package net.socialhub.model.service.addition;
+package net.socialhub.model.service.addition.slack;
 
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;

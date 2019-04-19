@@ -14,6 +14,11 @@ public class Identify implements Serializable {
         this.service = service;
     }
 
+    public Identify(Service service, Object id) {
+        this.service = service;
+        this.id = id;
+    }
+
     private Service service;
 
     private Object id;

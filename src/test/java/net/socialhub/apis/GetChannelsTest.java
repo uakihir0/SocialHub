@@ -1,26 +1,22 @@
 package net.socialhub.apis;
 
-import com.github.seratch.jslack.api.methods.request.channels.ChannelsListRequest;
-import net.socialhub.SocialHub;
-import net.socialhub.TestProperty;
+import net.socialhub.SocialAuthUtil;
 import net.socialhub.model.Account;
-import net.socialhub.service.slack.SlackAuth;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Pageable;
 import org.junit.Test;
 
 public class GetChannelsTest extends AbstractApiTest {
 
     @Test
-    public void testSlackListAll() throws Exception {
+    public void testSlackListAll() {
 
-        SlackAuth auth = SocialHub.getSlackAuth( //
-                TestProperty.SlackProperty.ClientId, //
-                TestProperty.SlackProperty.ClientSecret);
+        Account account = SocialAuthUtil.getSlackAccount();
 
-        Account account = auth.getAccountWithToken( //
-                TestProperty.SlackProperty.Token);
+        Pageable<Channel> channels = account.action().getChannels();
 
-        auth.getAccessor().getSlack().methods().channelsList(
-                ChannelsListRequest.builder().token(auth.getAccessor().getToken()).build());
-
+        for (Channel channel : channels.getEntities()) {
+            System.out.println(channel.getName());
+        }
     }
 }

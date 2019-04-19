@@ -41,8 +41,8 @@ public class FacebookMapper {
         Comment model = new Comment(service);
 
         model.setId(message.getId());
-        model.setComment(message.getMessage());
         model.setCreateAt(message.getCreatedTime());
+        model.setComment(new AttributedString(message.getMessage()));
         model.setUser(MemoSupplier.of(() -> user(user.get(), service)));
 
         return model;

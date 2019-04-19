@@ -1,4 +1,4 @@
-package net.socialhub.model.service.addition;
+package net.socialhub.model.service.addition.slack;
 
 /**
  * Slack Team Model

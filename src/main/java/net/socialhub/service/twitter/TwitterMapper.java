@@ -1,24 +1,32 @@
 package net.socialhub.service.twitter;
 
+import net.socialhub.define.MediaTypeEnum;
 import net.socialhub.define.service.TwitterIconSizeEnum;
+import net.socialhub.define.service.TwitterMediaTypeEnum;
 import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Media;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.addition.TwitterUser;
+import net.socialhub.model.service.addition.twitter.TwitterMedia;
+import net.socialhub.model.service.addition.twitter.TwitterUser;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.MemoSupplier;
+import twitter4j.MediaEntity;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TwitterMapper {
 
@@ -95,11 +103,89 @@ public class TwitterMapper {
         Comment model = new Comment(service);
 
         model.setId(status.getId());
-        model.setComment(status.getText());
         model.setCreateAt(status.getCreatedAt());
         model.setUser(MemoSupplier.of(() -> user(status.getUser(), service)));
 
+        AttributedString text = new AttributedString(status.getText());
+        model.setComment(text);
+
+        // URL の DisplayURL ExpandedURL を設定
+        for (URLEntity entity : status.getURLEntities()) {
+            for (AttributedElement elem : text.getAttribute()) {
+                if (elem.getText().equals(entity.getText())) {
+                    elem.setDisplayText(entity.getDisplayURL());
+                    elem.setExpandedText(entity.getExpandedURL());
+                }
+            }
+        }
+
+        // メディア情報を取得時に展開
+        model.setMedias(MemoSupplier.of(() -> medias(status.getMediaEntities())));
+
         return model;
+    }
+
+    /**
+     * メディアマッピング
+     */
+    public static List<Media> medias( //
+            MediaEntity[] entities) {
+
+        List<Media> medias = new ArrayList<>();
+        for (MediaEntity entity : entities) {
+            medias.add(media(entity));
+        }
+        return medias;
+    }
+
+    /**
+     * メディアマッピング
+     */
+    public static Media media( //
+            MediaEntity entity) {
+
+        switch (TwitterMediaTypeEnum.of(entity.getType())) {
+
+        case Photo: {
+            TwitterMedia media = new TwitterMedia();
+            media.setType(MediaTypeEnum.Image);
+
+            media.setSourceUrl(entity.getMediaURLHttps());
+            media.setPreviewUrl(entity.getMediaURLHttps());
+            return media;
+        }
+
+        case Video: {
+            TwitterMedia media = new TwitterMedia();
+            media.setType(MediaTypeEnum.Movie);
+
+            media.setPreviewUrl(entity.getMediaURLHttps());
+            for (MediaEntity.Variant variant : entity.getVideoVariants()) {
+
+                // ストリーム向けの動画タイプが存在する場合はそれを利用
+                if (variant.getContentType().equals("application/x-mpegURL")) {
+                    media.setStreamVideoUrl(variant.getUrl());
+                    media.setSourceUrl(variant.getUrl());
+                }
+            }
+
+            // それ意外の場合一番高画質のものを選択
+            Stream.of(entity.getVideoVariants()) //
+                    .filter((e) -> e.getContentType().startsWith("video")) //
+                    .max(Comparator.comparingInt(MediaEntity.Variant::getBitrate)) //
+                    .ifPresent((variant) -> {
+                        String url = variant.getUrl();
+                        media.setMp4VideoUrl(url);
+
+                        if (media.getSourceUrl() == null) {
+                            media.setSourceUrl(url);
+                        }
+                    });
+
+            return media;
+        }
+        }
+        return null;
     }
 
     /**
@@ -164,6 +250,10 @@ public class TwitterMapper {
         model.setPaging(MapperUtil.mappingBorderPaging(model, paging));
         return model;
     }
+
+    // ============================================================== //
+    // Support
+    // ============================================================== //
 
     /**
      * デフォルトアイコンサイズを取得

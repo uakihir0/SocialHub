@@ -1,9 +1,10 @@
-package net.socialhub.model.service.addition;
+package net.socialhub.model.service.addition.twitter;
 
 import net.socialhub.define.service.TwitterIconSizeEnum;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Service;
+import net.socialhub.model.service.addition.MiniBlogUser;
 import net.socialhub.service.twitter.TwitterMapper;
 
 import java.util.ArrayList;

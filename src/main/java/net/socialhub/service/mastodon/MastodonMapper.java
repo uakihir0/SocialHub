@@ -90,9 +90,11 @@ public class MastodonMapper {
 
         try {
             model.setId(status.getId());
-            model.setComment(StringUtil.removeXmlTags(status.getContent()));
             model.setCreateAt(format.parse(status.getCreatedAt()));
             model.setUser(MemoSupplier.of(() -> user(status.getAccount(), service)));
+
+            String text = StringUtil.removeXmlTags(status.getContent());
+            model.setComment(new AttributedString(text));
 
             return model;
 

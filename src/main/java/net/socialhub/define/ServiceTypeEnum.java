@@ -9,9 +9,9 @@ public enum ServiceTypeEnum {
     Twitter,
     Mastodon,
     Facebook,
-    Instagram,
     Slack,
     Discord,
+    Instagram,
     GooglePlus,
     LinkedIn,
 }

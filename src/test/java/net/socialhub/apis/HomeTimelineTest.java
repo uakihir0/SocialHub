@@ -64,4 +64,32 @@ public class HomeTimelineTest extends AbstractApiTest {
             System.out.println(c.getId() + ": " + c.getComment());
         }
     }
+
+    @Test
+    public void testHomeTimelineSlack() {
+
+        Paging paging = new Paging();
+        paging.setCount(10L);
+
+        Account account = SocialAuthUtil.getSlackAccount();
+
+        Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
+        Pageable<Comment> pasts = account.action().getHomeTimeLine(comments.pastPage());
+
+        System.out.println("========================");
+        System.out.println("> Now");
+        System.out.println("========================");
+
+        for (Comment c : comments.getEntities()) {
+            System.out.println(c.getId() + ": " + c.getComment());
+        }
+
+        System.out.println("========================");
+        System.out.println("> Past");
+        System.out.println("========================");
+
+        for (Comment c : pasts.getEntities()) {
+            System.out.println(c.getId() + ": " + c.getComment());
+        }
+    }
 }

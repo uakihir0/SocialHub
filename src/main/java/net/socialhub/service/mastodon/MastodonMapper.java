@@ -2,25 +2,30 @@ package net.socialhub.service.mastodon;
 
 import mastodon4j.entity.Account;
 import mastodon4j.entity.AccountSource;
+import mastodon4j.entity.Attachment;
 import mastodon4j.entity.Field;
 import mastodon4j.entity.Status;
+import net.socialhub.define.MediaType;
+import net.socialhub.define.service.mastodon.MastodonMediaType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Media;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.addition.MastodonUser;
+import net.socialhub.model.service.addition.mastodon.MastodonComment;
+import net.socialhub.model.service.addition.mastodon.MastodonUser;
 import net.socialhub.utils.MapperUtil;
-import net.socialhub.utils.MemoSupplier;
 import net.socialhub.utils.StringUtil;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -84,24 +89,71 @@ public class MastodonMapper {
             Status status, //
             Service service) {
 
+        MastodonComment model = new MastodonComment(service);
         SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
-        Comment model = new Comment(service);
 
         try {
             model.setId(status.getId());
             model.setCreateAt(format.parse(status.getCreatedAt()));
-            model.setUser(MemoSupplier.of(() -> user(status.getAccount(), service)));
+            model.setUser(user(status.getAccount(), service));
 
-            String text = StringUtil.removeXmlTags(status.getContent());
-            model.setComment(new AttributedString(text));
+            // リツイートの場合は内部を展開
+            if (status.getReblog() != null) {
+                model.setSharedComment(comment(status.getReblog(), service));
+                model.setMedias(new ArrayList<>());
 
+            } else {
+                String text = StringUtil.removeXmlTags(status.getContent());
+                model.setText(new AttributedString(text));
+                model.setMedias(medias(status.getMediaAttachments()));
+            }
             return model;
 
         } catch (ParseException e) {
             logger.error(e);
             return null;
         }
+    }
+
+    /**
+     * メディアマッピング
+     */
+    public static List<Media> medias( //
+            Attachment[] attachments) {
+
+        List<Media> medias = new ArrayList<>();
+
+        if (attachments != null) {
+            for (Attachment attachment : attachments) {
+                medias.add(media(attachment));
+            }
+        }
+
+        return medias;
+    }
+
+    /**
+     * メディアマッピング
+     */
+    public static Media media( //
+            Attachment attachment) {
+
+        Media media = new Media();
+        switch (MastodonMediaType.of(attachment.getType())) {
+
+        case Image: {
+            media.setType(MediaType.Image);
+            break;
+        }
+        case Video: {
+            media.setType(MediaType.Movie);
+            break;
+        }
+        }
+        media.setSourceUrl(attachment.getUrl());
+        media.setPreviewUrl(attachment.getPreviewUrl());
+        return media;
     }
 
     /**

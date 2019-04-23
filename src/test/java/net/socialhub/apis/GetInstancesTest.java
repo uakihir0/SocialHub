@@ -1,8 +1,8 @@
 package net.socialhub.apis;
 
 import net.socialhub.TestProperty;
-import net.socialhub.define.service.MsInstanceOrderEnum;
-import net.socialhub.define.service.MsInstanceSortEnum;
+import net.socialhub.define.service.mastodon.MsInstanceOrder;
+import net.socialhub.define.service.mastodon.MsInstanceSort;
 import net.socialhub.model.service.Instance;
 import net.socialhub.service.mastodon.MastodonSupport;
 import net.socialhub.service.mastodon.support.MastodonInstances;
@@ -20,7 +20,7 @@ public class GetInstancesTest {
 
         // Get Most Users Instances
         List<Instance> instances = client.listInstances( //
-                200, MsInstanceSortEnum.USERS, MsInstanceOrderEnum.DESC);
+                200, MsInstanceSort.USERS, MsInstanceOrder.DESC);
 
         for (Instance instance : instances) {
             System.out.println(instance.getName());

@@ -3,7 +3,7 @@ package net.socialhub.define;
 /**
  * Media Types
  */
-public enum MediaTypeEnum {
+public enum MediaType {
 
     Link,
     Image,

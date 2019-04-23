@@ -1,8 +1,8 @@
 package net.socialhub.service.twitter;
 
-import net.socialhub.define.MediaTypeEnum;
-import net.socialhub.define.service.TwitterIconSizeEnum;
-import net.socialhub.define.service.TwitterMediaTypeEnum;
+import net.socialhub.define.MediaType;
+import net.socialhub.define.service.twitter.TwitterIconSize;
+import net.socialhub.define.service.twitter.TwitterMediaType;
 import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Comment;
@@ -16,7 +16,6 @@ import net.socialhub.model.service.addition.twitter.TwitterUser;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.utils.MapperUtil;
-import net.socialhub.utils.MemoSupplier;
 import twitter4j.MediaEntity;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -32,7 +31,7 @@ public class TwitterMapper {
 
     private static final String HOST = "https://twitter.com/";
 
-    public static TwitterIconSizeEnum DEFAULT_ICON_SIZE = TwitterIconSizeEnum.W200H200;
+    public static TwitterIconSize DEFAULT_ICON_SIZE = TwitterIconSize.W200H200;
 
     /**
      * ユーザーマッピング
@@ -104,23 +103,38 @@ public class TwitterMapper {
 
         model.setId(status.getId());
         model.setCreateAt(status.getCreatedAt());
-        model.setUser(MemoSupplier.of(() -> user(status.getUser(), service)));
+        model.setUser(user(status.getUser(), service));
+        model.setPossiblySensitive(status.isPossiblySensitive());
 
-        AttributedString text = new AttributedString(status.getText());
-        model.setComment(text);
+        // リツイートの場合内部を展開
+        if (status.isRetweet()) {
 
-        // URL の DisplayURL ExpandedURL を設定
-        for (URLEntity entity : status.getURLEntities()) {
-            for (AttributedElement elem : text.getAttribute()) {
-                if (elem.getText().equals(entity.getText())) {
-                    elem.setDisplayText(entity.getDisplayURL());
-                    elem.setExpandedText(entity.getExpandedURL());
+            model.setSharedComment(comment(status.getRetweetedStatus(), service));
+            model.setMedias(new ArrayList<>());
+
+        } else {
+
+            // 引用リツイートの場合はここで展開
+            if (status.getQuotedStatus() != null) {
+                model.setSharedComment(comment(status.getQuotedStatus(), service));
+            }
+
+            AttributedString text = new AttributedString(status.getText());
+            model.setText(text);
+
+            // URL の DisplayURL ExpandedURL を設定
+            for (URLEntity entity : status.getURLEntities()) {
+                for (AttributedElement elem : text.getAttribute()) {
+                    if (elem.getText().equals(entity.getText())) {
+                        elem.setDisplayText(entity.getDisplayURL());
+                        elem.setExpandedText(entity.getExpandedURL());
+                    }
                 }
             }
-        }
 
-        // メディア情報を取得時に展開
-        model.setMedias(MemoSupplier.of(() -> medias(status.getMediaEntities())));
+            // メディア情報を取得時に展開
+            model.setMedias(medias(status.getMediaEntities()));
+        }
 
         return model;
     }
@@ -144,11 +158,11 @@ public class TwitterMapper {
     public static Media media( //
             MediaEntity entity) {
 
-        switch (TwitterMediaTypeEnum.of(entity.getType())) {
+        switch (TwitterMediaType.of(entity.getType())) {
 
         case Photo: {
             TwitterMedia media = new TwitterMedia();
-            media.setType(MediaTypeEnum.Image);
+            media.setType(MediaType.Image);
 
             media.setSourceUrl(entity.getMediaURLHttps());
             media.setPreviewUrl(entity.getMediaURLHttps());
@@ -157,7 +171,7 @@ public class TwitterMapper {
 
         case Video: {
             TwitterMedia media = new TwitterMedia();
-            media.setType(MediaTypeEnum.Movie);
+            media.setType(MediaType.Movie);
 
             media.setPreviewUrl(entity.getMediaURLHttps());
             for (MediaEntity.Variant variant : entity.getVideoVariants()) {
@@ -260,6 +274,6 @@ public class TwitterMapper {
      */
     private static String getDefaultIconSize(twitter4j.User user) {
         return user.getProfileImageURLHttps() //
-                .replace(TwitterIconSizeEnum.Normal.getSuffix(), DEFAULT_ICON_SIZE.getSuffix());
+                .replace(TwitterIconSize.Normal.getSuffix(), DEFAULT_ICON_SIZE.getSuffix());
     }
 }

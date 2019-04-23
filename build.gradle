@@ -49,7 +49,7 @@ dependencies {
     compile('com.github.uakihir0.facebook4j:facebook4j-core:2.4.11.3')
     compile('com.github.uakihir0:msinstance4j:0.0.3')
     compile('com.github.uakihir0:mastodon4j:0.2.7')
-    compile('com.github.uakihir0:jslack:1.1.7.1')
+    compile('com.github.uakihir0:jslack:1.1.7.2')
 
     // Test
     testCompile('junit:junit:4.12')

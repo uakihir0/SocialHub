@@ -1,9 +1,9 @@
 package net.socialhub.service.mastodon.support;
 
 import msinstance4j.entity.Instances;
-import net.socialhub.define.ServiceTypeEnum;
-import net.socialhub.define.service.MsInstanceOrderEnum;
-import net.socialhub.define.service.MsInstanceSortEnum;
+import net.socialhub.define.ServiceType;
+import net.socialhub.define.service.mastodon.MsInstanceOrder;
+import net.socialhub.define.service.mastodon.MsInstanceSort;
 import net.socialhub.model.service.Instance;
 import net.socialhub.model.service.Service;
 
@@ -33,7 +33,7 @@ public class MastodonInstances {
      * インスタンスリスト取得
      * Get Instances List
      */
-    public List<Instance> listInstances(int count, MsInstanceSortEnum sort, MsInstanceOrderEnum order) {
+    public List<Instance> listInstances(int count, MsInstanceSort sort, MsInstanceOrder order) {
 
         Instances instances = action.instances().listInstances(
                 count, false, false, false, null,
@@ -64,7 +64,7 @@ public class MastodonInstances {
      * Instance model
      */
     private Instance mappingInstance(msinstance4j.entity.Instance instance) {
-        Service service = new Service(ServiceTypeEnum.Mastodon, null);
+        Service service = new Service(ServiceType.Mastodon, null);
         Instance model = new Instance(service);
 
         model.setName(instance.getName());

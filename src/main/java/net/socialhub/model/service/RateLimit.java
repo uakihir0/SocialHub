@@ -1,7 +1,7 @@
 package net.socialhub.model.service;
 
-import net.socialhub.define.ActionEnum;
-import net.socialhub.define.ServiceTypeEnum;
+import net.socialhub.define.ActionType;
+import net.socialhub.define.ServiceType;
 import org.apache.commons.lang3.time.DateUtils;
 import twitter4j.RateLimitStatus;
 
@@ -16,14 +16,14 @@ import java.util.Map;
  */
 public class RateLimit implements Serializable {
 
-    private Map<ActionEnum, RateLimitValue> dictionary = new HashMap<>();
+    private Map<ActionType, RateLimitValue> dictionary = new HashMap<>();
 
     /**
      * レートリミット情報を格納
      * Set rate limit info
      * (For Twitter)
      */
-    public void addInfo(ActionEnum action, twitter4j.TwitterResponse response) {
+    public void addInfo(ActionType action, twitter4j.TwitterResponse response) {
         RateLimitValue value = new RateLimitValue(response);
         dictionary.put(action, value);
     }
@@ -33,7 +33,7 @@ public class RateLimit implements Serializable {
      * Set rate limit info
      * (For Mastodon)
      */
-    public void addInfo(ActionEnum action, mastodon4j.entity.share.Response<?> response) {
+    public void addInfo(ActionType action, mastodon4j.entity.share.Response<?> response) {
         RateLimitValue value = new RateLimitValue(response);
         dictionary.put(action, value);
     }
@@ -42,14 +42,14 @@ public class RateLimit implements Serializable {
      * リクエスト可能かどうか？
      * Is remaining api request count?
      */
-    public boolean isRemaining(ActionEnum action) {
+    public boolean isRemaining(ActionType action) {
         return dictionary.containsKey(action) && //
                 dictionary.get(action).isRemaining();
     }
 
     private static class RateLimitValue {
 
-        private ServiceTypeEnum service;
+        private ServiceType service;
 
         private int limit;
         private int remaining;
@@ -60,7 +60,7 @@ public class RateLimit implements Serializable {
          */
         private RateLimitValue(twitter4j.TwitterResponse response) {
             RateLimitStatus rateLimit = response.getRateLimitStatus();
-            this.service = ServiceTypeEnum.Twitter;
+            this.service = ServiceType.Twitter;
 
             this.limit = rateLimit.getLimit();
             this.remaining = rateLimit.getRemaining();
@@ -72,7 +72,7 @@ public class RateLimit implements Serializable {
          */
         private RateLimitValue(mastodon4j.entity.share.Response<?> response) {
             mastodon4j.entity.share.RateLimit rateLimit = response.getRateLimit();
-            this.service = ServiceTypeEnum.Mastodon;
+            this.service = ServiceType.Mastodon;
 
             this.limit = rateLimit.getLimit();
             this.remaining = rateLimit.getRemaining();

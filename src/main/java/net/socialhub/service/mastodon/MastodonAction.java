@@ -16,17 +16,17 @@ import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 
-import static net.socialhub.define.ActionEnum.BlockUser;
-import static net.socialhub.define.ActionEnum.FollowUser;
-import static net.socialhub.define.ActionEnum.GetUser;
-import static net.socialhub.define.ActionEnum.GetUserMe;
-import static net.socialhub.define.ActionEnum.HomeTimeLine;
-import static net.socialhub.define.ActionEnum.LikeComment;
-import static net.socialhub.define.ActionEnum.MuteUser;
-import static net.socialhub.define.ActionEnum.UnblockUser;
-import static net.socialhub.define.ActionEnum.UnfollowUser;
-import static net.socialhub.define.ActionEnum.UnlikeComment;
-import static net.socialhub.define.ActionEnum.UnmuteUser;
+import static net.socialhub.define.ActionType.BlockUser;
+import static net.socialhub.define.ActionType.FollowUser;
+import static net.socialhub.define.ActionType.GetUser;
+import static net.socialhub.define.ActionType.GetUserMe;
+import static net.socialhub.define.ActionType.HomeTimeLine;
+import static net.socialhub.define.ActionType.LikeComment;
+import static net.socialhub.define.ActionType.MuteUser;
+import static net.socialhub.define.ActionType.UnblockUser;
+import static net.socialhub.define.ActionType.UnfollowUser;
+import static net.socialhub.define.ActionType.UnlikeComment;
+import static net.socialhub.define.ActionType.UnmuteUser;
 
 public class MastodonAction extends AccountActionImpl {
 

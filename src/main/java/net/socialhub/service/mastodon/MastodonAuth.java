@@ -6,7 +6,7 @@ import mastodon4j.entity.AccessToken;
 import mastodon4j.entity.Application;
 import mastodon4j.entity.ClientCredential;
 import mastodon4j.entity.share.Response;
-import net.socialhub.define.ServiceTypeEnum;
+import net.socialhub.define.ServiceType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.Service;
@@ -49,7 +49,7 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
 
         this.accessToken = accessToken;
         Account account = new Account();
-        ServiceTypeEnum type = ServiceTypeEnum.Mastodon;
+        ServiceType type = ServiceType.Mastodon;
         Service service = new Service(type, account);
         account.setAction(new MastodonAction(account, this));
         account.setService(service);

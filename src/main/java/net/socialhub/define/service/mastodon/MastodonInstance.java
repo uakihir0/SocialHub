@@ -1,4 +1,4 @@
-package net.socialhub.define.service;
+package net.socialhub.define.service.mastodon;
 
 /**
  * Famous Mastodon Instances in Japan

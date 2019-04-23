@@ -1,6 +1,6 @@
-package net.socialhub.define.service;
+package net.socialhub.define.service.mastodon;
 
-public enum MsInstanceSortEnum {
+public enum MsInstanceSort {
 
     NAME("name"),
     UPTIME("uptime"),
@@ -13,7 +13,7 @@ public enum MsInstanceSortEnum {
 
     private String code;
 
-    MsInstanceSortEnum(String code) {
+    MsInstanceSort(String code) {
         this.code = code;
     }
 

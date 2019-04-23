@@ -5,7 +5,6 @@ import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
-import net.socialhub.utils.MemoSupplier;
 
 import java.util.function.Supplier;
 
@@ -14,8 +13,7 @@ public class FacebookMapper {
     /**
      * ユーザーマッピング
      */
-    public static User user(
-            facebook4j.User user, //
+    public static User user(facebook4j.User user, //
             Service service) {
 
         User model = new User(service);
@@ -33,8 +31,7 @@ public class FacebookMapper {
     /**
      * コメントマッピング
      */
-    public static Comment comment(
-            Message message, //
+    public static Comment comment(Message message, //
             Supplier<facebook4j.User> user, //
             Service service) {
 
@@ -42,8 +39,8 @@ public class FacebookMapper {
 
         model.setId(message.getId());
         model.setCreateAt(message.getCreatedTime());
-        model.setComment(new AttributedString(message.getMessage()));
-        model.setUser(MemoSupplier.of(() -> user(user.get(), service)));
+        model.setText(new AttributedString(message.getMessage()));
+        model.setUser(user(user.get(), service));
 
         return model;
     }

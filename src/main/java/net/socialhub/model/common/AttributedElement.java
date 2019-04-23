@@ -1,6 +1,6 @@
 package net.socialhub.model.common;
 
-import net.socialhub.define.AttributeEnum;
+import net.socialhub.define.AttributeType;
 import net.socialhub.utils.StringUtil;
 
 /**
@@ -9,7 +9,7 @@ import net.socialhub.utils.StringUtil;
  */
 public class AttributedElement {
 
-    private AttributeEnum type;
+    private AttributeType type;
 
     /** オリジナルテキスト */
     private String text;
@@ -48,7 +48,7 @@ public class AttributedElement {
         }
 
         // URL の場合は短縮
-        if (type == AttributeEnum.Link) {
+        if (type == AttributeType.Link) {
             return StringUtil.getDisplayUrl(text);
         }
 
@@ -70,11 +70,11 @@ public class AttributedElement {
         this.expandedText = expandedText;
     }
 
-    public AttributeEnum getType() {
+    public AttributeType getType() {
         return type;
     }
 
-    public void setType(AttributeEnum type) {
+    public void setType(AttributeType type) {
         this.type = type;
     }
 

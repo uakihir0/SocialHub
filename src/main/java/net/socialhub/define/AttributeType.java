@@ -3,7 +3,7 @@ package net.socialhub.define;
 import java.util.Arrays;
 import java.util.List;
 
-public enum AttributeEnum {
+public enum AttributeType {
 
     // Commons
     Link, //
@@ -16,7 +16,7 @@ public enum AttributeEnum {
     MastodonAccount, //
     ;
 
-    public static List<AttributeEnum> all() {
-        return Arrays.asList(AttributeEnum.values());
+    public static List<AttributeType> all() {
+        return Arrays.asList(AttributeType.values());
     }
 }

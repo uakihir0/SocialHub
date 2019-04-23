@@ -3,6 +3,7 @@ package net.socialhub.apis;
 import net.socialhub.SocialAuthUtil;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Media;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import org.junit.Test;
@@ -20,21 +21,8 @@ public class HomeTimelineTest extends AbstractApiTest {
         Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
         Pageable<Comment> pasts = account.action().getHomeTimeLine(comments.pastPage());
 
-        System.out.println("========================");
-        System.out.println("> Now");
-        System.out.println("========================");
-
-        for (Comment c : comments.getEntities()) {
-            System.out.println(c.getId() + ": " + c.getComment());
-        }
-
-        System.out.println("========================");
-        System.out.println("> Past");
-        System.out.println("========================");
-
-        for (Comment c : pasts.getEntities()) {
-            System.out.println(c.getId() + ": " + c.getComment());
-        }
+        printTimeline("Now", comments);
+        printTimeline("Pasts", pasts);
     }
 
     @Test
@@ -48,21 +36,8 @@ public class HomeTimelineTest extends AbstractApiTest {
         Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
         Pageable<Comment> pasts = account.action().getHomeTimeLine(comments.pastPage());
 
-        System.out.println("========================");
-        System.out.println("> Now");
-        System.out.println("========================");
-
-        for (Comment c : comments.getEntities()) {
-            System.out.println(c.getId() + ": " + c.getComment());
-        }
-
-        System.out.println("========================");
-        System.out.println("> Past");
-        System.out.println("========================");
-
-        for (Comment c : pasts.getEntities()) {
-            System.out.println(c.getId() + ": " + c.getComment());
-        }
+        printTimeline("Now", comments);
+        printTimeline("Pasts", pasts);
     }
 
     @Test
@@ -76,20 +51,26 @@ public class HomeTimelineTest extends AbstractApiTest {
         Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
         Pageable<Comment> pasts = account.action().getHomeTimeLine(comments.pastPage());
 
-        System.out.println("========================");
-        System.out.println("> Now");
-        System.out.println("========================");
+        printTimeline("Now", comments);
+        printTimeline("Pasts", pasts);
+    }
 
-        for (Comment c : comments.getEntities()) {
-            System.out.println(c.getId() + ": " + c.getComment());
-        }
+    private void printTimeline(String title, Pageable<Comment> timeline) {
 
         System.out.println("========================");
-        System.out.println("> Past");
+        System.out.println("> " + title);
         System.out.println("========================");
 
-        for (Comment c : pasts.getEntities()) {
-            System.out.println(c.getId() + ": " + c.getComment());
+        for (Comment c : timeline.getEntities()) {
+            System.out.println(c.getId() + ": " + c.getText());
+
+            if (c.getSharedComment() != null) {
+                System.out.println("S> " + c.getSharedComment().getText());
+            }
+
+            for (Media m : c.getMedias()) {
+                System.out.println("M> " + m.getType() + " : " + m.getPreviewUrl());
+            }
         }
     }
 }

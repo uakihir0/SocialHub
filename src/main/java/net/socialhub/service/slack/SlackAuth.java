@@ -3,8 +3,8 @@ package net.socialhub.service.slack;
 import com.github.seratch.jslack.Slack;
 import com.github.seratch.jslack.api.methods.request.oauth.OAuthAccessRequest;
 import com.github.seratch.jslack.api.methods.response.oauth.OAuthAccessResponse;
-import net.socialhub.define.ServiceTypeEnum;
-import net.socialhub.define.service.SlackConstant;
+import net.socialhub.define.ServiceType;
+import net.socialhub.define.service.slack.SlackConstant;
 import net.socialhub.http.HttpParameter;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.SocialHubException;
@@ -46,7 +46,7 @@ public class SlackAuth implements ServiceAuth<SlackAccessor> {
 
         this.accessToken = token;
         Account account = new Account();
-        ServiceTypeEnum type = ServiceTypeEnum.Slack;
+        ServiceType type = ServiceType.Slack;
         Service service = new Service(type, account);
         account.setAction(new SlackAction(account, this));
         account.setService(service);

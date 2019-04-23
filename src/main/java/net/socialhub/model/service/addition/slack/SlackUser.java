@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Slack における User 要素
- * Slack specified user's attributes
+ * Slack User Model
+ * Slack のユーザー情報
  */
 public class SlackUser extends User {
 

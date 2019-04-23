@@ -1,13 +1,13 @@
-package net.socialhub.define.service;
+package net.socialhub.define.service.mastodon;
 
-public enum MsInstanceOrderEnum {
+public enum MsInstanceOrder {
 
     ASC("asc"),
     DESC("desc");
 
     private String code;
 
-    MsInstanceOrderEnum(String code) {
+    MsInstanceOrder(String code) {
         this.code = code;
     }
 

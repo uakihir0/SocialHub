@@ -2,9 +2,9 @@ package net.socialhub.apis;
 
 import net.socialhub.SocialHub;
 import net.socialhub.TestProperty;
-import net.socialhub.define.service.MastodonInstance;
-import net.socialhub.define.service.MastodonScope;
-import net.socialhub.define.service.SlackScope;
+import net.socialhub.define.service.mastodon.MastodonInstance;
+import net.socialhub.define.service.mastodon.MastodonScope;
+import net.socialhub.define.service.slack.SlackScope;
 import net.socialhub.model.Account;
 import net.socialhub.service.mastodon.MastodonAuth;
 import net.socialhub.service.slack.SlackAuth;

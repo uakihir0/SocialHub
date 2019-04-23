@@ -4,7 +4,7 @@ package net.socialhub.define;
  * SNS アクション一覧
  * SNS Actions
  */
-public enum ActionEnum {
+public enum ActionType {
 
     // TimeLine
     HomeTimeLine,

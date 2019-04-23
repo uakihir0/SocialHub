@@ -1,6 +1,6 @@
-package net.socialhub.define.service;
+package net.socialhub.define.service.twitter;
 
-public enum TwitterIconSizeEnum {
+public enum TwitterIconSize {
 
     /** 24x24 */
     Mini("_mini"),
@@ -21,7 +21,7 @@ public enum TwitterIconSizeEnum {
 
     private String suffix;
 
-    TwitterIconSizeEnum(String suffix) {
+    TwitterIconSize(String suffix) {
         this.suffix = suffix;
     }
 

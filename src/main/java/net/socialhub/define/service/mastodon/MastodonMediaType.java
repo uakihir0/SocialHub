@@ -1,15 +1,16 @@
-package net.socialhub.define.service;
+package net.socialhub.define.service.mastodon;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-public enum TwitterMediaTypeEnum {
+public enum MastodonMediaType {
 
-    Photo("photo"),
-    Video("video", "animated_gif");
+    Image("image"),
+    Video("video", "gifv"),
+    Unknown("unknown");
 
-    TwitterMediaTypeEnum(String... codes) {
+    MastodonMediaType(String... codes) {
         this.codes = Arrays.asList(codes);
     }
 
@@ -19,7 +20,7 @@ public enum TwitterMediaTypeEnum {
         return codes;
     }
 
-    public static TwitterMediaTypeEnum of(String code) {
+    public static MastodonMediaType of(String code) {
         return Stream.of(values()) //
                 .filter((e) -> e.getCodes().contains(code)) //
                 .findFirst().orElse(null);

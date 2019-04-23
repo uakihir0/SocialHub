@@ -1,14 +1,15 @@
-package net.socialhub.model.service.addition;
+package net.socialhub.model.service.addition.mastodon;
 
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.service.Service;
+import net.socialhub.model.service.addition.MiniBlogUser;
 
 import java.net.URL;
 import java.util.List;
 
 /**
- * Mastodon における User 要素
- * Mastodon specified user's attributes
+ * Mastodon User Model
+ * Mastodon のユーザー情報
  */
 public class MastodonUser extends MiniBlogUser {
 

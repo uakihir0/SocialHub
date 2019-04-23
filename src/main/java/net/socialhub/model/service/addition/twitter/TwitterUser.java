@@ -1,6 +1,6 @@
 package net.socialhub.model.service.addition.twitter;
 
-import net.socialhub.define.service.TwitterIconSizeEnum;
+import net.socialhub.define.service.twitter.TwitterIconSize;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Service;
@@ -49,8 +49,8 @@ public class TwitterUser extends MiniBlogUser {
      * Get icon imageURL of specific size
      * 特定のサイズの画像アイコンを取得
      */
-    public String getIconImageUrl(TwitterIconSizeEnum size) {
-        TwitterIconSizeEnum beforeSize = TwitterMapper.DEFAULT_ICON_SIZE;
+    public String getIconImageUrl(TwitterIconSize size) {
+        TwitterIconSize beforeSize = TwitterMapper.DEFAULT_ICON_SIZE;
         return getIconImageUrl().replace(beforeSize.getSuffix(), size.getSuffix());
     }
 

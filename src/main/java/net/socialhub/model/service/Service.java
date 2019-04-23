@@ -1,6 +1,6 @@
 package net.socialhub.model.service;
 
-import net.socialhub.define.ServiceTypeEnum;
+import net.socialhub.define.ServiceType;
 import net.socialhub.model.Account;
 
 import java.io.Serializable;
@@ -13,7 +13,7 @@ public class Service implements Serializable {
 
     private Account account;
 
-    private ServiceTypeEnum type;
+    private ServiceType type;
     private RateLimit rateLimit;
 
     /** Use Only Mastodon */
@@ -23,7 +23,7 @@ public class Service implements Serializable {
     /**
      * Constructor
      */
-    public Service(ServiceTypeEnum type, Account account) {
+    public Service(ServiceType type, Account account) {
         this.type = type;
         this.account = account;
         this.rateLimit = new RateLimit();
@@ -32,22 +32,22 @@ public class Service implements Serializable {
 
     /** Is Twitter Account ? */
     public boolean isTwitter() {
-        return (ServiceTypeEnum.Twitter == type);
+        return (ServiceType.Twitter == type);
     }
 
     /** Is Mastodon Account ? */
     public boolean isMastodon() {
-        return (ServiceTypeEnum.Mastodon == type);
+        return (ServiceType.Mastodon == type);
     }
 
     /** Is Slack Account ? */
     public boolean isSlack() {
-        return (ServiceTypeEnum.Slack == type);
+        return (ServiceType.Slack == type);
     }
 
     /** Is Facebook Account ? */
     public boolean isFacebook() {
-        return (ServiceTypeEnum.Facebook == type);
+        return (ServiceType.Facebook == type);
     }
 
     //region // Getter&Setter
@@ -59,11 +59,11 @@ public class Service implements Serializable {
         this.account = account;
     }
 
-    public ServiceTypeEnum getType() {
+    public ServiceType getType() {
         return type;
     }
 
-    public void setType(ServiceTypeEnum type) {
+    public void setType(ServiceType type) {
         this.type = type;
     }
 

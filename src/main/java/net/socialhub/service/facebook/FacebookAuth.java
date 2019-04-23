@@ -5,7 +5,7 @@ import facebook4j.FacebookException;
 import facebook4j.FacebookFactory;
 import facebook4j.auth.AccessToken;
 import facebook4j.conf.ConfigurationBuilder;
-import net.socialhub.define.ServiceTypeEnum;
+import net.socialhub.define.ServiceType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.Service;
@@ -63,7 +63,7 @@ public class FacebookAuth implements ServiceAuth<Facebook> {
      */
     public Account getAccountWithAccessToken() {
         Account account = new Account();
-        ServiceTypeEnum type = ServiceTypeEnum.Facebook;
+        ServiceType type = ServiceType.Facebook;
         Service service = new Service(type, account);
         account.setAction(new FacebookAction(account, this));
         account.setService(service);

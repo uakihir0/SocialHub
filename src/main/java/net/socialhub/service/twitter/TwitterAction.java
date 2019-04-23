@@ -14,17 +14,17 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
-import static net.socialhub.define.ActionEnum.BlockUser;
-import static net.socialhub.define.ActionEnum.FollowUser;
-import static net.socialhub.define.ActionEnum.GetUser;
-import static net.socialhub.define.ActionEnum.GetUserMe;
-import static net.socialhub.define.ActionEnum.HomeTimeLine;
-import static net.socialhub.define.ActionEnum.LikeComment;
-import static net.socialhub.define.ActionEnum.MuteUser;
-import static net.socialhub.define.ActionEnum.UnblockUser;
-import static net.socialhub.define.ActionEnum.UnfollowUser;
-import static net.socialhub.define.ActionEnum.UnlikeComment;
-import static net.socialhub.define.ActionEnum.UnmuteUser;
+import static net.socialhub.define.ActionType.BlockUser;
+import static net.socialhub.define.ActionType.FollowUser;
+import static net.socialhub.define.ActionType.GetUser;
+import static net.socialhub.define.ActionType.GetUserMe;
+import static net.socialhub.define.ActionType.HomeTimeLine;
+import static net.socialhub.define.ActionType.LikeComment;
+import static net.socialhub.define.ActionType.MuteUser;
+import static net.socialhub.define.ActionType.UnblockUser;
+import static net.socialhub.define.ActionType.UnfollowUser;
+import static net.socialhub.define.ActionType.UnlikeComment;
+import static net.socialhub.define.ActionType.UnmuteUser;
 
 /**
  * Twitter Actions

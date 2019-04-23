@@ -8,7 +8,7 @@ import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
 import com.github.seratch.jslack.api.model.File;
 import com.github.seratch.jslack.api.model.Message;
 import com.github.seratch.jslack.api.model.User.Profile;
-import net.socialhub.define.MediaTypeEnum;
+import net.socialhub.define.MediaType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Channel;
@@ -24,7 +24,6 @@ import net.socialhub.model.service.addition.slack.SlackUser;
 import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.service.action.AccountAction;
 import net.socialhub.utils.MapperUtil;
-import net.socialhub.utils.MemoSupplier;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -103,19 +102,20 @@ public final class SlackMapper {
         Comment model = new Comment(service);
 
         model.setId(message.getTs());
-        model.setComment(new AttributedString(message.getText()));
+        model.setText(new AttributedString(message.getText()));
         model.setCreateAt(getDateFromTimeStamp(message.getTs()));
-        model.setUser(MemoSupplier.of(() -> user));
+        model.setUser(user);
 
         // Action
         AccountAction action = service.getAccount().action();
 
+        // メディアは Token が取れた場合にのみ取得
         if (action instanceof SlackAction) {
             String token = ((SlackAction) action) //
                     .getAuth().getAccessor().getToken();
-
-            // メディア情報は Token が取れた場合にのみ取得
-            model.setMedias(MemoSupplier.of(() -> medias(message, token)));
+            model.setMedias(medias(message, token));
+        } else {
+            model.setMedias(new ArrayList<>());
         }
 
         return model;
@@ -123,7 +123,6 @@ public final class SlackMapper {
 
     /**
      * メディアマッピング
-     * see https://api.slack.com/events/message/file_share
      */
     public static List<Media> medias( //
             Message message, //
@@ -133,6 +132,11 @@ public final class SlackMapper {
 
         if (message.getFile() != null) {
             medias.add(media(message.getFile(), token));
+        }
+        if (message.getFiles() != null) {
+            for (File file : message.getFiles()) {
+                medias.add(media(file, token));
+            }
         }
 
         return medias;
@@ -153,7 +157,7 @@ public final class SlackMapper {
         model.setPreviewUrl(file.getUrlPrivate());
 
         if (file.getMimetype().startsWith("image")) {
-            model.setType(MediaTypeEnum.Image);
+            model.setType(MediaType.Image);
         }
 
         return model;

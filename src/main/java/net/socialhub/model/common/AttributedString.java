@@ -1,6 +1,6 @@
 package net.socialhub.model.common;
 
-import net.socialhub.define.AttributeEnum;
+import net.socialhub.define.AttributeType;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -40,7 +40,7 @@ public class AttributedString {
 
     private String displayText;
 
-    private List<AttributeEnum> kinds;
+    private List<AttributeType> kinds;
 
     private List<AttributedElement> attribute;
 
@@ -51,14 +51,14 @@ public class AttributedString {
      * (属性文字列に変換)
      */
     public AttributedString(String text) {
-        this(text, AttributeEnum.all());
+        this(text, AttributeType.all());
     }
 
     /**
      * Attributed String
      * (属性文字列に変換)
      */
-    public AttributedString(String text, List<AttributeEnum> kinds) {
+    public AttributedString(String text, List<AttributeType> kinds) {
         this.displayAttribute = null;
         this.attribute = null;
         this.kinds = kinds;
@@ -66,7 +66,7 @@ public class AttributedString {
 
         // 無指定の場合は全部
         if (kinds == null) {
-            this.kinds = AttributeEnum.all();
+            this.kinds = AttributeType.all();
         }
     }
 
@@ -84,25 +84,25 @@ public class AttributedString {
         attribute = new ArrayList<>();
 
         // リンクを取得 (プロトコル含む)
-        scanElements(AttributeEnum.Link, FULL_URL_REGEX);
+        scanElements(AttributeType.Link, FULL_URL_REGEX);
 
         // Mastodon アカウントを取得
-        scanElements(AttributeEnum.MastodonAccount, MASTODON_ACCOUNT_REGEX);
+        scanElements(AttributeType.MastodonAccount, MASTODON_ACCOUNT_REGEX);
 
         // Email を取得
-        scanElements(AttributeEnum.Email, SIMPLE_EMAIL_REGEX);
+        scanElements(AttributeType.Email, SIMPLE_EMAIL_REGEX);
 
         // リンクを取得 (プロトコル含めず)
-        scanElements(AttributeEnum.Link, SHORT_URL_REGEX);
+        scanElements(AttributeType.Link, SHORT_URL_REGEX);
 
         // 電話番号を取得
-        scanElements(AttributeEnum.Phone, SIMPLE_PHONE_REGEX);
+        scanElements(AttributeType.Phone, SIMPLE_PHONE_REGEX);
 
         // ハッシュタグを取得
-        scanElements(AttributeEnum.HashTag, HASH_TAG_REGEX);
+        scanElements(AttributeType.HashTag, HASH_TAG_REGEX);
 
         // Twitter アカウントを取得
-        scanElements(AttributeEnum.TwitterAccount, TWITTER_ACCOUNT_REGEX);
+        scanElements(AttributeType.TwitterAccount, TWITTER_ACCOUNT_REGEX);
 
         // 範囲の開始順にソート
         attribute.sort(Comparator.comparingInt(e -> e.getRange().getStart()));
@@ -166,7 +166,7 @@ public class AttributedString {
     /**
      * 未使用レンジかとうかの確認
      */
-    private void scanElements(AttributeEnum attributeType, String regex) {
+    private void scanElements(AttributeType attributeType, String regex) {
         if (kinds.contains(attributeType)) {
             Pattern p = Pattern.compile(regex);
             Matcher m = p.matcher(text);
@@ -216,11 +216,11 @@ public class AttributedString {
         this.text = text;
     }
 
-    public List<AttributeEnum> getKinds() {
+    public List<AttributeType> getKinds() {
         return kinds;
     }
 
-    public void setKinds(List<AttributeEnum> kinds) {
+    public void setKinds(List<AttributeType> kinds) {
         this.displayAttribute = null;
         this.attribute = null;
 

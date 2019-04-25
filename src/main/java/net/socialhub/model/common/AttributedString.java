@@ -164,7 +164,7 @@ public class AttributedString {
     }
 
     /**
-     * 未使用レンジかとうかの確認
+     * エレメントを走査
      */
     private void scanElements(AttributeType attributeType, String regex) {
         if (kinds.contains(attributeType)) {

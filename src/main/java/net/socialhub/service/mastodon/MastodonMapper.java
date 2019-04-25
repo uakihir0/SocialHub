@@ -10,6 +10,7 @@ import net.socialhub.define.service.mastodon.MastodonMediaType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.service.Application;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Media;
 import net.socialhub.model.service.Pageable;
@@ -95,8 +96,9 @@ public class MastodonMapper {
 
         try {
             model.setId(status.getId());
-            model.setCreateAt(format.parse(status.getCreatedAt()));
             model.setUser(user(status.getAccount(), service));
+            model.setCreateAt(format.parse(status.getCreatedAt()));
+            model.setApplication(application(status.getApplication()));
 
             // リツイートの場合は内部を展開
             if (status.getReblog() != null) {
@@ -154,6 +156,21 @@ public class MastodonMapper {
         media.setSourceUrl(attachment.getUrl());
         media.setPreviewUrl(attachment.getPreviewUrl());
         return media;
+    }
+
+    /**
+     * アプリケーションマッピング
+     */
+    public static Application application( //
+            mastodon4j.entity.Application application) {
+        if (application == null) {
+            return null;
+        }
+
+        Application app = new Application();
+        app.setName(application.getName());
+        app.setWebsite(application.getWebsite());
+        return app;
     }
 
     /**

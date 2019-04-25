@@ -43,17 +43,35 @@ Code sample to authorize account and get account information.
 // 1. Make Authorized Account Object
 
 // For Twitter
-SHTwitterAuth auth = SocialHub.getTwitterAuth(CONSUMER_KEY, CONSUMER_SECRET);
-SHAccount account = auth.getAccountWithAccessToken(ACCESS_TOKEN, ACCESS_SECRET);
+TwitterAuth auth = SocialHub.getTwitterAuth(CONSUMER_KEY, CONSUMER_SECRET);
+Account account = auth.getAccountWithAccessToken(ACCESS_TOKEN, ACCESS_SECRET);
 
 // For Mastodon
-SHMastodonAuth auth = SocialHub.getMastodonAuth(HOST);
-SHAccount account = auth.getAccountWithAccessToken(ACCESS_TOKEN);
+MastodonAuth auth = SocialHub.getMastodonAuth(HOST);
+Account account = auth.getAccountWithAccessToken(ACCESS_TOKEN);
 
 
-// 2. Request To SNS (all sns same interfacce)
-SHSvUser user = account.getAction().getUserMe();
+// 2. Request To SNS (all sns same interface)
+User user = account.action().getUserMe();
 System.out.println(user.getName());
+```
+
+### Group Timeline
+
+Code sample to get unified timeline comments from account group (two or more accounts).
+
+```java
+/* JAVA */
+// 1. Make Account Group
+AccountGroup accounts = new AccountGroup();
+accounts.addAccount((Account) twitterAccount);
+accounts.addAccount((Account) mastodonAccount);
+
+// 2. Get Home New Timeline
+CommentGroup comments = accounts.action().getHomeTimeLine();
+
+// 3. Get Past Timeline
+CommentGroup pasts = comments.action().getPastComments();
 ```
 
 if you want more samples, please see [detail documents](./docs/README.md) and test code.

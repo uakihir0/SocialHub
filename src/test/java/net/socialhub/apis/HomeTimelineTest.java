@@ -68,6 +68,10 @@ public class HomeTimelineTest extends AbstractApiTest {
                 System.out.println("S> " + c.getSharedComment().getText());
             }
 
+            if (c.getApplication() != null) {
+                System.out.println("A> " + c.getApplication().getName() + " " + c.getApplication().getWebsite());
+            }
+
             for (Media m : c.getMedias()) {
                 System.out.println("M> " + m.getType() + " : " + m.getPreviewUrl());
             }

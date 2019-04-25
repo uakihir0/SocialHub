@@ -5,6 +5,7 @@ import net.socialhub.define.service.twitter.TwitterIconSize;
 import net.socialhub.define.service.twitter.TwitterMediaType;
 import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.service.Application;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Media;
 import net.socialhub.model.service.Pageable;
@@ -24,6 +25,8 @@ import twitter4j.URLEntity;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -105,6 +108,7 @@ public class TwitterMapper {
         model.setCreateAt(status.getCreatedAt());
         model.setUser(user(status.getUser(), service));
         model.setPossiblySensitive(status.isPossiblySensitive());
+        model.setApplication(application(status.getSource()));
 
         // リツイートの場合内部を展開
         if (status.isRetweet()) {
@@ -203,6 +207,30 @@ public class TwitterMapper {
     }
 
     /**
+     * アプリケーションマッピング
+     */
+    public static Application application( //
+            String source) {
+
+        Application app = new Application();
+        {
+            Pattern p = Pattern.compile("href=\"(.+?)\"");
+            Matcher m = p.matcher(source);
+            if (m.find()) {
+                app.setWebsite(m.group(1));
+            }
+        }
+        {
+            Pattern p = Pattern.compile(">(.+?)<");
+            Matcher m = p.matcher(source);
+            if (m.find()) {
+                app.setName(m.group(1));
+            }
+        }
+        return app;
+    }
+
+    /**
      * ページングマッピング
      */
     public static Paging paging( //
@@ -276,4 +304,5 @@ public class TwitterMapper {
         return user.getProfileImageURLHttps() //
                 .replace(TwitterIconSize.Normal.getSuffix(), DEFAULT_ICON_SIZE.getSuffix());
     }
+
 }

@@ -12,6 +12,7 @@ import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
+import net.socialhub.model.service.addition.MiniBlogComment;
 import net.socialhub.model.service.addition.twitter.TwitterMedia;
 import net.socialhub.model.service.addition.twitter.TwitterUser;
 import net.socialhub.model.service.paging.BorderPaging;
@@ -102,13 +103,16 @@ public class TwitterMapper {
             Status status,  //
             Service service) {
 
-        Comment model = new Comment(service);
+        MiniBlogComment model = new MiniBlogComment(service);
 
         model.setId(status.getId());
         model.setCreateAt(status.getCreatedAt());
         model.setUser(user(status.getUser(), service));
         model.setPossiblySensitive(status.isPossiblySensitive());
         model.setApplication(application(status.getSource()));
+
+        model.setLikeCount((long) status.getFavoriteCount());
+        model.setShareCount((long) status.getRetweetCount());
 
         // リツイートの場合内部を展開
         if (status.isRetweet()) {

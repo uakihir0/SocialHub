@@ -16,8 +16,10 @@ import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Media;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Reaction;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
+import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.addition.slack.SlackMedia;
 import net.socialhub.model.service.addition.slack.SlackTeam;
 import net.socialhub.model.service.addition.slack.SlackUser;
@@ -99,7 +101,7 @@ public final class SlackMapper {
             User user, //
             Service service) {
 
-        Comment model = new Comment(service);
+        SlackComment model = new SlackComment(service);
 
         model.setId(message.getTs());
         model.setText(new AttributedString(message.getText()));
@@ -116,6 +118,12 @@ public final class SlackMapper {
             model.setMedias(medias(message, token));
         } else {
             model.setMedias(new ArrayList<>());
+        }
+
+        // リアクションを追加で格納
+        if ((message.getReactions() != null) //
+                && !message.getReactions().isEmpty()) {
+            model.setReactions(reactions(message.getReactions()));
         }
 
         return model;
@@ -161,6 +169,25 @@ public final class SlackMapper {
         }
 
         return model;
+    }
+
+    /**
+     * リアクションマッピング
+     */
+    public static List<Reaction> reactions( //
+            List<com.github.seratch.jslack.api.model.Reaction> reactions) {
+        List<Reaction> models = new ArrayList<>();
+
+        if (reactions != null) {
+            reactions.forEach((reaction) -> {
+                Reaction model = new Reaction();
+                model.setCount((long) reaction.getCount());
+                model.setName(reaction.getName());
+                models.add(model);
+            });
+        }
+
+        return models;
     }
 
     /**

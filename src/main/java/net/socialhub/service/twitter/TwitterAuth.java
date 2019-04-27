@@ -15,7 +15,7 @@ import twitter4j.conf.ConfigurationBuilder;
 /**
  * Twitter Authorization Functions
  */
-public class    TwitterAuth implements ServiceAuth<Twitter> {
+public class TwitterAuth implements ServiceAuth<Twitter> {
 
     // For OAuth
     private String consumerKey;
@@ -40,8 +40,8 @@ public class    TwitterAuth implements ServiceAuth<Twitter> {
      */
     @Override
     public Twitter getAccessor() {
-        ConfigurationBuilder builder = new ConfigurationBuilder();
-        Twitter twitter = new TwitterFactory(builder.build()).getInstance();
+
+        Twitter twitter = createTwitterInstance();
         AccessToken token = new AccessToken(accessToken, accessSecret);
         twitter.setOAuthConsumer(consumerKey, consumerSecret);
         twitter.setOAuthAccessToken(token);
@@ -73,8 +73,7 @@ public class    TwitterAuth implements ServiceAuth<Twitter> {
      */
     public String getAuthorizationURL(String callbackUrl) {
 
-        ConfigurationBuilder builder = new ConfigurationBuilder();
-        Twitter twitter = new TwitterFactory(builder.build()).getInstance();
+        Twitter twitter = createTwitterInstance();
         twitter.setOAuthConsumer(consumerKey, consumerSecret);
 
         try {
@@ -92,8 +91,7 @@ public class    TwitterAuth implements ServiceAuth<Twitter> {
      */
     public Account getAccountWithVerifier(String verifier) {
 
-        ConfigurationBuilder builder = new ConfigurationBuilder();
-        Twitter twitter = new TwitterFactory(builder.build()).getInstance();
+        Twitter twitter = createTwitterInstance();
         twitter.setOAuthConsumer(consumerKey, consumerSecret);
 
         try {
@@ -103,6 +101,16 @@ public class    TwitterAuth implements ServiceAuth<Twitter> {
         } catch (TwitterException e) {
             throw new SocialHubException(e);
         }
+    }
+
+    /**
+     * Twitter インスタンスの生成 (+ 設定)
+     */
+    private Twitter createTwitterInstance() {
+        ConfigurationBuilder builder = new ConfigurationBuilder();
+        builder.setTweetModeExtended(true);
+
+        return new TwitterFactory(builder.build()).getInstance();
     }
 
     //region // Getter&Setter

@@ -16,6 +16,8 @@ public enum ActionType {
     EditComment,
     LikeComment,
     UnlikeComment,
+    ShareComment,
+    UnShareComment,
 
     // User
     GetUser,

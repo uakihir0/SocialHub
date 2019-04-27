@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Twitter における User 要素
- * Twitter specified user's attributes
+ * Twitter User Model
+ * Twitter のユーザー要素
  */
 public class TwitterUser extends MiniBlogUser {
 

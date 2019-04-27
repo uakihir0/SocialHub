@@ -99,6 +99,10 @@ public class MastodonMapper {
             model.setUser(user(status.getAccount(), service));
             model.setCreateAt(format.parse(status.getCreatedAt()));
             model.setApplication(application(status.getApplication()));
+            model.setVisibility(status.getVisibility());
+
+            model.setLikeCount(status.getFavouritesCount());
+            model.setShareCount(status.getReblogsCount());
 
             // リツイートの場合は内部を展開
             if (status.getReblog() != null) {
@@ -106,8 +110,10 @@ public class MastodonMapper {
                 model.setMedias(new ArrayList<>());
 
             } else {
+                model.setSpoilerText(new AttributedString(status.getSpoilerText()));
                 String text = StringUtil.removeXmlTags(status.getContent());
                 model.setText(new AttributedString(text));
+
                 model.setMedias(medias(status.getMediaAttachments()));
             }
             return model;

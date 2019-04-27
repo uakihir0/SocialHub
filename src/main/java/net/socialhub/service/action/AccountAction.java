@@ -130,6 +130,22 @@ public interface AccountAction {
         throw new NotImplimentedException();
     }
 
+    /**
+     * Reaction Comment
+     * リアクションする
+     */
+    default void reaction(Identify id, String reaction) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * UnReaction Comment
+     * リアクションを取り消す
+     */
+    default void unreaction(Identify id, String reaction) {
+        throw new NotImplimentedException();
+    }
+
     // ============================================================== //
     // Channel (List) API
     // チャンネル (リスト) 関連 API

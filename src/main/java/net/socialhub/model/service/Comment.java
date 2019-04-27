@@ -5,6 +5,7 @@ import net.socialhub.service.action.AccountAction;
 import net.socialhub.service.action.CommentAction;
 import net.socialhub.service.action.CommentActionImpl;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -48,6 +49,14 @@ public class Comment extends Identify {
      */
     private Application application;
 
+    /**
+     * Get many kind of reactions
+     * (like, share, :+1:, and so on)
+     */
+    public List<Reaction> getReactions() {
+        return new ArrayList<>();
+    }
+
     public Comment(Service service) {
         super(service);
     }
@@ -55,6 +64,14 @@ public class Comment extends Identify {
     public CommentAction action() {
         AccountAction action = getService().getAccount().action();
         return new CommentActionImpl(action).comment(this);
+    }
+
+    /**
+     * Get comment should be shown
+     * (Use return object to display)
+     */
+    public Comment getDisplayComment() {
+        return this;
     }
 
     //region // Getter&Setter
@@ -113,6 +130,5 @@ public class Comment extends Identify {
     public void setApplication(Application application) {
         this.application = application;
     }
-
     //endregion
 }

@@ -5,8 +5,8 @@ import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
 
 /**
- * MiniBlog における User 要素
- * MiniBlog specified user's attributes
+ * MiniBlog User Model
+ * MiniBlog のユーザー要素
  */
 public class MiniBlogUser extends User {
 

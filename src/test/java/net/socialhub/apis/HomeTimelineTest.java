@@ -6,6 +6,7 @@ import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Media;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Reaction;
 import org.junit.Test;
 
 public class HomeTimelineTest extends AbstractApiTest {
@@ -62,18 +63,21 @@ public class HomeTimelineTest extends AbstractApiTest {
         System.out.println("========================");
 
         for (Comment c : timeline.getEntities()) {
-            System.out.println(c.getId() + ": " + c.getText());
+            System.out.println(c.getId());
 
-            if (c.getSharedComment() != null) {
-                System.out.println("S> " + c.getSharedComment().getText());
+            Comment dc = c.getDisplayComment();
+            System.out.println("T> " + dc.getText());
+
+            if (dc.getApplication() != null) {
+                System.out.println("A> " + dc.getApplication().getName());
             }
 
-            if (c.getApplication() != null) {
-                System.out.println("A> " + c.getApplication().getName() + " " + c.getApplication().getWebsite());
-            }
-
-            for (Media m : c.getMedias()) {
+            for (Media m : dc.getMedias()) {
                 System.out.println("M> " + m.getType() + " : " + m.getPreviewUrl());
+            }
+
+            for (Reaction m : dc.getReactions()) {
+                System.out.println("R> " + m.getName() + " : " + m.getCount());
             }
         }
     }

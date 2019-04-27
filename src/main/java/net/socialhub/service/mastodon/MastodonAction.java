@@ -4,8 +4,10 @@ import mastodon4j.Mastodon;
 import mastodon4j.entity.Relationship;
 import mastodon4j.entity.Status;
 import mastodon4j.entity.share.Response;
+import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
+import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Pageable;
@@ -23,6 +25,8 @@ import static net.socialhub.define.ActionType.GetUserMe;
 import static net.socialhub.define.ActionType.HomeTimeLine;
 import static net.socialhub.define.ActionType.LikeComment;
 import static net.socialhub.define.ActionType.MuteUser;
+import static net.socialhub.define.ActionType.ShareComment;
+import static net.socialhub.define.ActionType.UnShareComment;
 import static net.socialhub.define.ActionType.UnblockUser;
 import static net.socialhub.define.ActionType.UnfollowUser;
 import static net.socialhub.define.ActionType.UnlikeComment;
@@ -211,6 +215,76 @@ public class MastodonAction extends AccountActionImpl {
 
             service.getRateLimit().addInfo(UnlikeComment, status);
         });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void retweet(Identify id) {
+
+        proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Response<Status> status = mastodon.statuses().reblog((Long) id.getId());
+
+            service.getRateLimit().addInfo(ShareComment, status);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unretweet(Identify id) {
+
+        proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Response<Status> status = mastodon.statuses().unreblog((Long) id.getId());
+
+            service.getRateLimit().addInfo(UnShareComment, status);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void reaction(Identify id, String reaction) {
+        if (reaction != null && !reaction.isEmpty()) {
+            String type = reaction.toLowerCase();
+
+            if (MastodonReactionType.Favorite.getCode().contains(type)) {
+                like(id);
+                return;
+            }
+            if (MastodonReactionType.Reblog.getCode().contains(type)) {
+                retweet(id);
+                return;
+            }
+        }
+        throw new NotSupportedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unreaction(Identify id, String reaction) {
+        if (reaction != null && !reaction.isEmpty()) {
+            String type = reaction.toLowerCase();
+
+            if (type.equals(MastodonReactionType.Favorite.getCode())) {
+                unlike(id);
+                return;
+            }
+            if (type.equals(MastodonReactionType.Reblog.getCode())) {
+                unretweet(id);
+                return;
+            }
+        }
+        throw new NotSupportedException();
     }
 
     // ============================================================== //

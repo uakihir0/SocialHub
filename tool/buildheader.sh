@@ -15,6 +15,7 @@ echo "#include \"java/lang/Integer.h\"" >> ${header}
 echo "#include \"java/lang/Long.h\"" >> ${header}
 echo "#include \"java/lang/Float.h\"" >> ${header}
 echo "#include \"java/lang/Double.h\"" >> ${header}
+echo "#include \"java/util/Date.h\"" >> ${header}
 
 # Add SocialHub Header
 for file in `\find . -name '*.h'`; do

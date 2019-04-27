@@ -22,8 +22,15 @@ public class MastodonUser extends MiniBlogUser {
     @Override
     public String getAccountIdentify() {
         try {
+            // 外のホストの場合は既に URL が付与済
+            if (getScreenName().contains("@")) {
+                return "@" + getScreenName();
+            }
+
+            // URL と結合して Mastodon アカウント対応
             URL url = new URL(getProfileUrl().getText());
             return "@" + getScreenName() + "@" + url.getHost();
+
         } catch (Exception e) {
             return getScreenName();
         }

@@ -5,13 +5,7 @@ import net.socialhub.define.service.twitter.TwitterIconSize;
 import net.socialhub.define.service.twitter.TwitterMediaType;
 import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
-import net.socialhub.model.service.Application;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Media;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.MiniBlogComment;
 import net.socialhub.model.service.addition.twitter.TwitterMedia;
 import net.socialhub.model.service.addition.twitter.TwitterUser;
@@ -40,7 +34,7 @@ public class TwitterMapper {
     /**
      * ユーザーマッピング
      */
-    public static User user( //
+    public static User user(
             twitter4j.User user, //
             Service service) {
 
@@ -99,7 +93,7 @@ public class TwitterMapper {
     /**
      * コメントマッピング
      */
-    public static Comment comment( //
+    public static Comment comment(
             Status status,  //
             Service service) {
 
@@ -150,7 +144,7 @@ public class TwitterMapper {
     /**
      * メディアマッピング
      */
-    public static List<Media> medias( //
+    public static List<Media> medias(
             MediaEntity[] entities) {
 
         List<Media> medias = new ArrayList<>();
@@ -164,48 +158,48 @@ public class TwitterMapper {
      * メディアマッピング
      */
     public static Media media( //
-            MediaEntity entity) {
+                               MediaEntity entity) {
 
         switch (TwitterMediaType.of(entity.getType())) {
 
-        case Photo: {
-            TwitterMedia media = new TwitterMedia();
-            media.setType(MediaType.Image);
+            case Photo: {
+                TwitterMedia media = new TwitterMedia();
+                media.setType(MediaType.Image);
 
-            media.setSourceUrl(entity.getMediaURLHttps());
-            media.setPreviewUrl(entity.getMediaURLHttps());
-            return media;
-        }
-
-        case Video: {
-            TwitterMedia media = new TwitterMedia();
-            media.setType(MediaType.Movie);
-
-            media.setPreviewUrl(entity.getMediaURLHttps());
-            for (MediaEntity.Variant variant : entity.getVideoVariants()) {
-
-                // ストリーム向けの動画タイプが存在する場合はそれを利用
-                if (variant.getContentType().equals("application/x-mpegURL")) {
-                    media.setStreamVideoUrl(variant.getUrl());
-                    media.setSourceUrl(variant.getUrl());
-                }
+                media.setSourceUrl(entity.getMediaURLHttps());
+                media.setPreviewUrl(entity.getMediaURLHttps());
+                return media;
             }
 
-            // それ意外の場合一番高画質のものを選択
-            Stream.of(entity.getVideoVariants()) //
-                    .filter((e) -> e.getContentType().startsWith("video")) //
-                    .max(Comparator.comparingInt(MediaEntity.Variant::getBitrate)) //
-                    .ifPresent((variant) -> {
-                        String url = variant.getUrl();
-                        media.setMp4VideoUrl(url);
+            case Video: {
+                TwitterMedia media = new TwitterMedia();
+                media.setType(MediaType.Movie);
 
-                        if (media.getSourceUrl() == null) {
-                            media.setSourceUrl(url);
-                        }
-                    });
+                media.setPreviewUrl(entity.getMediaURLHttps());
+                for (MediaEntity.Variant variant : entity.getVideoVariants()) {
 
-            return media;
-        }
+                    // ストリーム向けの動画タイプが存在する場合はそれを利用
+                    if (variant.getContentType().equals("application/x-mpegURL")) {
+                        media.setStreamVideoUrl(variant.getUrl());
+                        media.setSourceUrl(variant.getUrl());
+                    }
+                }
+
+                // それ意外の場合一番高画質のものを選択
+                Stream.of(entity.getVideoVariants()) //
+                        .filter((e) -> e.getContentType().startsWith("video")) //
+                        .max(Comparator.comparingInt(MediaEntity.Variant::getBitrate)) //
+                        .ifPresent((variant) -> {
+                            String url = variant.getUrl();
+                            media.setMp4VideoUrl(url);
+
+                            if (media.getSourceUrl() == null) {
+                                media.setSourceUrl(url);
+                            }
+                        });
+
+                return media;
+            }
         }
         return null;
     }
@@ -213,7 +207,7 @@ public class TwitterMapper {
     /**
      * アプリケーションマッピング
      */
-    public static Application application( //
+    public static Application application(
             String source) {
 
         Application app = new Application();
@@ -237,7 +231,7 @@ public class TwitterMapper {
     /**
      * ページングマッピング
      */
-    public static Paging paging( //
+    public static Paging paging(
             twitter4j.Paging paging) {
 
         if (paging.getPage() > 0) {
@@ -255,11 +249,14 @@ public class TwitterMapper {
         }
     }
 
-    public static twitter4j.Paging fromPaging( //
+    public static twitter4j.Paging fromPaging(
             Paging paging) {
 
         twitter4j.Paging model = new twitter4j.Paging();
-        model.setCount(paging.getCount().intValue());
+
+        if (paging.getCount() != null) {
+            model.setCount(paging.getCount().intValue());
+        }
 
         if (paging instanceof IndexPaging) {
             IndexPaging index = (IndexPaging) paging;
@@ -283,7 +280,7 @@ public class TwitterMapper {
     /**
      * タイムラインマッピング
      */
-    public static Pageable<Comment> timeLine( //
+    public static Pageable<Comment> timeLine(
             ResponseList<Status> statuses, //
             Service service, //
             Paging paging) {

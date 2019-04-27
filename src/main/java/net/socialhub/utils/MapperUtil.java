@@ -19,8 +19,7 @@ public class MapperUtil {
         List<? extends Identify> entities = model.getEntities();
 
         if (paging instanceof BorderPaging) {
-            return (BorderPaging) paging;
-
+            return ((BorderPaging) paging).copy();
         }
 
         BorderPaging pg = new BorderPaging();
@@ -51,7 +50,7 @@ public class MapperUtil {
         }
 
         if (paging instanceof DatePaging) {
-            return (DatePaging) paging;
+            return ((DatePaging) paging).copy();
         }
 
         DatePaging pg = new DatePaging();

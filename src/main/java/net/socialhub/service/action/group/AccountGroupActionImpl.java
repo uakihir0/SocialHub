@@ -4,6 +4,7 @@ import net.socialhub.model.Account;
 import net.socialhub.model.group.AccountGroup;
 import net.socialhub.model.group.CommentGroup;
 import net.socialhub.model.group.CommentGroupImpl;
+import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.User;
 
 import java.util.Date;
@@ -41,9 +42,13 @@ public class AccountGroupActionImpl implements AccountGroupAction {
         CommentGroupImpl model = new CommentGroupImpl();
         List<Account> accounts = getAccountGroup().getAccounts();
 
+        // ページングは抑えめに実行
+        Paging paging = new Paging();
+        paging.setCount(200L);
+
         model.setEntities(accounts.parallelStream() //
                 .collect(Collectors.toMap(Function.identity(), //
-                        (acc) -> acc.action().getHomeTimeLine(null))));
+                        (acc) -> acc.action().getHomeTimeLine(paging))));
 
         model.setSinceDateFromEntities();
         model.setMaxDate(new Date());

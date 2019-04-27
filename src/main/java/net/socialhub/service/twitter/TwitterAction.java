@@ -3,12 +3,7 @@ package net.socialhub.service.twitter;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import twitter4j.ResponseList;
@@ -16,19 +11,7 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
-import static net.socialhub.define.ActionType.BlockUser;
-import static net.socialhub.define.ActionType.DeleteComment;
-import static net.socialhub.define.ActionType.FollowUser;
-import static net.socialhub.define.ActionType.GetUser;
-import static net.socialhub.define.ActionType.GetUserMe;
-import static net.socialhub.define.ActionType.HomeTimeLine;
-import static net.socialhub.define.ActionType.LikeComment;
-import static net.socialhub.define.ActionType.MuteUser;
-import static net.socialhub.define.ActionType.ShareComment;
-import static net.socialhub.define.ActionType.UnblockUser;
-import static net.socialhub.define.ActionType.UnfollowUser;
-import static net.socialhub.define.ActionType.UnlikeComment;
-import static net.socialhub.define.ActionType.UnmuteUser;
+import static net.socialhub.define.ActionType.*;
 
 /**
  * Twitter Actions

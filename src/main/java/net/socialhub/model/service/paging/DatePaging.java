@@ -51,6 +51,19 @@ public class DatePaging extends Paging {
         return null;
     }
 
+    /**
+     * オプジェクトコピー
+     */
+    public DatePaging copy() {
+        DatePaging pg = new DatePaging();
+        pg.setCount(getCount());
+        pg.setLatest(getLatest());
+        pg.setOldest(getOldest());
+        pg.setInclusive(getInclusive());
+        pg.setHasMore(getHasMore());
+        return pg;
+    }
+
     //region // Getter&Setter
     public Date getLatest() {
         return latest;

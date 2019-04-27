@@ -8,29 +8,12 @@ import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 
-import static net.socialhub.define.ActionType.BlockUser;
-import static net.socialhub.define.ActionType.FollowUser;
-import static net.socialhub.define.ActionType.GetUser;
-import static net.socialhub.define.ActionType.GetUserMe;
-import static net.socialhub.define.ActionType.HomeTimeLine;
-import static net.socialhub.define.ActionType.LikeComment;
-import static net.socialhub.define.ActionType.MuteUser;
-import static net.socialhub.define.ActionType.ShareComment;
-import static net.socialhub.define.ActionType.UnShareComment;
-import static net.socialhub.define.ActionType.UnblockUser;
-import static net.socialhub.define.ActionType.UnfollowUser;
-import static net.socialhub.define.ActionType.UnlikeComment;
-import static net.socialhub.define.ActionType.UnmuteUser;
+import static net.socialhub.define.ActionType.*;
 
 public class MastodonAction extends AccountActionImpl {
 
@@ -174,7 +157,6 @@ public class MastodonAction extends AccountActionImpl {
             Long sinceId = null;
             if (paging != null) {
                 count = paging.getCount();
-
                 if (paging instanceof BorderPaging) {
                     BorderPaging border = (BorderPaging) paging;
                     maxId = border.getMaxId();

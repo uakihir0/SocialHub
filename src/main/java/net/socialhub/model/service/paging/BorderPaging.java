@@ -73,6 +73,18 @@ public class BorderPaging extends Paging {
         return null;
     }
 
+    /**
+     * オブジェクトコピー
+     */
+    public BorderPaging copy() {
+        BorderPaging pg = new BorderPaging();
+        pg.setCount(getCount());
+        pg.setMaxId(getMaxId());
+        pg.setSinceId(getSinceId());
+        pg.setHasMore(getHasMore());
+        return pg;
+    }
+
     //region // Getter&Setter
     public Long getMaxId() {
         return maxId;

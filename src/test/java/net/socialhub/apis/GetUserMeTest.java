@@ -5,6 +5,7 @@ import net.socialhub.model.Account;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.mastodon.MastodonUser;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class GetUserMeTest extends AbstractApiTest {
@@ -18,6 +19,7 @@ public class GetUserMeTest extends AbstractApiTest {
     }
 
     @Test
+    @Ignore
     public void testGetUserMeFacebook() {
 
         Account account = SocialAuthUtil.getFacebookAccount();

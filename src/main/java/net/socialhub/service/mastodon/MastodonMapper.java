@@ -1,22 +1,13 @@
 package net.socialhub.service.mastodon;
 
-import mastodon4j.entity.Account;
-import mastodon4j.entity.AccountSource;
-import mastodon4j.entity.Attachment;
-import mastodon4j.entity.Field;
-import mastodon4j.entity.Status;
+import mastodon4j.entity.*;
 import net.socialhub.define.MediaType;
 import net.socialhub.define.service.mastodon.MastodonMediaType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Application;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Media;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.mastodon.MastodonComment;
 import net.socialhub.model.service.addition.mastodon.MastodonUser;
 import net.socialhub.utils.MapperUtil;
@@ -24,10 +15,7 @@ import net.socialhub.utils.StringUtil;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,10 +25,15 @@ public class MastodonMapper {
 
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
+    /** 　J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
+    private final static List<Class<?>> ClassLoader = Arrays.asList( //
+            mastodon4j.entity.Mention.class, //
+            mastodon4j.entity.Tag.class);
+
     /**
      * ユーザーマッピング
      */
-    public static User user( //
+    public static User user(
             Account account, //
             Service service) {
 
@@ -86,7 +79,7 @@ public class MastodonMapper {
     /**
      * コメントマッピング
      */
-    public static Comment comment( //
+    public static Comment comment(
             Status status, //
             Service service) {
 
@@ -127,7 +120,7 @@ public class MastodonMapper {
     /**
      * メディアマッピング
      */
-    public static List<Media> medias( //
+    public static List<Media> medias(
             Attachment[] attachments) {
 
         List<Media> medias = new ArrayList<>();
@@ -144,20 +137,20 @@ public class MastodonMapper {
     /**
      * メディアマッピング
      */
-    public static Media media( //
+    public static Media media(
             Attachment attachment) {
 
         Media media = new Media();
         switch (MastodonMediaType.of(attachment.getType())) {
 
-        case Image: {
-            media.setType(MediaType.Image);
-            break;
-        }
-        case Video: {
-            media.setType(MediaType.Movie);
-            break;
-        }
+            case Image: {
+                media.setType(MediaType.Image);
+                break;
+            }
+            case Video: {
+                media.setType(MediaType.Movie);
+                break;
+            }
         }
         media.setSourceUrl(attachment.getUrl());
         media.setPreviewUrl(attachment.getPreviewUrl());
@@ -167,7 +160,7 @@ public class MastodonMapper {
     /**
      * アプリケーションマッピング
      */
-    public static Application application( //
+    public static Application application(
             mastodon4j.entity.Application application) {
         if (application == null) {
             return null;
@@ -182,7 +175,7 @@ public class MastodonMapper {
     /**
      * タイムラインマッピング
      */
-    public static Pageable<Comment> timeLine( //
+    public static Pageable<Comment> timeLine(
             Status[] statuses, //
             Service service, //
             Paging paging) {

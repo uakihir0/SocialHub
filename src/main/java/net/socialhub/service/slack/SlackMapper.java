@@ -11,14 +11,7 @@ import com.github.seratch.jslack.api.model.User.Profile;
 import net.socialhub.define.MediaType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedString;
-import net.socialhub.model.service.Channel;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Media;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Reaction;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.addition.slack.SlackMedia;
 import net.socialhub.model.service.addition.slack.SlackTeam;
@@ -27,21 +20,25 @@ import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.service.action.AccountAction;
 import net.socialhub.utils.MapperUtil;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class SlackMapper {
 
     private static Logger logger = Logger.getLogger(SlackMapper.class);
 
+    /** 　J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
+    private final static List<Class<?>> ClassLoader = Arrays.asList( //
+            com.github.seratch.jslack.api.model.Attachment.class, //
+            com.github.seratch.jslack.api.model.Option.class, //
+            com.github.seratch.jslack.api.model.Action.class, //
+            com.github.seratch.jslack.api.model.Icon.class, //
+            com.github.seratch.jslack.api.model.Field.class);
+
     /**
      * ユーザーマッピング
      */
-    public static User user( //
+    public static User user(
             UsersIdentityResponse response, //
             Service service) {
 
@@ -57,7 +54,7 @@ public final class SlackMapper {
     /**
      * ユーザーマッピング
      */
-    public static User user( //
+    public static User user(
             UsersInfoResponse user, //
             SlackTeam team, //
             Service service) {
@@ -96,7 +93,7 @@ public final class SlackMapper {
     /**
      * コメントマッピング
      */
-    public static Comment comment( //
+    public static Comment comment(
             Message message, //
             User user, //
             Service service) {
@@ -132,7 +129,7 @@ public final class SlackMapper {
     /**
      * メディアマッピング
      */
-    public static List<Media> medias( //
+    public static List<Media> medias(
             Message message, //
             String token) {
 
@@ -154,7 +151,7 @@ public final class SlackMapper {
      * メディアマッピング
      * see https://api.slack.com/events/message/file_share
      */
-    public static Media media( //
+    public static Media media(
             File file, //
             String token) {
 
@@ -174,7 +171,7 @@ public final class SlackMapper {
     /**
      * リアクションマッピング
      */
-    public static List<Reaction> reactions( //
+    public static List<Reaction> reactions(
             List<com.github.seratch.jslack.api.model.Reaction> reactions) {
         List<Reaction> models = new ArrayList<>();
 
@@ -193,7 +190,7 @@ public final class SlackMapper {
     /**
      * タイムラインマッピング
      */
-    public static Pageable<Comment> timeLine( //
+    public static Pageable<Comment> timeLine(
             ChannelsHistoryResponse history, //
             Map<String, User> userMap, //
             Service service, //
@@ -212,7 +209,7 @@ public final class SlackMapper {
     /**
      * チャンネルマッピング
      */
-    public static Pageable<Channel> channel( //
+    public static Pageable<Channel> channel(
             ChannelsListResponse channels, //
             Service service) {
 
@@ -245,7 +242,7 @@ public final class SlackMapper {
     /**
      * チーム情報マッチング
      */
-    public static SlackTeam team( //
+    public static SlackTeam team(
             TeamInfoResponse response) {
 
         // エラーの場合は空を返却

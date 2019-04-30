@@ -1,8 +1,10 @@
 package net.socialhub.service.twitter;
 
+import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.MediaType;
 import net.socialhub.define.service.twitter.TwitterIconSize;
 import net.socialhub.define.service.twitter.TwitterMediaType;
+import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.*;
@@ -11,6 +13,7 @@ import net.socialhub.model.service.addition.twitter.TwitterMedia;
 import net.socialhub.model.service.addition.twitter.TwitterUser;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.paging.IndexPaging;
+import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.utils.MapperUtil;
 import twitter4j.MediaEntity;
 import twitter4j.ResponseList;
@@ -157,8 +160,8 @@ public class TwitterMapper {
     /**
      * メディアマッピング
      */
-    public static Media media( //
-                               MediaEntity entity) {
+    public static Media media(
+            MediaEntity entity) {
 
         switch (TwitterMediaType.of(entity.getType())) {
 
@@ -226,6 +229,27 @@ public class TwitterMapper {
             }
         }
         return app;
+    }
+
+    /**
+     * リアクション候補マッピング
+     */
+    public static List<ReactionCandidate> reactionCandidates() {
+        List<ReactionCandidate> candidates = new ArrayList<>();
+
+        ReactionCandidate like = new ReactionCandidate();
+        like.setCategory(EmojiCategoryType.Activities.getCode());
+        like.setName(TwitterReactionType.Favorite.getCode().get(0));
+        like.addAlias(TwitterReactionType.Favorite.getCode());
+        candidates.add(like);
+
+        ReactionCandidate share = new ReactionCandidate();
+        share.setCategory(EmojiCategoryType.Activities.getCode());
+        share.setName(TwitterReactionType.Retweet.getCode().get(0));
+        share.addAlias(TwitterReactionType.Retweet.getCode());
+        candidates.add(share);
+
+        return candidates;
     }
 
     /**

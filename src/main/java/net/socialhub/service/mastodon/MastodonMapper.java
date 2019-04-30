@@ -1,8 +1,10 @@
 package net.socialhub.service.mastodon;
 
 import mastodon4j.entity.*;
+import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.MediaType;
 import net.socialhub.define.service.mastodon.MastodonMediaType;
+import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
@@ -10,6 +12,7 @@ import net.socialhub.model.service.Application;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.mastodon.MastodonComment;
 import net.socialhub.model.service.addition.mastodon.MastodonUser;
+import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.StringUtil;
 
@@ -171,6 +174,28 @@ public class MastodonMapper {
         app.setWebsite(application.getWebsite());
         return app;
     }
+
+    /**
+     * リアクション候補マッピング
+     */
+    public static List<ReactionCandidate> reactionCandidates() {
+        List<ReactionCandidate> candidates = new ArrayList<>();
+
+        ReactionCandidate like = new ReactionCandidate();
+        like.setCategory(EmojiCategoryType.Activities.getCode());
+        like.setName(MastodonReactionType.Favorite.getCode().get(0));
+        like.addAlias(MastodonReactionType.Favorite.getCode());
+        candidates.add(like);
+
+        ReactionCandidate share = new ReactionCandidate();
+        share.setCategory(EmojiCategoryType.Activities.getCode());
+        share.setName(MastodonReactionType.Reblog.getCode().get(0));
+        share.addAlias(MastodonReactionType.Reblog.getCode());
+        candidates.add(share);
+
+        return candidates;
+    }
+
 
     /**
      * タイムラインマッピング

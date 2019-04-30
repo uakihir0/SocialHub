@@ -2,11 +2,8 @@ package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
 import net.socialhub.model.Account;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Media;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Reaction;
+import net.socialhub.model.service.*;
+import net.socialhub.model.service.addition.slack.SlackComment;
 import org.junit.Test;
 
 public class HomeTimelineTest extends AbstractApiTest {
@@ -68,6 +65,10 @@ public class HomeTimelineTest extends AbstractApiTest {
             Comment dc = c.getDisplayComment();
             System.out.println("T> " + dc.getText());
 
+            if (c instanceof SlackComment) {
+                System.out.println("C> " + ((SlackComment) c).getChannel());
+            }
+
             if (dc.getApplication() != null) {
                 System.out.println("A> " + dc.getApplication().getName());
             }
@@ -77,7 +78,7 @@ public class HomeTimelineTest extends AbstractApiTest {
             }
 
             for (Reaction m : dc.getReactions()) {
-                System.out.println("R> " + m.getName() + " : " + m.getCount());
+                System.out.println("R> " + m.getEmoji() + " : " + m.getCount());
             }
         }
     }

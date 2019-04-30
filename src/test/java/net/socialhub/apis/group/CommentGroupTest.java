@@ -13,6 +13,7 @@ public class CommentGroupTest extends AbstractApiTest {
     public void testHomeTimeline() {
 
         AccountGroup accounts = new AccountGroup();
+        accounts.addAccount(SocialAuthUtil.getSlackAccount());
         accounts.addAccount(SocialAuthUtil.getMastodonAccount());
         accounts.addAccount(SocialAuthUtil.getTwitterAccount());
 

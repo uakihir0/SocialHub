@@ -2,12 +2,15 @@ package net.socialhub.service.slack;
 
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsHistoryResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
+import com.github.seratch.jslack.api.methods.response.emoji.EmojiListResponse;
 import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersIdentityResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
 import com.github.seratch.jslack.api.model.File;
 import com.github.seratch.jslack.api.model.Message;
 import com.github.seratch.jslack.api.model.User.Profile;
+import net.socialhub.define.EmojiCategoryType;
+import net.socialhub.define.EmojiType;
 import net.socialhub.define.MediaType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedString;
@@ -17,6 +20,7 @@ import net.socialhub.model.service.addition.slack.SlackMedia;
 import net.socialhub.model.service.addition.slack.SlackTeam;
 import net.socialhub.model.service.addition.slack.SlackUser;
 import net.socialhub.model.service.paging.CursorPaging;
+import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.action.AccountAction;
 import net.socialhub.utils.MapperUtil;
 
@@ -96,6 +100,8 @@ public final class SlackMapper {
     public static Comment comment(
             Message message, //
             User user, //
+            List<ReactionCandidate> candidates, //
+            String channel, //
             Service service) {
 
         SlackComment model = new SlackComment(service);
@@ -104,6 +110,12 @@ public final class SlackMapper {
         model.setText(new AttributedString(message.getText()));
         model.setCreateAt(getDateFromTimeStamp(message.getTs()));
         model.setUser(user);
+
+        // チャンネルはモデルが正
+        model.setChannel(channel);
+        if (message.getChannel() != null) {
+            model.setChannel(message.getChannel());
+        }
 
         // Action
         AccountAction action = service.getAccount().action();
@@ -120,7 +132,7 @@ public final class SlackMapper {
         // リアクションを追加で格納
         if ((message.getReactions() != null) //
                 && !message.getReactions().isEmpty()) {
-            model.setReactions(reactions(message.getReactions()));
+            model.setReactions(reactions(message.getReactions(), candidates));
         }
 
         return model;
@@ -172,7 +184,9 @@ public final class SlackMapper {
      * リアクションマッピング
      */
     public static List<Reaction> reactions(
-            List<com.github.seratch.jslack.api.model.Reaction> reactions) {
+            List<com.github.seratch.jslack.api.model.Reaction> reactions, //
+            List<ReactionCandidate> candidates) {
+
         List<Reaction> models = new ArrayList<>();
 
         if (reactions != null) {
@@ -180,6 +194,17 @@ public final class SlackMapper {
                 Reaction model = new Reaction();
                 model.setCount((long) reaction.getCount());
                 model.setName(reaction.getName());
+
+                // 絵文字や URL を注入
+                if (candidates != null) {
+                    candidates.stream() //
+                            .filter((c) -> c.getName().equals(reaction.getName())) //
+                            .findFirst().ifPresent((c) -> {
+                        model.setIconUrl(c.getIconUrl());
+                        model.setEmoji(c.getEmoji());
+                    });
+                }
+
                 models.add(model);
             });
         }
@@ -188,17 +213,65 @@ public final class SlackMapper {
     }
 
     /**
+     * リアクション候補マッピング
+     */
+    public static List<ReactionCandidate> reactionCandidates(
+            EmojiListResponse emojis) {
+
+        List<ReactionCandidate> candidates = new ArrayList<>();
+        Map<String, String> alias = new HashMap<>();
+
+        for (EmojiType emoji : EmojiType.values()) {
+            ReactionCandidate candidate = new ReactionCandidate();
+            candidates.add(candidate);
+
+            candidate.setCategory(emoji.getCategory().getCode());
+            candidate.setEmoji(emoji.getEmoji());
+            candidate.setName(emoji.getName());
+        }
+
+        emojis.getEmoji().forEach((key, value) -> {
+
+            // エイリアスは一旦スキップして処理
+            if (value.startsWith("alias")) {
+                alias.put(key, value.split(":")[1]);
+
+            } else {
+                ReactionCandidate candidate = new ReactionCandidate();
+                candidates.add(candidate);
+
+                candidate.setCategory(EmojiCategoryType.Custom.getCode());
+                candidate.setIconUrl(value);
+                candidate.setName(key);
+            }
+        });
+
+        // エイリアスの処理を実行
+        // FIXME: エイリアスのエイリアス？
+        alias.forEach((key, value) -> {
+            candidates.stream() //
+                    .filter((c) -> c.getName().equals(value)) //
+                    .findFirst().ifPresent((c) -> c.addAlias(key));
+        });
+
+
+        return candidates;
+    }
+
+    /**
      * タイムラインマッピング
      */
     public static Pageable<Comment> timeLine(
             ChannelsHistoryResponse history, //
             Map<String, User> userMap, //
+            List<ReactionCandidate> candidates, //
+            String channel, //
             Service service, //
             Paging paging) {
 
         Pageable<Comment> model = new Pageable<>();
         model.setEntities(history.getMessages().stream() //
-                .map(e -> comment(e, userMap.get(e.getUser()), service)) //
+                .map(e -> comment(e, userMap.get(e.getUser()), candidates, channel, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(Collectors.toList()));
 

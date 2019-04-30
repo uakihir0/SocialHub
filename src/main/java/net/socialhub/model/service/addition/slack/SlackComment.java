@@ -12,6 +12,8 @@ import java.util.List;
  */
 public class SlackComment extends Comment {
 
+    private String channel;
+
     private List<Reaction> reactions;
 
     public SlackComment(Service service) {
@@ -32,4 +34,14 @@ public class SlackComment extends Comment {
     public void setReactions(List<Reaction> reactions) {
         this.reactions = reactions;
     }
+
+    //region // Getter&Setter
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
+    }
+    //endregion
 }

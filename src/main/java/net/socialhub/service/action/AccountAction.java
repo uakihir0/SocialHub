@@ -1,12 +1,10 @@
 package net.socialhub.service.action;
 
 import net.socialhub.model.error.NotImplimentedException;
-import net.socialhub.model.service.Channel;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
+import net.socialhub.model.service.support.ReactionCandidate;
+
+import java.util.List;
 
 /**
  * Account Actions
@@ -143,6 +141,15 @@ public interface AccountAction {
      * リアクションを取り消す
      */
     default void unreaction(Identify id, String reaction) {
+        throw new NotImplimentedException();
+    }
+
+
+    /**
+     * Get Reaction Candidates
+     * リアクション候補を取得
+     */
+    default List<ReactionCandidate> getReactionCandidates() {
         throw new NotImplimentedException();
     }
 

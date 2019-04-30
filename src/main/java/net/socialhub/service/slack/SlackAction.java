@@ -3,6 +3,7 @@ package net.socialhub.service.slack;
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsHistoryRequest;
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsHistoryRequest.ChannelsHistoryRequestBuilder;
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsListRequest;
+import com.github.seratch.jslack.api.methods.request.emoji.EmojiListRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsAddRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsRemoveRequest;
 import com.github.seratch.jslack.api.methods.request.team.TeamInfoRequest;
@@ -10,6 +11,7 @@ import com.github.seratch.jslack.api.methods.request.users.UsersIdentityRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersInfoRequest;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsHistoryResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
+import com.github.seratch.jslack.api.methods.response.emoji.EmojiListResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsAddResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsRemoveResponse;
 import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
@@ -18,25 +20,25 @@ import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
 import com.github.seratch.jslack.api.model.Message;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
-import net.socialhub.model.service.Channel;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.error.SocialHubException;
+import net.socialhub.model.service.*;
+import net.socialhub.model.service.addition.slack.SlackComment;
+import net.socialhub.model.service.addition.slack.SlackIdentify;
 import net.socialhub.model.service.addition.slack.SlackTeam;
 import net.socialhub.model.service.paging.DatePaging;
+import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.service.slack.SlackAuth.SlackAccessor;
+import net.socialhub.utils.LimitMap;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 
 /**
  * Slack Actions
@@ -51,7 +53,13 @@ public class SlackAction extends AccountActionImpl {
     private SlackTeam team;
 
     /** Cached General Channel Id */
-    private String generalChannelId;
+    private String generalChannel;
+
+    /** User Cache Data */
+    private Map<String, User> userCache = Collections.synchronizedMap(new LimitMap<>(200));
+
+    /** Reaction Candidate Cache */
+    private List<ReactionCandidate> reactionCandidate;
 
     // ============================================================== //
     // Account
@@ -75,7 +83,7 @@ public class SlackAction extends AccountActionImpl {
                             .user(identity.getUser().getId()) //
                             .build());
 
-            return SlackMapper.user(account, getTeam(), service);
+            return userCache(SlackMapper.user(account, getTeam(), service));
         });
     }
 
@@ -92,7 +100,7 @@ public class SlackAction extends AccountActionImpl {
                             .user((String) id.getId()) //
                             .build());
 
-            return SlackMapper.user(account, getTeam(), service);
+            return userCache(SlackMapper.user(account, getTeam(), service));
         });
     }
 
@@ -105,11 +113,29 @@ public class SlackAction extends AccountActionImpl {
      */
     @Override
     public void like(Identify id) {
+        reaction(id, "heart");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unlike(Identify id) {
+        unreaction(id, "heart");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void reaction(Identify id, String reaction) {
         proceed(() -> {
             ReactionsAddResponse response = auth.getAccessor().getSlack() //
                     .methods().reactionsAdd(ReactionsAddRequest.builder() //
                             .token(auth.getAccessor().getToken()) //
-                            .channel((String) id.getId()) //
+                            .timestamp((String) id.getId()) //
+                            .channel(getChannelId(id)) //
+                            .name(reaction) //
                             .build());
         });
     }
@@ -118,13 +144,35 @@ public class SlackAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void unlike(Identify id) {
+    public void unreaction(Identify id, String reaction) {
         proceed(() -> {
             ReactionsRemoveResponse response = auth.getAccessor().getSlack() //
                     .methods().reactionsRemove(ReactionsRemoveRequest.builder() //
                             .token(auth.getAccessor().getToken()) //
-                            .channel((String) id.getId()) //
+                            .timestamp((String) id.getId()) //
+                            .channel(getChannelId(id)) //
+                            .name(reaction) //
                             .build());
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ReactionCandidate> getReactionCandidates() {
+        if (this.reactionCandidate != null) {
+            return this.reactionCandidate;
+        }
+
+        return proceed(() -> {
+            EmojiListResponse response = auth.getAccessor().getSlack() //
+                    .methods().emojiList(EmojiListRequest.builder() //
+                            .token(auth.getAccessor().getToken())
+                            .build());
+
+            this.reactionCandidate = SlackMapper.reactionCandidates(response);
+            return this.reactionCandidate;
         });
     }
 
@@ -138,41 +186,67 @@ public class SlackAction extends AccountActionImpl {
     @Override
     public Pageable<Comment> getHomeTimeLine(Paging paging) {
         return proceed(() -> {
-            ChannelsHistoryRequestBuilder request = ChannelsHistoryRequest.builder() //
-                    .channel(getGeneralChannelId()).token(auth.getAccessor().getToken());
+            ExecutorService pool = Executors.newCachedThreadPool();
 
-            if (paging != null) {
-                if (paging.getCount() != null) {
-                    request.count(paging.getCount().intValue());
+            // ------------------------------------------------ //
+            // Async Request
+            // ------------------------------------------------ //
+
+            Future<ChannelsHistoryResponse> responseFuture = pool.submit(() -> {
+                ChannelsHistoryRequestBuilder request = ChannelsHistoryRequest.builder() //
+                        .channel(getGeneralChannel()).token(auth.getAccessor().getToken());
+
+                if (paging != null) {
+                    if (paging.getCount() != null) {
+                        request.count(paging.getCount().intValue());
+                    }
+
+                    if (paging instanceof DatePaging) {
+                        DatePaging date = (DatePaging) paging;
+                        if (date.getLatest() != null) {
+                            request.latest(timeStampString(date.getLatest()));
+                        }
+                        if (date.getOldest() != null) {
+                            request.oldest(timeStampString(date.getOldest()));
+                        }
+                        if (date.getInclusive() != null) {
+                            request.inclusive(date.getInclusive());
+                        }
+                    }
                 }
 
-                if (paging instanceof DatePaging) {
-                    DatePaging date = (DatePaging) paging;
-                    if (date.getLatest() != null) {
-                        request.latest(timeStampString(date.getLatest()));
-                    }
-                    if (date.getOldest() != null) {
-                        request.oldest(timeStampString(date.getOldest()));
-                    }
-                    if (date.getInclusive() != null) {
-                        request.inclusive(date.getInclusive());
-                    }
-                }
-            }
+                return auth.getAccessor().getSlack().methods() //
+                        .channelsHistory(request.build());
+            });
+
+            Future<List<ReactionCandidate>> candidatesFuture = //
+                    pool.submit(this::getReactionCandidates);
+
+            Future<SlackTeam> teamFuture = pool.submit(this::getTeam);
+
+            // ------------------------------------------------ //
+            // Await Request
+            // ------------------------------------------------ //
+
+            ChannelsHistoryResponse response = responseFuture.get();
+            List<ReactionCandidate> candidates = candidatesFuture.get();
+            teamFuture.get();
+
+            // ------------------------------------------------ //
+            // Get User Instances
+            // ------------------------------------------------ //
 
             Service service = getAccount().getService();
-            ChannelsHistoryResponse response = auth.getAccessor() //
-                    .getSlack().methods().channelsHistory(request.build());
-
             List<String> users = response.getMessages().stream() //
                     .map(Message::getUser).filter(Objects::nonNull) //
                     .distinct().collect(Collectors.toList());
 
             Map<String, User> userMap = users.parallelStream() //
                     .collect(Collectors.toMap(Function.identity(), //
-                            (id) -> getUser(new Identify(service, id))));
+                            (id) -> getUserWithCache(new Identify(service, id))));
 
-            return SlackMapper.timeLine(response, userMap, service, paging);
+            return SlackMapper.timeLine(response, userMap, candidates, //
+                    getGeneralChannel(), service, paging);
         });
     }
 
@@ -195,7 +269,7 @@ public class SlackAction extends AccountActionImpl {
             // General のチャンネルを記録
             response.getChannels().stream() //
                     .filter((c) -> c.isGeneral()).findFirst() //
-                    .map((c) -> generalChannelId = c.getId());
+                    .map((c) -> generalChannel = c.getId());
 
             return SlackMapper.channel(response, service);
         });
@@ -233,13 +307,13 @@ public class SlackAction extends AccountActionImpl {
     /**
      * General マークされたチャンネルを取得
      */
-    public String getGeneralChannelId() {
+    public String getGeneralChannel() {
 
         // 不明な場合はチャンネル一覧を先に取得
-        if (generalChannelId == null) {
+        if (generalChannel == null) {
             getChannels();
         }
-        return generalChannelId;
+        return generalChannel;
     }
 
     // ============================================================== //
@@ -250,6 +324,37 @@ public class SlackAction extends AccountActionImpl {
         long number = date.getTime() / 1000L;
         return Long.toString(number);
     }
+
+    private String getChannelId(Identify id) {
+        if (id instanceof SlackComment) {
+            return ((SlackComment) id).getChannel();
+        }
+        if (id instanceof SlackIdentify) {
+            return ((SlackIdentify) id).getChannel();
+        }
+
+        String message = "No Channel Info. Identify must be SlackIdentify or SlackComment.";
+        throw new SocialHubException(message);
+    }
+
+    // ============================================================== //
+    // Cache
+    // ============================================================== //
+
+    private User userCache(User user) {
+        user.getId(String.class).ifPresent( //
+                (id) -> userCache.put(id, user));
+        return user;
+    }
+
+    private User getUserWithCache(Identify id) {
+        String time = id.getId(String.class).orElse(null);
+        if (time != null && userCache.containsKey(time)) {
+            return userCache.get(time);
+        }
+        return getUser(id);
+    }
+
 
     // ============================================================== //
     // Proceed

@@ -9,6 +9,10 @@ import java.util.Optional;
  */
 public class Identify implements Serializable {
 
+    private Service service;
+
+    private Object id;
+
     // Constructor
     public Identify(Service service) {
         this.service = service;
@@ -19,9 +23,6 @@ public class Identify implements Serializable {
         this.id = id;
     }
 
-    private Service service;
-
-    private Object id;
 
     //region // Getter&Setter
     public void setId(Object id) {

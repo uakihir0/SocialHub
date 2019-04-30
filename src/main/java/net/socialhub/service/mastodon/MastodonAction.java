@@ -10,8 +10,11 @@ import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.paging.BorderPaging;
+import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+
+import java.util.List;
 
 import static net.socialhub.define.ActionType.*;
 
@@ -267,6 +270,14 @@ public class MastodonAction extends AccountActionImpl {
             }
         }
         throw new NotSupportedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ReactionCandidate> getReactionCandidates() {
+        return MastodonMapper.reactionCandidates();
     }
 
     // ============================================================== //

@@ -4,12 +4,15 @@ import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.service.*;
+import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+
+import java.util.List;
 
 import static net.socialhub.define.ActionType.*;
 
@@ -251,6 +254,14 @@ public class TwitterAction extends AccountActionImpl {
             }
         }
         throw new NotSupportedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ReactionCandidate> getReactionCandidates() {
+        return TwitterMapper.reactionCandidates();
     }
 
     // ============================================================== //

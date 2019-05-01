@@ -10,7 +10,9 @@ import net.socialhub.logger.Logger;
 import org.junit.Test;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static net.socialhub.http.RequestMethod.GET;
 
@@ -24,6 +26,9 @@ public class EmojiGenerator {
 
     @Test
     public void makeEmojiList() {
+        List<EmojiStructure> results = new ArrayList<>();
+
+        // 通常の処理
         getEmojiList().forEach((emoji) -> {
             String name = emoji.getShortName();
 
@@ -40,10 +45,48 @@ public class EmojiGenerator {
                 builder.append(caption(part));
             }
 
-            System.out.println(builder + "(" +
-                    "\"" + decodeUnicode(emoji.getUnified()) + "\"," +
-                    "\"" + name + "\",\"" + emoji.getCategory() + "\"),");
+            EmojiStructure model = new EmojiStructure();
+            model.setFieldName(builder.toString());
+            model.setCategory(emoji.getCategory());
+            model.setUnicode(emoji.getUnified());
+            model.setName(name);
+
+            results.add(model);
         });
+
+        // スキントーンの処理
+        getEmojiList().forEach((emoji) -> {
+
+            if (emoji.getSkinVariations() != null) {
+                EmojiStructure prefix = results.stream() //
+                        .filter((e) -> e.getUnicode().equals(emoji.getUnified())) //
+                        .findFirst().orElse(null);
+
+                emoji.getSkinVariations().forEach((k, v) -> {
+                    EmojiStructure skin = results.stream() //
+                            .filter((e) -> e.getUnicode().equals(k)) //
+                            .findFirst().orElse(null);
+
+                    if (prefix != null && skin != null) {
+
+                        EmojiStructure model = new EmojiStructure();
+                        model.setFieldName(prefix.getFieldName() + skin.getFieldName());
+                        model.setName(prefix.getName() + "::" + skin.getName());
+                        model.setCategory(emoji.getCategory());
+                        model.setUnicode(v.getUnified());
+
+                        results.add(model);
+                    }
+                });
+            }
+        });
+
+
+        for (EmojiStructure model : results) {
+            System.out.println(model.getFieldName() + "(" + //
+                    "\"" + decodeUnicode(model.getUnicode()) + "\"," + //
+                    "\"" + model.getName() + "\",\"" + model.getCategory() + "\"),");
+        }
     }
 
     @Test
@@ -61,6 +104,11 @@ public class EmojiGenerator {
             System.out.println(builder //
                     + "(\"" + category + "\"),");
         });
+    }
+
+    @Test
+    public void makeUnicodeDecode() {
+        System.out.println(decodeUnicode("1F468-200D-1F3ED"));
     }
 
     /**
@@ -113,6 +161,50 @@ public class EmojiGenerator {
     }
 
     /**
+     * Pre Print Structure of Emoji
+     */
+    public static class EmojiStructure {
+        private String name;
+        private String fieldName;
+        private String unicode;
+        private String category;
+
+        //region // Getter&Setter
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getFieldName() {
+            return fieldName;
+        }
+
+        public void setFieldName(String fieldName) {
+            this.fieldName = fieldName;
+        }
+
+        public String getUnicode() {
+            return unicode;
+        }
+
+        public void setUnicode(String unicode) {
+            this.unicode = unicode;
+        }
+
+        public String getCategory() {
+            return category;
+        }
+
+        public void setCategory(String category) {
+            this.category = category;
+        }
+        //endregion
+    }
+
+    /**
      * Emoji Data Structure
      * (https://github.com/iamcal/emoji-data)
      */
@@ -121,6 +213,9 @@ public class EmojiGenerator {
         private String shortName;
         private String category;
         private String unified;
+
+        @SerializedName("skin_variations")
+        private Map<String, EmojiVariationData> skinVariations;
 
         //region // Getter&Setter
         public String getCategory() {
@@ -139,6 +234,32 @@ public class EmojiGenerator {
             this.shortName = shortName;
         }
 
+        public String getUnified() {
+            return unified;
+        }
+
+        public void setUnified(String unified) {
+            this.unified = unified;
+        }
+
+        public Map<String, EmojiVariationData> getSkinVariations() {
+            return skinVariations;
+        }
+
+        public void setSkinVariations(Map<String, EmojiVariationData> skinVariations) {
+            this.skinVariations = skinVariations;
+        }
+        //endregion
+    }
+
+    /**
+     * Emoji Variation Structure
+     * (https://github.com/iamcal/emoji-data)
+     */
+    public static class EmojiVariationData {
+        private String unified;
+
+        //region // Getter&Setter
         public String getUnified() {
             return unified;
         }

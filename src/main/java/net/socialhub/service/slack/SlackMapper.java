@@ -11,6 +11,7 @@ import com.github.seratch.jslack.api.model.Message;
 import com.github.seratch.jslack.api.model.User.Profile;
 import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.EmojiType;
+import net.socialhub.define.EmojiVariationType;
 import net.socialhub.define.MediaType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedString;
@@ -244,6 +245,15 @@ public final class SlackMapper {
         Map<String, String> alias = new HashMap<>();
 
         for (EmojiType emoji : EmojiType.values()) {
+            ReactionCandidate candidate = new ReactionCandidate();
+            candidates.add(candidate);
+
+            candidate.setCategory(emoji.getCategory().getCode());
+            candidate.setEmoji(emoji.getEmoji());
+            candidate.setName(emoji.getName());
+        }
+
+        for (EmojiVariationType emoji : EmojiVariationType.values()) {
             ReactionCandidate candidate = new ReactionCandidate();
             candidates.add(candidate);
 

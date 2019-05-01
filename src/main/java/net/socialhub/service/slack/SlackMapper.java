@@ -23,6 +23,7 @@ import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.action.AccountAction;
 import net.socialhub.utils.MapperUtil;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,7 +51,17 @@ public final class SlackMapper {
 
         model.setId(response.getUser().getId());
         model.setName(response.getUser().getName());
+
         model.setIconImageUrl(response.getUser().getImage512());
+        if (StringUtils.isEmpty(model.getIconImageUrl())) {
+            model.setIconImageUrl(response.getUser().getImage192());
+        }
+        if (StringUtils.isEmpty(model.getIconImageUrl())) {
+            model.setIconImageUrl(response.getUser().getImage72());
+        }
+        if (StringUtils.isEmpty(model.getIconImageUrl())) {
+            model.setIconImageUrl(response.getUser().getImage48());
+        }
 
         return model;
     }
@@ -71,7 +82,18 @@ public final class SlackMapper {
 
         // Get users data form
         Profile profile = user.getUser().getProfile();
+
+        // Get Image (Needs image)
         model.setIconImageUrl(profile.getImage512());
+        if (StringUtils.isEmpty(model.getIconImageUrl())) {
+            model.setIconImageUrl(profile.getImage192());
+        }
+        if (StringUtils.isEmpty(model.getIconImageUrl())) {
+            model.setIconImageUrl(profile.getImage72());
+        }
+        if (StringUtils.isEmpty(model.getIconImageUrl())) {
+            model.setIconImageUrl(profile.getImage48());
+        }
 
         model.setEmail(new AttributedString(profile.getEmail()));
         model.setPhone(new AttributedString(profile.getPhone()));

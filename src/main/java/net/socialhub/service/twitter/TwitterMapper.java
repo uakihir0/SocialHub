@@ -124,7 +124,7 @@ public class TwitterMapper {
                 model.setSharedComment(comment(status.getQuotedStatus(), service));
             }
 
-            AttributedString text = new AttributedString(status.getText());
+            AttributedString text = new AttributedString(displayText(status));
             model.setText(text);
 
             // URL の DisplayURL ExpandedURL を設定
@@ -330,4 +330,15 @@ public class TwitterMapper {
                 .replace(TwitterIconSize.Normal.getSuffix(), DEFAULT_ICON_SIZE.getSuffix());
     }
 
+    /**
+     * Get rid of media url from status text.
+     * Media の URL をテキストから除外
+     */
+    private static String displayText(Status status) {
+        String text = status.getText();
+        for (MediaEntity media : status.getMediaEntities()) {
+            text = text.replace(media.getURL(), "");
+        }
+        return text.trim();
+    }
 }

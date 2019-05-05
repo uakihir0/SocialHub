@@ -2,8 +2,6 @@
 
 SocialHub is a multi social network service's API library written in **Java**, and can be complied to **Objective-C** by [J2ObjC]. and we can also use it with **Kotlin** and **Swift** too. 
 
-*It's WIP (work in progress) project.*
-
 ## List of SNS
 
 ### Available 
@@ -20,7 +18,6 @@ SocialHub is a multi social network service's API library written in **Java**, a
 * [**Tumblr**](https://www.tumblr.com/)
 * [**Snapchat**](https://www.snapchat.com/)
 * [**Discord**](https://discordapp.com/)
-  * [Discord API](https://discordapp.com) does not provide the way to write messege api as user to channel.
 * [**Instagram**](https://www.instagram.com/)
   * [Instagram API](https://www.instagram.com/developer/) is deplicated, and [new Graph API](https://developers.facebook.com/products/instagram/) is buissiness use.
 

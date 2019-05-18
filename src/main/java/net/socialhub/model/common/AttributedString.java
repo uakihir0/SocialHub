@@ -1,6 +1,7 @@
 package net.socialhub.model.common;
 
 import net.socialhub.define.AttributeType;
+import net.socialhub.utils.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -146,7 +147,8 @@ public class AttributedString {
             }
         }
 
-        displayText = tmp;
+        // 最後の空白は除去
+        displayText = StringUtil.trimLast(tmp);
         displayAttribute = elements;
         return displayAttribute;
     }
@@ -208,11 +210,18 @@ public class AttributedString {
         return text;
     }
 
-    public void setText(String text) {
+    /**
+     * Call when user changed attributed element
+     * AttributedElement を書き換えた場合に使用
+     */
+    public void markedElementChanged() {
         this.displayAttribute = null;
         this.attribute = null;
-
         this.displayText = null;
+    }
+
+    public void setText(String text) {
+        markedElementChanged();
         this.text = text;
     }
 
@@ -221,10 +230,7 @@ public class AttributedString {
     }
 
     public void setKinds(List<AttributeType> kinds) {
-        this.displayAttribute = null;
-        this.attribute = null;
-
-        this.displayText = null;
+        this.markedElementChanged();
         this.kinds = kinds;
     }
     //endregion

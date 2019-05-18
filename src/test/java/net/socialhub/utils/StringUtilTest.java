@@ -72,6 +72,15 @@ public class StringUtilTest {
                 "http://www.example.com/path?123456"));
     }
 
+    @Test
+    public void testTrimLast(){
+        System.out.print(StringUtil.trimLast("A "));
+        System.out.println("B");
+
+        System.out.print(StringUtil.trimLast("A \n"));
+        System.out.println("B");
+    }
+
     private void printAttributedString(AttributedString string) {
 
         System.out.println("====================================");

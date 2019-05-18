@@ -14,6 +14,13 @@ public final class StringUtil {
     }
 
     /**
+     * 文字の最後の空白を除去
+     */
+    public static String trimLast(String str) {
+        return str.replaceAll("\\s+$", "");
+    }
+
+    /**
      * 表示向け URL 文字列の作成
      */
     public static String getDisplayUrl(String str) {

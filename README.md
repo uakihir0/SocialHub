@@ -18,6 +18,7 @@ SocialHub is a multi social network service's API library written in **Java**, a
 * [**Tumblr**](https://www.tumblr.com/)
 * [**Snapchat**](https://www.snapchat.com/)
 * [**Discord**](https://discordapp.com/)
+  * [Discord API](https://discordapp.com) does not provide the way to write messege api as user to channel.
 * [**Instagram**](https://www.instagram.com/)
   * [Instagram API](https://www.instagram.com/developer/) is deplicated, and [new Graph API](https://developers.facebook.com/products/instagram/) is buissiness use.
 
@@ -83,7 +84,7 @@ To compile SocialHub to Objective=C framework, do following instructions. **It's
 
 1. Download latest J2ObjC builds and unzip
 
-    See: https://github.com/google/j2objc/releases
+    See: <https://github.com/google/j2objc/releases>
 
 2. Set J2ObjC path in ```local.properties``` file
 

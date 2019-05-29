@@ -3,7 +3,6 @@ package net.socialhub.model.service.paging;
 import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Paging;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -13,9 +12,9 @@ import java.util.List;
  */
 public class DatePaging extends Paging {
 
-    private Date latest;
+    private String latest;
 
-    private Date oldest;
+    private String oldest;
 
     private Boolean inclusive;
 
@@ -23,32 +22,59 @@ public class DatePaging extends Paging {
      * {@inheritDoc}
      */
     @Override
-    public <T extends Identify> Paging newPage(List<T> entities) {
+    public <K extends Identify> Paging newPage(List<K> entities) {
+        DatePaging newPage = new DatePaging();
+        newPage.setCount(getCount());
 
-        if (latest != null && inclusive != null) {
-            DatePaging newPage = new DatePaging();
-            newPage.setInclusive(!inclusive);
-            newPage.setOldest(latest);
-            newPage.setCount(getCount());
+        if (entities != null && !entities.isEmpty()) {
+            String first = (String) entities.get(0).getId();
+
+            newPage.setInclusive(false);
+            newPage.setOldest(first);
             return newPage;
+
+        } else {
+
+            // デフォルト動作
+            if (latest != null && inclusive != null) {
+                newPage.setInclusive(!inclusive);
+                newPage.setOldest(latest);
+                return newPage;
+            }
+
+            // 上記以外は再度リクエスト
+            return this.copy();
         }
-        return null;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public <T extends Identify> Paging pastPage(List<T> entities) {
+    public <K extends Identify> Paging pastPage(List<K> entities) {
+        DatePaging newPage = new DatePaging();
+        newPage.setCount(getCount());
 
-        if (oldest != null && inclusive != null) {
-            DatePaging newPage = new DatePaging();
-            newPage.setInclusive(!inclusive);
-            newPage.setLatest(oldest);
-            newPage.setCount(getCount());
+        if (entities != null && !entities.isEmpty()) {
+            int index = (entities.size() - 1);
+            String last = (String) entities.get(index).getId();
+
+            newPage.setInclusive(false);
+            newPage.setLatest(last);
             return newPage;
+
+        } else {
+
+            // デフォルト動作
+            if (oldest != null && inclusive != null) {
+                newPage.setInclusive(!inclusive);
+                newPage.setLatest(oldest);
+                return newPage;
+            }
+
+            // 上記以外は再度リクエスト
+            return this.copy();
         }
-        return null;
     }
 
     /**
@@ -65,19 +91,19 @@ public class DatePaging extends Paging {
     }
 
     //region // Getter&Setter
-    public Date getLatest() {
+    public String getLatest() {
         return latest;
     }
 
-    public void setLatest(Date latest) {
+    public void setLatest(String latest) {
         this.latest = latest;
     }
 
-    public Date getOldest() {
+    public String getOldest() {
         return oldest;
     }
 
-    public void setOldest(Date oldest) {
+    public void setOldest(String oldest) {
         this.oldest = oldest;
     }
 

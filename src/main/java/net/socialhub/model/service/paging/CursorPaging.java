@@ -26,14 +26,15 @@ public class CursorPaging extends Paging {
      */
     @Override
     public <T extends Identify> Paging newPage(List<T> entities) {
+        CursorPaging newPage = new CursorPaging();
 
         if (prevCursor != null) {
-            CursorPaging newPage = new CursorPaging();
             newPage.setCurrentCursor(prevCursor);
             newPage.setCount(getCount());
             return newPage;
         }
-        return null;
+
+        return newPage;
     }
 
     /**
@@ -41,14 +42,15 @@ public class CursorPaging extends Paging {
      */
     @Override
     public <T extends Identify> Paging pastPage(List<T> entities) {
+        CursorPaging pastPage = new CursorPaging();
 
         if (nextCursor != null) {
-            CursorPaging pastPage = new CursorPaging();
             pastPage.setCurrentCursor(nextCursor);
             pastPage.setCount(getCount());
             return pastPage;
         }
-        return null;
+
+        return pastPage;
     }
 
     //region // Getter&Setter

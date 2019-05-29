@@ -204,10 +204,10 @@ public class SlackAction extends AccountActionImpl {
                     if (paging instanceof DatePaging) {
                         DatePaging date = (DatePaging) paging;
                         if (date.getLatest() != null) {
-                            request.latest(timeStampString(date.getLatest()));
+                            request.latest(date.getLatest());
                         }
                         if (date.getOldest() != null) {
-                            request.oldest(timeStampString(date.getOldest()));
+                            request.oldest(date.getOldest());
                         }
                         if (date.getInclusive() != null) {
                             request.inclusive(date.getInclusive());

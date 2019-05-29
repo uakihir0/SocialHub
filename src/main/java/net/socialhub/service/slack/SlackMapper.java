@@ -307,7 +307,7 @@ public final class SlackMapper {
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(Collectors.toList()));
 
-        model.setPaging(MapperUtil.mappingDatePaging(model, paging));
+        model.setPaging(MapperUtil.mappingDatePaging(paging));
         return model;
     }
 

@@ -28,6 +28,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static net.socialhub.define.ServiceType.Twitter;
+
 public class TwitterMapper {
 
     private static final String HOST = "https://twitter.com/";
@@ -265,7 +267,7 @@ public class TwitterMapper {
             return model;
 
         } else {
-            BorderPaging model = new BorderPaging();
+            BorderPaging model = BorderPaging.twitter();
             model.setMaxId(paging.getMaxId());
             model.setSinceId(paging.getSinceId());
             model.setCount(((long) paging.getCount()));
@@ -314,7 +316,7 @@ public class TwitterMapper {
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(Collectors.toList()));
 
-        model.setPaging(MapperUtil.mappingBorderPaging(model, paging));
+        model.setPaging(MapperUtil.mappingBorderPaging(paging, Twitter));
         return model;
     }
 

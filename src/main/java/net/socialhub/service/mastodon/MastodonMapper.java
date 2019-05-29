@@ -3,6 +3,7 @@ package net.socialhub.service.mastodon;
 import mastodon4j.entity.*;
 import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.MediaType;
+import net.socialhub.define.ServiceType;
 import net.socialhub.define.service.mastodon.MastodonMediaType;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
@@ -21,6 +22,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static net.socialhub.define.ServiceType.Mastodon;
 
 public class MastodonMapper {
 
@@ -196,7 +199,6 @@ public class MastodonMapper {
         return candidates;
     }
 
-
     /**
      * タイムラインマッピング
      */
@@ -210,7 +212,7 @@ public class MastodonMapper {
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(Collectors.toList()));
 
-        model.setPaging(MapperUtil.mappingBorderPaging(model, paging));
+        model.setPaging(MapperUtil.mappingBorderPaging(paging, Mastodon));
         return model;
     }
 }

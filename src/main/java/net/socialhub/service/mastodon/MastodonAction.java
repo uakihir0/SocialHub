@@ -158,16 +158,23 @@ public class MastodonAction extends AccountActionImpl {
             Long count = null;
             Long maxId = null;
             Long sinceId = null;
+            Long minId = null;
+
             if (paging != null) {
                 count = paging.getCount();
                 if (paging instanceof BorderPaging) {
                     BorderPaging border = (BorderPaging) paging;
+
+                    if (border.getHintNewer() == Boolean.TRUE) {
+                        minId = border.getSinceId();
+                    } else {
+                        sinceId = border.getSinceId();
+                    }
                     maxId = border.getMaxId();
-                    sinceId = border.getSinceId();
                 }
             }
 
-            Response<Status[]> status = mastodon.getHomeTimeline(maxId, sinceId, count);
+            Response<Status[]> status = mastodon.getHomeTimeline(maxId, sinceId, minId, count);
             service.getRateLimit().addInfo(HomeTimeLine, status);
 
             return MastodonMapper.timeLine(status.get(), service, paging);

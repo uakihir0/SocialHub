@@ -14,6 +14,17 @@ public final class StringUtil {
     }
 
     /**
+     * URL デコード処理
+     */
+    public static String decodeUrl(String str) {
+        return str
+                .replaceAll("&gt;", ">")
+                .replaceAll("&lt;", "<")
+                .replaceAll("&amp;", "&")
+                .replaceAll("&quot;", "\"");
+    }
+
+    /**
      * 文字の最後の空白を除去
      */
     public static String trimLast(String str) {

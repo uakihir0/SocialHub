@@ -20,6 +20,9 @@ public class BorderPaging extends Paging {
     private Long sinceId;
     private Boolean sinceInclude = false;
 
+    /** Hint to next paging */
+    private Boolean hintNewer = false;
+
     /**
      * ID のスキップ単位
      * Mastodon のタイムラインに於いて MaxID を指定した場合
@@ -65,6 +68,7 @@ public class BorderPaging extends Paging {
         newPage.setMaxInclude(getMaxInclude());
         newPage.setIdUnit(getIdUnit());
         newPage.setCount(getCount());
+        newPage.setHintNewer(true);
 
         if (entities != null && !entities.isEmpty()) {
 
@@ -154,6 +158,7 @@ public class BorderPaging extends Paging {
         pg.setSinceInclude(getSinceInclude());
         pg.setIdUnit(getIdUnit());
         pg.setHasMore(getHasMore());
+        pg.setHintNewer(getHintNewer());
         return pg;
     }
 
@@ -196,6 +201,14 @@ public class BorderPaging extends Paging {
 
     public void setIdUnit(Long idUnit) {
         this.idUnit = idUnit;
+    }
+
+    public Boolean getHintNewer() {
+        return hintNewer;
+    }
+
+    public void setHintNewer(Boolean hintNewer) {
+        this.hintNewer = hintNewer;
     }
     //endregion
 }

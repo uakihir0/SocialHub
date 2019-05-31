@@ -7,6 +7,11 @@ import org.junit.Test;
 public class StringUtilTest {
 
     @Test
+    public void testDecodeUrlEncode(){
+        System.out.println(StringUtil.decodeUrl("&gt;"));
+    }
+
+    @Test
     public void testAttributes() {
 
         AttributedString string = new AttributedString( //

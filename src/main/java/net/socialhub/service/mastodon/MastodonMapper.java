@@ -3,7 +3,6 @@ package net.socialhub.service.mastodon;
 import mastodon4j.entity.*;
 import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.MediaType;
-import net.socialhub.define.ServiceType;
 import net.socialhub.define.service.mastodon.MastodonMediaType;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
@@ -110,7 +109,7 @@ public class MastodonMapper {
 
             } else {
                 model.setSpoilerText(new AttributedString(status.getSpoilerText()));
-                String text = StringUtil.removeXmlTags(status.getContent());
+                String text = removeHtmlElement(status.getContent());
                 model.setText(new AttributedString(text));
 
                 model.setMedias(medias(status.getMediaAttachments()));
@@ -214,5 +213,9 @@ public class MastodonMapper {
 
         model.setPaging(MapperUtil.mappingBorderPaging(paging, Mastodon));
         return model;
+    }
+
+    private static String removeHtmlElement(String str) {
+        return StringUtil.decodeUrl(StringUtil.removeXmlTags(str));
     }
 }

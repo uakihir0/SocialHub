@@ -280,7 +280,7 @@ public class TwitterMapper {
 
         twitter4j.Paging model = new twitter4j.Paging();
 
-        if (paging.getCount() != null) {
+        if ((paging.getCount() != null) && (paging.getCount() != 0)) {
             model.setCount(paging.getCount().intValue());
         }
 

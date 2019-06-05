@@ -20,6 +20,8 @@ public class TestProperty {
 
         public static final String AccessToken = "";
         public static final String AccessSecret = "";
+
+        public static final String RedirectUrl = "";
     }
 
     public static class FacebookProperty {

@@ -39,6 +39,17 @@ public class TestProperty {
         public static final String AccessToken = "";
     }
 
+    public static class TumblrProperty {
+
+        public static final String ConsumerKey = "";
+        public static final String ConsumerSecret = "";
+
+        public static final String AccessToken = "";
+        public static final String AccessSecret = "";
+
+        public static final String RedirectUrl = "";
+    }
+
     public static class SlackProperty {
 
         public static final String RedirectUrl = "";

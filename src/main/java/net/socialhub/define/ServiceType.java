@@ -10,6 +10,7 @@ public enum ServiceType {
     Mastodon,
     Facebook,
     Slack,
+    Tumblr,
     Discord,
     Instagram,
     GooglePlus,

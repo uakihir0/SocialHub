@@ -1,11 +1,10 @@
 package net.socialhub;
 
-import net.socialhub.SocialHub;
-import net.socialhub.TestProperty;
 import net.socialhub.model.Account;
 import net.socialhub.service.facebook.FacebookAuth;
 import net.socialhub.service.mastodon.MastodonAuth;
 import net.socialhub.service.slack.SlackAuth;
+import net.socialhub.service.tumblr.TumblrAuth;
 import net.socialhub.service.twitter.TwitterAuth;
 
 public class SocialAuthUtil {
@@ -38,6 +37,17 @@ public class SocialAuthUtil {
 
         return auth.getAccountWithAccessToken( //
                 TestProperty.MastodonProperty.AccessToken);
+    }
+
+    public static Account getTumblrAccount() {
+
+        TumblrAuth auth = SocialHub.getTumblrAuth(
+                TestProperty.TumblrProperty.ConsumerKey, //
+                TestProperty.TumblrProperty.ConsumerSecret);
+
+        return auth.getAccountWithAccessToken( //
+                TestProperty.TumblrProperty.AccessToken, //
+                TestProperty.TumblrProperty.AccessSecret);
     }
 
     public static Account getSlackAccount() {

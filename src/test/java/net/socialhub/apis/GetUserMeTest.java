@@ -43,6 +43,15 @@ public class GetUserMeTest extends AbstractApiTest {
     }
 
     @Test
+    public void testGetUserMeTumblr() {
+        // System.setProperty("javax.net.debug","all");
+
+        Account account = SocialAuthUtil.getTumblrAccount();
+        User user = account.action().getUserMe();
+        System.out.println(user.getName());
+    }
+
+    @Test
     public void testGetUserSlack() {
 
         Account account = SocialAuthUtil.getSlackAccount();

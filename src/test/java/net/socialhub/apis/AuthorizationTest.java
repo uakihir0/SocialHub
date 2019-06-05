@@ -8,6 +8,8 @@ import net.socialhub.define.service.slack.SlackScope;
 import net.socialhub.model.Account;
 import net.socialhub.service.mastodon.MastodonAuth;
 import net.socialhub.service.slack.SlackAuth;
+import net.socialhub.service.tumblr.TumblrAuth;
+import net.socialhub.service.twitter.TwitterAuth;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -16,6 +18,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class AuthorizationTest extends AbstractApiTest {
+
+    @Test
+    public void testTwitterAuthorizationUrl() {
+
+        TwitterAuth auth = SocialHub.getTwitterAuth(
+                TestProperty.TwitterProperty.ConsumerKey,
+                TestProperty.TwitterProperty.ConsumerSecret);
+
+        System.out.println(auth.getAuthorizationURL(
+                TestProperty.TwitterProperty.RedirectUrl));
+    }
 
     @Test
     public void testMastodonAppRegister() {
@@ -49,8 +62,19 @@ public class AuthorizationTest extends AbstractApiTest {
     }
 
     @Test
+    public void testTumblrAuthorizationUrl() {
+
+        TumblrAuth auth = SocialHub.getTumblrAuth(
+                TestProperty.TumblrProperty.ConsumerKey,
+                TestProperty.TumblrProperty.ConsumerSecret);
+
+        System.out.println(auth.getAuthorizationURL(
+                TestProperty.TumblrProperty.RedirectUrl));
+    }
+
+    @Test
     @Ignore
-    public void testAuthorizeWithCode() {
+    public void testSlackAuthorizeWithCode() {
 
         SlackAuth auth = SocialHub.getSlackAuth( //
                 TestProperty.SlackProperty.ClientId, //

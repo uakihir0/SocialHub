@@ -5,6 +5,7 @@ import net.socialhub.j2objc.J2ObjcExtensions;
 import net.socialhub.service.facebook.FacebookAuth;
 import net.socialhub.service.mastodon.MastodonAuth;
 import net.socialhub.service.slack.SlackAuth;
+import net.socialhub.service.tumblr.TumblrAuth;
 import net.socialhub.service.twitter.TwitterAuth;
 
 public class SocialHub {
@@ -37,6 +38,13 @@ public class SocialHub {
         return new SlackAuth(clientId, clientSecret);
     }
 
+
+    /**
+     * Tumblr の認証オブジェクトを取得
+     */
+    public static TumblrAuth getTumblrAuth(String consumerKey, String consumerSecret) {
+        return new TumblrAuth(consumerKey, consumerSecret);
+    }
 
     public static void init() {
         J2ObjcExtension.initialize( //

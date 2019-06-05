@@ -10,12 +10,12 @@ SocialHub is a multi social network service's API library written in **Java**, a
 * [**Facebook**](https://www.facebook.com/) ( use [library](https://github.com/uakihir0/facebook4j) based on [facebook4j](https://github.com/roundrop/facebook4j) )
 * [**Slack**](https://slack.com/) ( use [library](https://github.com/uakihir0/jslack) based on [jslack](https://github.com/seratch/jslack) )
 * [**Mastodon**](https://github.com/tootsuite/mastodon) ( use [library](https://github.com/uakihir0/mastodon4j) based on [mastodon4j](https://github.com/hecateball/mastodon4j) )
+* [**Tumblr**](https://www.tumblr.com/) ( use [library](https://github.com/uakihir0/jumblr) based on [jumblr](https://github.com/tumblr/jumblr) )
 
 ### Future Works
 
 * [**LinkedIn**](https://www.linkedin.com/)
 * [**Pinterest**](https://www.pinterest.com/)
-* [**Tumblr**](https://www.tumblr.com/)
 * [**Snapchat**](https://www.snapchat.com/)
 * [**Discord**](https://discordapp.com/)
   * [Discord API](https://discordapp.com) does not provide the way to write messege api as user to channel.

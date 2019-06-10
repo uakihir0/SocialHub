@@ -3,7 +3,12 @@ package net.socialhub.service.twitter;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
@@ -14,7 +19,22 @@ import twitter4j.TwitterException;
 
 import java.util.List;
 
-import static net.socialhub.define.ActionType.*;
+import static net.socialhub.define.ActionType.BlockUser;
+import static net.socialhub.define.ActionType.DeleteComment;
+import static net.socialhub.define.ActionType.FollowUser;
+import static net.socialhub.define.ActionType.GetUser;
+import static net.socialhub.define.ActionType.GetUserMe;
+import static net.socialhub.define.ActionType.HomeTimeLine;
+import static net.socialhub.define.ActionType.LikeComment;
+import static net.socialhub.define.ActionType.MentionTimeLine;
+import static net.socialhub.define.ActionType.MuteUser;
+import static net.socialhub.define.ActionType.ShareComment;
+import static net.socialhub.define.ActionType.UnblockUser;
+import static net.socialhub.define.ActionType.UnfollowUser;
+import static net.socialhub.define.ActionType.UnlikeComment;
+import static net.socialhub.define.ActionType.UnmuteUser;
+import static net.socialhub.define.ActionType.UserCommentTimeLine;
+import static net.socialhub.define.ActionType.UserLikeTimeLine;
 
 /**
  * Twitter Actions
@@ -141,7 +161,7 @@ public class TwitterAction extends AccountActionImpl {
     }
 
     // ============================================================== //
-    // Comment
+    // TimeLine
     // ============================================================== //
 
     /**
@@ -159,6 +179,94 @@ public class TwitterAction extends AccountActionImpl {
             return TwitterMapper.timeLine(statues, service, paging);
         });
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getMentionTimeLine(Paging paging) {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Service service = getAccount().getService();
+            ResponseList<Status> statues = (paging == null) ? twitter.getMentionsTimeline() //
+                    : twitter.getMentionsTimeline(TwitterMapper.fromPaging(paging));
+
+            service.getRateLimit().addInfo(MentionTimeLine, statues);
+            return TwitterMapper.timeLine(statues, service, paging);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getUserCommentTimeLine(Identify id, Paging paging) {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            ResponseList<Status> statues = null;
+            twitter4j.Paging page = (paging == null) ? //
+                    null : TwitterMapper.fromPaging(paging);
+
+            // ID
+            if (id.getId(Long.class).isPresent()) {
+                statues = (paging == null) ? //
+                        twitter.getUserTimeline((Long) id.getId()) //
+                        : twitter.getUserTimeline((Long) id.getId(), page);
+            }
+            // Screen Name
+            if (id.getId(String.class).isPresent()) {
+                statues = (paging == null) ? //
+                        twitter.getUserTimeline((String) id.getId()) //
+                        : twitter.getUserTimeline((String) id.getId(), page);
+            }
+
+            if (statues != null) {
+                service.getRateLimit().addInfo(UserCommentTimeLine, statues);
+                return TwitterMapper.timeLine(statues, service, paging);
+            }
+            throw new IllegalStateException();
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getUserLikeTimeLine(Identify id, Paging paging) {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            ResponseList<Status> statues = null;
+            twitter4j.Paging page = (paging == null) ? //
+                    null : TwitterMapper.fromPaging(paging);
+
+            // ID
+            if (id.getId(Long.class).isPresent()) {
+                statues = (paging == null) ? //
+                        twitter.getFavorites((Long) id.getId()) //
+                        : twitter.getFavorites((Long) id.getId(), page);
+            }
+            // Screen Name
+            if (id.getId(String.class).isPresent()) {
+                statues = (paging == null) ? //
+                        twitter.getFavorites((String) id.getId()) //
+                        : twitter.getFavorites((String) id.getId(), page);
+            }
+
+            if (statues != null) {
+                service.getRateLimit().addInfo(UserLikeTimeLine, statues);
+                return TwitterMapper.timeLine(statues, service, paging);
+            }
+            throw new IllegalStateException();
+        });
+    }
+
+    // ============================================================== //
+    // Comment
+    // ============================================================== //
 
     /**
      * {@inheritDoc}

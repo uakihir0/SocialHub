@@ -4,6 +4,7 @@ import net.socialhub.model.Account;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
+import net.socialhub.service.action.RequestAction;
 import net.socialhub.service.action.group.CommentGroupAction;
 import net.socialhub.service.action.group.CommentGroupActionImpl;
 
@@ -23,11 +24,15 @@ public class CommentGroupImpl implements CommentGroup {
     /** Entity of Accounts Comment */
     private Map<Account, Pageable<Comment>> entities;
 
+    /** Entity of Accounts Actions */
+    private Map<Account, RequestAction> actions;
+
     /** Max Date (include) **/
     private Date maxDate;
 
     /** Since Date (not include) */
     private Date sinceDate;
+
 
     /**
      * {@inheritDoc}
@@ -153,6 +158,15 @@ public class CommentGroupImpl implements CommentGroup {
 
     public void setEntities(Map<Account, Pageable<Comment>> entities) {
         this.entities = entities;
+    }
+
+    @Override
+    public Map<Account, RequestAction> getActions() {
+        return actions;
+    }
+
+    public void setActions(Map<Account, RequestAction> actions) {
+        this.actions = actions;
     }
 
     @Override

@@ -1,7 +1,12 @@
 package net.socialhub.service.action;
 
 import net.socialhub.model.error.NotImplimentedException;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.support.ReactionCandidate;
 
 import java.util.List;
@@ -82,17 +87,46 @@ public interface AccountAction {
     }
 
     // ============================================================== //
-    // Comment API
-    // コメント関連 API
+    // TimeLine API
+    // タイムライン関連 API
     // ============================================================== //
 
     /**
      * Get Home TimeLine
-     * タイムラインを取得
+     * ホームタイムラインを取得
      */
     default Pageable<Comment> getHomeTimeLine(Paging paging) {
         throw new NotImplimentedException();
     }
+
+    /**
+     * Get Mention TimeLine
+     * メンションタイムラインを取得
+     */
+    default Pageable<Comment> getMentionTimeLine(Paging paging) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Get User Comment TimeLine
+     * ユーザーの投稿したコメントのタイムラインを取得
+     */
+    default Pageable<Comment> getUserCommentTimeLine(Identify id, Paging paging) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Get User Like TimeLine
+     * ユーザーのイイネしたコメントのタイムラインを取得
+     */
+    default Pageable<Comment> getUserLikeTimeLine(Identify id, Paging paging) {
+        throw new NotImplimentedException();
+    }
+
+    // ============================================================== //
+    // Comment API
+    // コメント関連 API
+    // ============================================================== //
 
     /**
      * Like Comment
@@ -143,7 +177,6 @@ public interface AccountAction {
     default void unreaction(Identify id, String reaction) {
         throw new NotImplimentedException();
     }
-
 
     /**
      * Get Reaction Candidates

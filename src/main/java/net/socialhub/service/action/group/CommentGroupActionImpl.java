@@ -6,11 +6,13 @@ import net.socialhub.model.group.CommentGroupImpl;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
+import net.socialhub.service.action.RequestAction;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Actions for Comment Group
  * コメントグループに対しての操作
  */
 public class CommentGroupActionImpl implements CommentGroupAction {
@@ -31,13 +33,15 @@ public class CommentGroupActionImpl implements CommentGroupAction {
         commentGroup.getEntities().forEach((account, pageable) -> {
 
             Paging paging = pageable.newPage();
-            Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
+            RequestAction action = commentGroup.getActions().get(account);
+            Pageable<Comment> comments = action.getTimeLine(paging);
             map.put(account, comments);
         });
 
         model.setEntities(map);
         model.setMaxDateFromEntities();
         model.margeWhenNewPageRequest(commentGroup);
+        model.setActions(new HashMap<>(commentGroup.getActions()));
         return model;
     }
 
@@ -51,13 +55,15 @@ public class CommentGroupActionImpl implements CommentGroupAction {
         commentGroup.getEntities().forEach((account, pageable) -> {
 
             Paging paging = pageable.pastPage();
-            Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
+            RequestAction action = commentGroup.getActions().get(account);
+            Pageable<Comment> comments = action.getTimeLine(paging);
             map.put(account, comments);
         });
 
         model.setEntities(map);
         model.setSinceDateFromEntities();
         model.margeWhenPastPageRequest(commentGroup);
+        model.setActions(new HashMap<>(commentGroup.getActions()));
         return model;
     }
 

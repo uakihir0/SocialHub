@@ -8,6 +8,10 @@ public enum ActionType {
 
     // TimeLine
     HomeTimeLine,
+    MentionTimeLine,
+    UserCommentTimeLine,
+    UserLikeTimeLine,
+
 
     // Comment
     GetComment,

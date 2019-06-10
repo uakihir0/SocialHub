@@ -3,6 +3,7 @@ package net.socialhub.model.group;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Pageable;
+import net.socialhub.service.action.RequestAction;
 import net.socialhub.service.action.group.CommentGroupAction;
 
 import java.util.Date;
@@ -15,6 +16,12 @@ public interface CommentGroup {
      * アカウントに紐づくコメントを返す
      */
     Map<Account, Pageable<Comment>> getEntities();
+
+    /**
+     * Return Actions related to Accounts
+     * アカウントに紐づくクエリアクションを返す
+     */
+    Map<Account, RequestAction> getActions();
 
     /**
      * Return Order Decided Comments

@@ -31,7 +31,7 @@ public class RequestGroupActionImpl implements RequestGroupAction {
             Paging paging = new Paging();
             paging.setCount(200L);
 
-            Pageable<Comment> comments = action.getTimeLine(paging);
+            Pageable<Comment> comments = action.getComments(paging);
             map.put(account, comments);
         });
 

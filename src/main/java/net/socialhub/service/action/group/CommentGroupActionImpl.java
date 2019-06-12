@@ -34,7 +34,7 @@ public class CommentGroupActionImpl implements CommentGroupAction {
 
             Paging paging = pageable.newPage();
             RequestAction action = commentGroup.getActions().get(account);
-            Pageable<Comment> comments = action.getTimeLine(paging);
+            Pageable<Comment> comments = action.getComments(paging);
             map.put(account, comments);
         });
 
@@ -56,7 +56,7 @@ public class CommentGroupActionImpl implements CommentGroupAction {
 
             Paging paging = pageable.pastPage();
             RequestAction action = commentGroup.getActions().get(account);
-            Pageable<Comment> comments = action.getTimeLine(paging);
+            Pageable<Comment> comments = action.getComments(paging);
             map.put(account, comments);
         });
 

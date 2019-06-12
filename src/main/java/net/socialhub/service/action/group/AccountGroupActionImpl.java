@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
+
 /**
  * グループアクション
  */
@@ -53,7 +55,7 @@ public class AccountGroupActionImpl implements AccountGroupAction {
 
         model.setActions(accounts.stream() //
                 .collect(Collectors.toMap(Function.identity(), //
-                        RequestAction::homeTimeLine)));
+                        (acc) -> RequestAction.of(acc.action(), HomeTimeLine))));
 
         model.setSinceDateFromEntities();
         model.setMaxDate(new Date());

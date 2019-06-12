@@ -1,6 +1,6 @@
 package net.socialhub.model.service;
 
-import net.socialhub.define.ActionType;
+import net.socialhub.define.action.ActionType;
 import net.socialhub.define.ServiceType;
 import org.apache.commons.lang3.time.DateUtils;
 import twitter4j.RateLimitStatus;

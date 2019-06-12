@@ -1,17 +1,6 @@
-package net.socialhub.define;
+package net.socialhub.define.action;
 
-/**
- * SNS アクション一覧
- * SNS Actions
- */
-public enum ActionType {
-
-    // TimeLine
-    HomeTimeLine,
-    MentionTimeLine,
-    UserCommentTimeLine,
-    UserLikeTimeLine,
-
+public enum OtherActionType implements ActionType {
 
     // Comment
     GetComment,

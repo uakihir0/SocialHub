@@ -8,7 +8,12 @@ import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
@@ -16,7 +21,19 @@ import net.socialhub.service.action.AccountActionImpl;
 
 import java.util.List;
 
-import static net.socialhub.define.ActionType.*;
+import static net.socialhub.define.action.OtherActionType.BlockUser;
+import static net.socialhub.define.action.OtherActionType.FollowUser;
+import static net.socialhub.define.action.OtherActionType.GetUser;
+import static net.socialhub.define.action.OtherActionType.GetUserMe;
+import static net.socialhub.define.action.OtherActionType.LikeComment;
+import static net.socialhub.define.action.OtherActionType.MuteUser;
+import static net.socialhub.define.action.OtherActionType.ShareComment;
+import static net.socialhub.define.action.OtherActionType.UnShareComment;
+import static net.socialhub.define.action.OtherActionType.UnblockUser;
+import static net.socialhub.define.action.OtherActionType.UnfollowUser;
+import static net.socialhub.define.action.OtherActionType.UnlikeComment;
+import static net.socialhub.define.action.OtherActionType.UnmuteUser;
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
 
 public class MastodonAction extends AccountActionImpl {
 

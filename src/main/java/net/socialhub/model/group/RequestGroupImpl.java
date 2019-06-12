@@ -1,5 +1,6 @@
 package net.socialhub.model.group;
 
+import net.socialhub.define.action.ActionType;
 import net.socialhub.model.Account;
 import net.socialhub.service.action.RequestAction;
 import net.socialhub.service.action.group.RequestGroupAction;
@@ -14,8 +15,8 @@ public class RequestGroupImpl implements RequestGroup {
     private Map<Account, RequestAction> actions = new HashMap<>();
 
     @Override
-    public void addAccount(Account account, RequestAction action) {
-        actions.put(account, action);
+    public void addAccount(Account account, ActionType type, Object... args) {
+        actions.put(account, RequestAction.of(account.action(), type, args));
     }
 
     @Override

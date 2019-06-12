@@ -7,6 +7,7 @@ import net.socialhub.model.group.RequestGroup;
 import net.socialhub.model.service.Comment;
 import org.junit.Test;
 
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
 
 public class RequestGroupTest extends AbstractApiTest {
 
@@ -14,9 +15,9 @@ public class RequestGroupTest extends AbstractApiTest {
     public void testHomeTimeline() {
 
         RequestGroup request = RequestGroup.of();
-        request.addHomeTimeLine(SocialAuthUtil.getSlackAccount());
-        request.addHomeTimeLine(SocialAuthUtil.getMastodonAccount());
-        request.addHomeTimeLine(SocialAuthUtil.getTwitterAccount());
+        request.addAccount(SocialAuthUtil.getSlackAccount(), HomeTimeLine);
+        request.addAccount(SocialAuthUtil.getMastodonAccount(), HomeTimeLine);
+        request.addAccount(SocialAuthUtil.getTwitterAccount(), HomeTimeLine);
 
         CommentGroup comments = request.action().getComments();
         CommentGroup pasts = comments.action().getPastComments();
@@ -38,6 +39,5 @@ public class RequestGroupTest extends AbstractApiTest {
         }
 
     }
-
 
 }

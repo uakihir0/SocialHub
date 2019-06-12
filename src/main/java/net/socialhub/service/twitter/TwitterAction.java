@@ -19,22 +19,22 @@ import twitter4j.TwitterException;
 
 import java.util.List;
 
-import static net.socialhub.define.ActionType.BlockUser;
-import static net.socialhub.define.ActionType.DeleteComment;
-import static net.socialhub.define.ActionType.FollowUser;
-import static net.socialhub.define.ActionType.GetUser;
-import static net.socialhub.define.ActionType.GetUserMe;
-import static net.socialhub.define.ActionType.HomeTimeLine;
-import static net.socialhub.define.ActionType.LikeComment;
-import static net.socialhub.define.ActionType.MentionTimeLine;
-import static net.socialhub.define.ActionType.MuteUser;
-import static net.socialhub.define.ActionType.ShareComment;
-import static net.socialhub.define.ActionType.UnblockUser;
-import static net.socialhub.define.ActionType.UnfollowUser;
-import static net.socialhub.define.ActionType.UnlikeComment;
-import static net.socialhub.define.ActionType.UnmuteUser;
-import static net.socialhub.define.ActionType.UserCommentTimeLine;
-import static net.socialhub.define.ActionType.UserLikeTimeLine;
+import static net.socialhub.define.action.OtherActionType.BlockUser;
+import static net.socialhub.define.action.OtherActionType.DeleteComment;
+import static net.socialhub.define.action.OtherActionType.FollowUser;
+import static net.socialhub.define.action.OtherActionType.GetUser;
+import static net.socialhub.define.action.OtherActionType.GetUserMe;
+import static net.socialhub.define.action.OtherActionType.LikeComment;
+import static net.socialhub.define.action.OtherActionType.MuteUser;
+import static net.socialhub.define.action.OtherActionType.ShareComment;
+import static net.socialhub.define.action.OtherActionType.UnblockUser;
+import static net.socialhub.define.action.OtherActionType.UnfollowUser;
+import static net.socialhub.define.action.OtherActionType.UnlikeComment;
+import static net.socialhub.define.action.OtherActionType.UnmuteUser;
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
 
 /**
  * Twitter Actions

@@ -62,19 +62,20 @@ public class MastodonMapper {
         AttributedString profile = new AttributedString(account.getUrl());
         model.setProfileUrl(profile);
 
-        if (source != null) {
-            model.setDescription(new AttributedString(source.getNote()));
+        String note = removeHtmlElement(account.getNote());
+        model.setDescription(new AttributedString(note));
 
-            if ((source.getFields() != null) &&  //
-                    (source.getFields().length > 0)) {
+        if ((account.getFields() != null) &&  //
+                (account.getFields().length > 0)) {
 
-                model.setFields(new ArrayList<>());
-                for (Field field : source.getFields()) {
-                    AttributedFiled f = new AttributedFiled();
-                    f.setValue(new AttributedString(field.getValue()));
-                    f.setName(field.getName());
-                    model.getFields().add(f);
-                }
+            model.setFields(new ArrayList<>());
+            for (Field field : account.getFields()) {
+                AttributedFiled f = new AttributedFiled();
+
+                String value = removeHtmlElement(field.getValue());
+                f.setValue(new AttributedString(value));
+                f.setName(field.getName());
+                model.getFields().add(f);
             }
         }
 
@@ -216,6 +217,10 @@ public class MastodonMapper {
     }
 
     private static String removeHtmlElement(String str) {
-        return StringUtil.decodeUrl(StringUtil.removeXmlTags(str));
+        String replaced = str //
+                .replaceAll("<br>", "\n") //
+                .replaceAll("<br />", "\n") //
+                .replaceAll("</p><p>", "\n\n");
+        return StringUtil.decodeUrl(StringUtil.removeXmlTags(replaced));
     }
 }

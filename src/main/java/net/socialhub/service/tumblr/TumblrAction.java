@@ -2,15 +2,24 @@ package net.socialhub.service.tumblr;
 
 import com.tumblr.jumblr.JumblrClient;
 import com.tumblr.jumblr.exceptions.JumblrException;
+import net.socialhub.define.service.tumblr.TumblrIconSize;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+import net.socialhub.utils.LimitMap;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TumblrAction extends AccountActionImpl {
 
     private ServiceAuth<JumblrClient> auth;
+
+    /** User Icon Cache Data */
+    private Map<String, String> iconCache = Collections.synchronizedMap(new LimitMap<>(400));
 
     // ============================================================== //
     // Account
@@ -25,7 +34,12 @@ public class TumblrAction extends AccountActionImpl {
             Service service = getAccount().getService();
             com.tumblr.jumblr.types.User user = auth.getAccessor().user();
 
-            return TumblrMapper.user(user, service);
+            // アイコンキャッシュから取得
+            Map<String, String> iconMap = new HashMap<>();
+            String host = TumblrMapper.getUserIdentify(user.getBlogs());
+            getAndSetCacheIconMap(host, iconMap);
+
+            return TumblrMapper.user(user, iconMap, service);
         });
     }
 
@@ -52,6 +66,23 @@ public class TumblrAction extends AccountActionImpl {
 
     private static void handleTumblrException(JumblrException e) {
         System.out.println(e.getMessage());
+    }
+
+    /**
+     * アイコンキャッシュ処理
+     */
+    private void getAndSetCacheIconMap(String host, Map<String, String> iconMap) {
+        String url = iconCache.get(host);
+
+        if (url != null) {
+            iconMap.put(host, url);
+
+        } else {
+            Integer size = TumblrIconSize.S512.getSize();
+            String avatar = auth.getAccessor().blogAvatar(host, size);
+            iconCache.put(host, avatar);
+            iconMap.put(host, avatar);
+        }
     }
 
     //region // Getter&Setter

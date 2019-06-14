@@ -10,7 +10,6 @@ import java.util.List;
 /**
  * Paging
  * ページング情報
- *
  * Specified Paging
  * {@link BorderPaging}
  * {@link CursorPaging}
@@ -21,6 +20,13 @@ public class Paging implements Serializable {
     private Long count;
 
     private Boolean hasMore;
+
+    public Paging() {
+    }
+
+    public Paging(Long count) {
+        this.count = count;
+    }
 
     /**
      * Get page for get newer entities

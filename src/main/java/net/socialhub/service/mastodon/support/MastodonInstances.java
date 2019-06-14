@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static net.socialhub.utils.OptionalUtil.ignore;
+import static net.socialhub.utils.HandlingUtil.ignore;
 
 /**
  * Wrapper Client for Mastodon Instances

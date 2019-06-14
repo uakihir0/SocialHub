@@ -7,9 +7,14 @@ import net.socialhub.model.group.RequestGroupImpl;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
+import net.socialhub.utils.HandlingUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public class RequestGroupActionImpl implements RequestGroupAction {
 
@@ -25,17 +30,17 @@ public class RequestGroupActionImpl implements RequestGroupAction {
     @Override
     public CommentGroup getComments() {
         CommentGroupImpl model = new CommentGroupImpl();
-        Map<Account, Pageable<Comment>> map = new HashMap<>();
-        requestGroup.getActions().forEach((account, action) -> {
+        ExecutorService pool = Executors.newCachedThreadPool();
 
-            Paging paging = new Paging();
-            paging.setCount(200L);
+        Map<Account, Future<Pageable<Comment>>> futures = requestGroup //
+                .getActions().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, //
+                        (entry) -> pool.submit(() -> entry.getValue().getComments(new Paging(200L)))));
 
-            Pageable<Comment> comments = action.getComments(paging);
-            map.put(account, comments);
-        });
+        Map<Account, Pageable<Comment>> entities = futures //
+                .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, //
+                        (entry) -> HandlingUtil.runtime(() -> entry.getValue().get())));
 
-        model.setEntities(map);
+        model.setEntities(entities);
         model.setSinceDateFromEntities();
         model.setActions(new HashMap<>(requestGroup.getActions()));
         return model;

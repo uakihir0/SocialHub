@@ -41,6 +41,18 @@ public class IndexPaging extends Paging {
         return pastPage;
     }
 
+
+    /**
+     * オブジェクトコピー
+     */
+    public IndexPaging copy() {
+        IndexPaging pg = new IndexPaging();
+        pg.setCount(getCount());
+        pg.setPage(getPage());
+        pg.setHasMore(getHasMore());
+        return pg;
+    }
+
     //region // Getter&Setter
     public Long getPage() {
         return page;

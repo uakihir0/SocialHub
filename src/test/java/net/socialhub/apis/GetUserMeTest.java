@@ -49,6 +49,8 @@ public class GetUserMeTest extends AbstractApiTest {
         Account account = SocialAuthUtil.getTumblrAccount();
         User user = account.action().getUserMe();
         System.out.println(user.getName());
+        System.out.println(user.getCoverImageUrl());
+
     }
 
     @Test

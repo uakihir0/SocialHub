@@ -4,13 +4,18 @@ import net.socialhub.model.Account;
 import net.socialhub.model.group.AccountGroup;
 import net.socialhub.model.group.CommentGroup;
 import net.socialhub.model.group.CommentGroupImpl;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.User;
 import net.socialhub.service.action.RequestAction;
+import net.socialhub.utils.HandlingUtil;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -43,19 +48,22 @@ public class AccountGroupActionImpl implements AccountGroupAction {
     @Override
     public CommentGroup getHomeTimeLine() {
         CommentGroupImpl model = new CommentGroupImpl();
-        List<Account> accounts = getAccountGroup().getAccounts();
+        ExecutorService pool = Executors.newCachedThreadPool();
 
-        // ページングは抑えめに実行
-        Paging paging = new Paging();
-        paging.setCount(200L);
+        Map<Account, Future<Pageable<Comment>>> futures = getAccountGroup() //
+                .getAccounts().stream().collect(Collectors.toMap(Function.identity(), //
+                        (acc) -> pool.submit(() -> acc.action().getHomeTimeLine(new Paging(200L)))));
 
-        model.setEntities(accounts.parallelStream() //
-                .collect(Collectors.toMap(Function.identity(), //
-                        (acc) -> acc.action().getHomeTimeLine(paging))));
+        Map<Account, Pageable<Comment>> entities = futures //
+                .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, //
+                        (entry) -> HandlingUtil.runtime(() -> entry.getValue().get())));
 
-        model.setActions(accounts.stream() //
-                .collect(Collectors.toMap(Function.identity(), //
-                        (acc) -> RequestAction.of(acc.action(), HomeTimeLine))));
+        Map<Account, RequestAction> actions = getAccountGroup() //
+                .getAccounts().stream().collect(Collectors.toMap(Function.identity(), //
+                        (acc) -> RequestAction.of(acc.action(), HomeTimeLine)));
+
+        model.setEntities(entities);
+        model.setActions(actions);
 
         model.setSinceDateFromEntities();
         model.setMaxDate(new Date());

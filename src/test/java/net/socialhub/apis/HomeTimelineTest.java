@@ -103,6 +103,36 @@ public class HomeTimelineTest extends AbstractApiTest {
         printTimeline("Past", pasts);
     }
 
+    @Test
+    public void testHomeTimelineTumblr_New() {
+
+        Paging paging = new Paging();
+        paging.setCount(10L);
+
+        Account account = SocialAuthUtil.getTumblrAccount();
+
+        Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
+        Pageable<Comment> news = account.action().getHomeTimeLine(comments.newPage());
+
+        printTimeline("New", news);
+        printTimeline("Now", comments);
+    }
+
+    @Test
+    public void testHomeTimelineTumblr_Past() {
+
+        Paging paging = new Paging();
+        paging.setCount(10L);
+
+        Account account = SocialAuthUtil.getTumblrAccount();
+
+        Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
+        Pageable<Comment> pasts = account.action().getHomeTimeLine(comments.pastPage());
+
+        printTimeline("Now", comments);
+        printTimeline("Past", pasts);
+    }
+
     private void printTimeline(String title, Pageable<Comment> timeline) {
 
         System.out.println("========================");

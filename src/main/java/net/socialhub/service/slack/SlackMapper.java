@@ -33,7 +33,7 @@ public final class SlackMapper {
 
     private static Logger logger = Logger.getLogger(SlackMapper.class);
 
-    /** 　J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
+    /** J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
     private final static List<Class<?>> ClassLoader = Arrays.asList( //
             com.github.seratch.jslack.api.model.Attachment.class, //
             com.github.seratch.jslack.api.model.Option.class, //

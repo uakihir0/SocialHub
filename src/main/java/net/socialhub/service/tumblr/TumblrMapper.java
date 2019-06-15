@@ -14,6 +14,10 @@ import java.util.stream.Collectors;
 
 public class TumblrMapper {
 
+    /** J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
+    private final static List<Class<?>> ClassLoader = Arrays.asList( //
+            com.tumblr.jumblr.types.Note.class);
+
     /**
      * ユーザーマッピング
      * (Primary のブログをユーザーと設定)

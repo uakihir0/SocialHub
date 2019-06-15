@@ -7,6 +7,7 @@ import net.socialhub.http.HttpClientImpl;
 import net.socialhub.http.HttpRequest;
 import net.socialhub.http.HttpResponse;
 import net.socialhub.logger.Logger;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.lang.reflect.Type;
@@ -25,6 +26,7 @@ public class EmojiGenerator {
     private final static String EMOJI_JSON = "https://raw.githubusercontent.com/iamcal/emoji-data/master/emoji.json";
 
     @Test
+    @Ignore
     public void makeEmojiList() {
         List<EmojiStructure> results = new ArrayList<>();
 
@@ -90,6 +92,7 @@ public class EmojiGenerator {
     }
 
     @Test
+    @Ignore
     public void makeEmojiCategoryList() {
 
         getEmojiList().stream() //

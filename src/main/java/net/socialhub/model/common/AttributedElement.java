@@ -25,11 +25,11 @@ public class AttributedElement {
     public AttributedElement copy() {
         AttributedElement model = new AttributedElement();
 
-        model.setType(type);
-        model.setText(text);
-        model.setDisplayText(displayText);
-        model.setExpandedText(expandedText);
-        model.setRange(range.copy());
+        model.setType(getType());
+        model.setText(getText());
+        model.setDisplayText(getDisplayText());
+        model.setExpandedText(getExpandedText());
+        model.setRange(getRange().copy());
         return model;
     }
 

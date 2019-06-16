@@ -7,6 +7,8 @@ import net.socialhub.define.service.twitter.TwitterMediaType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.MiniBlogComment;
 import net.socialhub.model.service.addition.twitter.TwitterMedia;
@@ -15,10 +17,7 @@ import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.utils.MapperUtil;
-import twitter4j.MediaEntity;
-import twitter4j.ResponseList;
-import twitter4j.Status;
-import twitter4j.URLEntity;
+import twitter4j.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -303,6 +302,29 @@ public class TwitterMapper {
         return model;
     }
 
+    public static twitter4j.Query queryFromPaging(
+            Paging paging) {
+
+        twitter4j.Query model = new twitter4j.Query();
+
+        if ((paging.getCount() != null) && (paging.getCount() != 0)) {
+            model.setCount(paging.getCount().intValue());
+        }
+
+        if (paging instanceof BorderPaging) {
+            BorderPaging border = (BorderPaging) paging;
+
+            if (border.getMaxId() != null) {
+                model.setMaxId(border.getMaxId());
+            }
+            if (border.getSinceId() != null) {
+                model.setSinceId(border.getSinceId());
+            }
+        }
+
+        return model;
+    }
+
     /**
      * タイムラインマッピング
      */
@@ -313,6 +335,23 @@ public class TwitterMapper {
 
         Pageable<Comment> model = new Pageable<>();
         model.setEntities(statuses.stream().map(e -> comment(e, service)) //
+                .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
+                .collect(Collectors.toList()));
+
+        model.setPaging(MapperUtil.mappingBorderPaging(paging, Twitter));
+        return model;
+    }
+
+    /**
+     * タイムラインマッピング
+     */
+    public static Pageable<Comment> timeLine(
+            QueryResult results, //
+            Service service, //
+            Paging paging) {
+
+        Pageable<Comment> model = new Pageable<>();
+        model.setEntities(results.getTweets().stream().map(e -> comment(e, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(Collectors.toList()));
 

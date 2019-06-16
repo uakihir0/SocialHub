@@ -1,12 +1,7 @@
 package net.socialhub.service.action;
 
 import net.socialhub.model.error.NotImplimentedException;
-import net.socialhub.model.service.Channel;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.support.ReactionCandidate;
 
 import java.util.List;
@@ -120,6 +115,14 @@ public interface AccountAction {
      * ユーザーのイイネしたコメントのタイムラインを取得
      */
     default Pageable<Comment> getUserLikeTimeLine(Identify id, Paging paging) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Get User Media TimeLine
+     * ユーザーのメディア一覧を取得
+     */
+    default Pageable<Comment> getUserMediaTimeLine(Identify id, Paging paging) {
         throw new NotImplimentedException();
     }
 

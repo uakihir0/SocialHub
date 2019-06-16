@@ -1,19 +1,16 @@
 package net.socialhub.service.mastodon;
 
 import mastodon4j.Mastodon;
+import mastodon4j.entity.Notification;
 import mastodon4j.entity.Relationship;
 import mastodon4j.entity.Status;
 import mastodon4j.entity.share.Response;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
+import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
@@ -21,19 +18,9 @@ import net.socialhub.service.action.AccountActionImpl;
 
 import java.util.List;
 
-import static net.socialhub.define.action.OtherActionType.BlockUser;
-import static net.socialhub.define.action.OtherActionType.FollowUser;
-import static net.socialhub.define.action.OtherActionType.GetUser;
-import static net.socialhub.define.action.OtherActionType.GetUserMe;
-import static net.socialhub.define.action.OtherActionType.LikeComment;
-import static net.socialhub.define.action.OtherActionType.MuteUser;
-import static net.socialhub.define.action.OtherActionType.ShareComment;
-import static net.socialhub.define.action.OtherActionType.UnShareComment;
-import static net.socialhub.define.action.OtherActionType.UnblockUser;
-import static net.socialhub.define.action.OtherActionType.UnfollowUser;
-import static net.socialhub.define.action.OtherActionType.UnlikeComment;
-import static net.socialhub.define.action.OtherActionType.UnmuteUser;
+import static net.socialhub.define.action.OtherActionType.*;
 import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
 
 public class MastodonAction extends AccountActionImpl {
 
@@ -160,7 +147,7 @@ public class MastodonAction extends AccountActionImpl {
     }
 
     // ============================================================== //
-    // Comment
+    // Timeline
     // ============================================================== //
 
     /**
@@ -172,31 +159,55 @@ public class MastodonAction extends AccountActionImpl {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
 
-            Long count = null;
-            Long maxId = null;
-            Long sinceId = null;
-            Long minId = null;
+            InnerPage innerPage = new InnerPage();
+            innerPage.applyPaging(paging);
 
-            if (paging != null) {
-                count = paging.getCount();
-                if (paging instanceof BorderPaging) {
-                    BorderPaging border = (BorderPaging) paging;
+            Response<Status[]> status = mastodon.getHomeTimeline(
+                    innerPage.getMaxId(), innerPage.getSinceId(),
+                    innerPage.getMinId(), innerPage.getCount());
 
-                    if (border.getHintNewer() == Boolean.TRUE) {
-                        minId = border.getSinceId();
-                    } else {
-                        sinceId = border.getSinceId();
-                    }
-                    maxId = border.getMaxId();
-                }
-            }
-
-            Response<Status[]> status = mastodon.getHomeTimeline(maxId, sinceId, minId, count);
             service.getRateLimit().addInfo(HomeTimeLine, status);
 
             return MastodonMapper.timeLine(status.get(), service, paging);
         });
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Pageable<Comment> getMentionTimeLine(Paging paging) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            InnerPage innerPage = new InnerPage();
+            innerPage.applyPaging(paging);
+
+            Response<Notification[]> status = mastodon.notifications().getNotifications();
+
+            service.getRateLimit().addInfo(MentionTimeLine, status);
+
+            return null;
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Pageable<Comment> getUserCommentTimeLine(Identify id, Paging paging) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Pageable<Comment> getUserMediaTimeLine(Identify id, Paging paging) {
+        throw new NotImplimentedException();
+    }
+
+    // ============================================================== //
+    // Comment
+    // ============================================================== //
 
     /**
      * {@inheritDoc}
@@ -303,6 +314,53 @@ public class MastodonAction extends AccountActionImpl {
     public List<ReactionCandidate> getReactionCandidates() {
         return MastodonMapper.reactionCandidates();
     }
+
+    // ============================================================== //
+    // Paging
+    // ============================================================== //
+
+    private static class InnerPage {
+        private Long count = null;
+        private Long maxId = null;
+        private Long sinceId = null;
+        private Long minId = null;
+
+        public void applyPaging(Paging paging) {
+            if (paging != null) {
+                count = paging.getCount();
+
+                if (paging instanceof BorderPaging) {
+                    BorderPaging border = (BorderPaging) paging;
+
+                    if (border.getHintNewer() == Boolean.TRUE) {
+                        minId = border.getSinceId();
+                    } else {
+                        sinceId = border.getSinceId();
+                    }
+                    maxId = border.getMaxId();
+                }
+            }
+        }
+
+        //region // Getter&Setter
+        public Long getCount() {
+            return count;
+        }
+
+        public Long getMaxId() {
+            return maxId;
+        }
+
+        public Long getSinceId() {
+            return sinceId;
+        }
+
+        public Long getMinId() {
+            return minId;
+        }
+        //endregion
+    }
+
 
     // ============================================================== //
     // Utils

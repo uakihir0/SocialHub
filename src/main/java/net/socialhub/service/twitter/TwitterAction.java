@@ -1,14 +1,10 @@
 package net.socialhub.service.twitter;
 
+import net.socialhub.define.MediaType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
@@ -17,24 +13,11 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import static net.socialhub.define.action.OtherActionType.BlockUser;
-import static net.socialhub.define.action.OtherActionType.DeleteComment;
-import static net.socialhub.define.action.OtherActionType.FollowUser;
-import static net.socialhub.define.action.OtherActionType.GetUser;
-import static net.socialhub.define.action.OtherActionType.GetUserMe;
-import static net.socialhub.define.action.OtherActionType.LikeComment;
-import static net.socialhub.define.action.OtherActionType.MuteUser;
-import static net.socialhub.define.action.OtherActionType.ShareComment;
-import static net.socialhub.define.action.OtherActionType.UnblockUser;
-import static net.socialhub.define.action.OtherActionType.UnfollowUser;
-import static net.socialhub.define.action.OtherActionType.UnlikeComment;
-import static net.socialhub.define.action.OtherActionType.UnmuteUser;
-import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
+import static net.socialhub.define.action.OtherActionType.*;
+import static net.socialhub.define.action.TimeLineActionType.*;
 
 /**
  * Twitter Actions
@@ -261,6 +244,58 @@ public class TwitterAction extends AccountActionImpl {
                 return TwitterMapper.timeLine(statues, service, paging);
             }
             throw new IllegalStateException();
+        });
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getUserMediaTimeLine(Identify id, Paging paging) {
+        return proceed(() -> {
+
+            int requestCount = 0;
+            int maxMediaCount = 50;
+            if (paging != null && paging.getCount() != null) {
+                maxMediaCount = paging.getCount().intValue();
+            }
+
+            // リクエスト時の PagingCount は 200 に固定
+            // (メディアが存在しない場合もあるので多めに取得)
+            Paging mediaPaging = (paging != null) ? paging : new Paging();
+            mediaPaging.setCount(200L);
+
+            Paging storedCursor = paging;
+            Paging currentCursor = paging;
+            List<Comment> comments = new ArrayList<>();
+
+
+            // 順にリクエストする必要があるのでループを実行
+            while ((requestCount < 10) && (comments.size() <= maxMediaCount)) {
+
+                storedCursor = currentCursor;
+                Pageable<Comment> results = getUserCommentTimeLine(id, currentCursor);
+                currentCursor = results.pastPage();
+                requestCount++;
+
+                for (Comment comment : results.getEntities()) {
+                    if (comment.getMedias().size() > 0) {
+                        if (comment.getMedias().stream().anyMatch((e) -> //
+                                (e.getType() == MediaType.Image) || //
+                                        (e.getType() == MediaType.Movie))) {
+
+                            // メディアコメントの場合
+                            comments.add(comment);
+                        }
+                    }
+                }
+            }
+
+            Pageable<Comment> pageable = new Pageable<>();
+            pageable.setPaging(storedCursor);
+            pageable.setEntities(comments);
+            return pageable;
         });
     }
 

@@ -7,5 +7,7 @@ public enum TimeLineActionType implements ActionType {
     MentionTimeLine,
     UserCommentTimeLine,
     UserLikeTimeLine,
+    UserMediaTimeLine,
+    SearchTimeLine,
     ;
 }

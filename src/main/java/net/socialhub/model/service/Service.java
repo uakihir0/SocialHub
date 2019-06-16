@@ -50,6 +50,11 @@ public class Service implements Serializable {
         return (ServiceType.Facebook == type);
     }
 
+    /** Is Tumblr Account ? */
+    public boolean isTumblr() {
+        return (ServiceType.Tumblr == type);
+    }
+
     //region // Getter&Setter
     public Account getAccount() {
         return account;

@@ -7,10 +7,7 @@ import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 
-import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.*;
 
 public class RequestActionImpl implements RequestAction {
 
@@ -45,6 +42,12 @@ public class RequestActionImpl implements RequestAction {
             if ((args.length == 1) && //
                     (args[0] instanceof Identify)) {
                 return action.getUserLikeTimeLine((Identify) args[0], paging);
+            }
+        }
+        if (type == UserMediaTimeLine) {
+            if ((args.length == 1) && //
+                    (args[0] instanceof Identify)) {
+                return action.getUserMediaTimeLine((Identify) args[0], paging);
             }
         }
 

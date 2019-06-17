@@ -8,7 +8,6 @@ import net.socialhub.define.service.tumblr.TumblrIconSize;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.tumblr.TumblrPaging;
-import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.utils.LimitMap;
@@ -110,25 +109,7 @@ public class TumblrAction extends AccountActionImpl {
             Service service = getAccount().getService();
             Map<String, String> iconMap = new HashMap<>();
 
-            Map<String, Object> params = new HashMap<>();
-
-            if (paging != null) {
-                if (paging.getCount() != null) {
-                    params.put("limit", paging.getCount());
-                }
-
-                if (paging instanceof TumblrPaging) {
-                    TumblrPaging pg = (TumblrPaging) paging;
-
-                    if (pg.getSinceId() != null) {
-                        params.put("since_id", pg.getSinceId());
-                    }
-                    if (pg.getPage() != null && pg.getCount() != null) {
-                        params.put("offset", ((pg.getPage() - 1) * pg.getCount()));
-                    }
-                }
-            }
-
+            Map<String, Object> params = getPagingParams(paging);
             List<Post> posts = auth.getAccessor().userDashboard(params);
 
             // アイコン情報の取得
@@ -140,6 +121,51 @@ public class TumblrAction extends AccountActionImpl {
             return TumblrMapper.timeLine(posts, iconMap, service, paging);
         });
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getUserCommentTimeLine(Identify id, Paging paging) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Map<String, String> iconMap = new HashMap<>();
+
+            Map<String, Object> params = getPagingParams(paging);
+            List<Post> posts = auth.getAccessor().blogPosts((String) id.getId(), params);
+
+            // アイコン情報の取得
+            posts.parallelStream().forEach((post) -> {
+                String host = TumblrMapper.getBlogIdentify(post.getBlog());
+                getAndSetCacheIconMap(host, iconMap);
+            });
+
+            return TumblrMapper.timeLine(posts, iconMap, service, paging);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getUserLikeTimeLine(Identify id, Paging paging) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Map<String, String> iconMap = new HashMap<>();
+
+            Map<String, Object> params = getPagingParams(paging);
+            List<Post> posts = auth.getAccessor().blogLikes((String) id.getId(), params);
+
+            // アイコン情報の取得
+            posts.parallelStream().forEach((post) -> {
+                String host = TumblrMapper.getBlogIdentify(post.getBlog());
+                getAndSetCacheIconMap(host, iconMap);
+            });
+
+            return TumblrMapper.timeLine(posts, iconMap, service, paging);
+        });
+    }
+
 
     // ============================================================== //
     // Cache
@@ -160,6 +186,33 @@ public class TumblrAction extends AccountActionImpl {
             iconMap.put(host, avatar);
         }
     }
+
+    // ============================================================== //
+    // Paging
+    // ============================================================== //
+
+    private Map<String, Object> getPagingParams(Paging paging) {
+        Map<String, Object> params = new HashMap<>();
+
+        if (paging != null) {
+            if (paging.getCount() != null) {
+                params.put("limit", paging.getCount());
+            }
+
+            if (paging instanceof TumblrPaging) {
+                TumblrPaging pg = (TumblrPaging) paging;
+
+                if (pg.getSinceId() != null) {
+                    params.put("since_id", pg.getSinceId());
+                }
+                if (pg.getPage() != null && pg.getCount() != null) {
+                    params.put("offset", ((pg.getPage() - 1) * pg.getCount()));
+                }
+            }
+        }
+        return params;
+    }
+
 
     // ============================================================== //
     // Request Samples

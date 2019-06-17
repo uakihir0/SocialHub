@@ -20,7 +20,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static net.socialhub.define.ServiceType.Mastodon;
 
@@ -30,7 +29,7 @@ public class MastodonMapper {
 
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
-    /** 　J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
+    /** J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
     private final static List<Class<?>> ClassLoader = Arrays.asList( //
             mastodon4j.entity.Mention.class, //
             mastodon4j.entity.Tag.class);
@@ -207,8 +206,21 @@ public class MastodonMapper {
             Service service, //
             Paging paging) {
 
+        return timeLine(Arrays.asList(statuses),
+                service,
+                paging);
+    }
+
+    /**
+     * タイムラインマッピング
+     */
+    public static Pageable<Comment> timeLine(
+            List<Status> statuses, //
+            Service service, //
+            Paging paging) {
+
         Pageable<Comment> model = new Pageable<>();
-        model.setEntities(Stream.of(statuses).map(e -> comment(e, service)) //
+        model.setEntities(statuses.stream().map(e -> comment(e, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(Collectors.toList()));
 

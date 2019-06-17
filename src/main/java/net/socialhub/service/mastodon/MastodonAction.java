@@ -1,14 +1,15 @@
 package net.socialhub.service.mastodon;
 
 import mastodon4j.Mastodon;
+import mastodon4j.Range;
 import mastodon4j.entity.Notification;
 import mastodon4j.entity.Relationship;
 import mastodon4j.entity.Status;
 import mastodon4j.entity.share.Response;
+import net.socialhub.define.service.mastodon.MastodonNotificationType;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
-import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.paging.BorderPaging;
@@ -16,17 +17,22 @@ import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.socialhub.define.action.OtherActionType.*;
-import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.*;
 
 public class MastodonAction extends AccountActionImpl {
 
     private static Logger logger = Logger.getLogger(MastodonAction.class);
 
     private ServiceAuth<Mastodon> auth;
+
+    // 自分のアカウント ID を記録
+    private Identify myAccountId;
 
     // ============================================================== //
     // Account
@@ -43,7 +49,9 @@ public class MastodonAction extends AccountActionImpl {
             Response<mastodon4j.entity.Account> account = mastodon.verifyCredentials();
 
             service.getRateLimit().addInfo(GetUserMe, account);
-            return MastodonMapper.user(account.get(), service);
+            User me = MastodonMapper.user(account.get(), service);
+            myAccountId = me;
+            return me;
         });
     }
 
@@ -158,16 +166,10 @@ public class MastodonAction extends AccountActionImpl {
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
+            Range range = getRange(paging);
 
-            InnerPage innerPage = new InnerPage();
-            innerPage.applyPaging(paging);
-
-            Response<Status[]> status = mastodon.getHomeTimeline(
-                    innerPage.getMaxId(), innerPage.getSinceId(),
-                    innerPage.getMinId(), innerPage.getCount());
-
+            Response<Status[]> status = mastodon.getHomeTimeline(range);
             service.getRateLimit().addInfo(HomeTimeLine, status);
-
             return MastodonMapper.timeLine(status.get(), service, paging);
         });
     }
@@ -179,15 +181,23 @@ public class MastodonAction extends AccountActionImpl {
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
+            Range range = getRange(paging);
 
-            InnerPage innerPage = new InnerPage();
-            innerPage.applyPaging(paging);
 
-            Response<Notification[]> status = mastodon.notifications().getNotifications();
+            Response<Notification[]> status =
+                    mastodon.notifications() //
+                            .getNotifications(range, Arrays.asList( //
+                                    MastodonNotificationType.follow.getCode(), //
+                                    MastodonNotificationType.favourite.getCode(), //
+                                    MastodonNotificationType.reblog.getCode()), //
+                                    null);
+
+            List<Status> statuses = Stream.of(status.get())
+                    .map(Notification::getStatus)
+                    .collect(Collectors.toList());
 
             service.getRateLimit().addInfo(MentionTimeLine, status);
-
-            return null;
+            return MastodonMapper.timeLine(statuses, service, paging);
         });
     }
 
@@ -195,14 +205,61 @@ public class MastodonAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     public Pageable<Comment> getUserCommentTimeLine(Identify id, Paging paging) {
-        throw new NotImplimentedException();
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Range range = getRange(paging);
+
+            Response<Status[]> status = mastodon.accounts().getStatuses( //
+                    (Long) id.getId(), false, false, false, false, range);
+
+            service.getRateLimit().addInfo(UserCommentTimeLine, status);
+            return MastodonMapper.timeLine(status.get(), service, paging);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getUserLikeTimeLine(Identify id, Paging paging) {
+        return proceed(() -> {
+            if (id != null) {
+
+                // 自分の分しか取得できないので id が自分でない場合は例外
+                if (id.getId().equals(getMyAccountId().getId())) {
+
+                    Mastodon mastodon = auth.getAccessor();
+                    Service service = getAccount().getService();
+                    Range range = getRange(paging);
+
+                    Response<Status[]> status = mastodon.favourites().getFavourites(range);
+
+                    service.getRateLimit().addInfo(UserLikeTimeLine, status);
+                    return MastodonMapper.timeLine(status.get(), service, paging);
+                }
+            }
+
+            throw new NotSupportedException(
+                    "Sorry, user favorites timeline is only support only verified account on Mastodon.");
+        });
     }
 
     /**
      * {@inheritDoc}
      */
     public Pageable<Comment> getUserMediaTimeLine(Identify id, Paging paging) {
-        throw new NotImplimentedException();
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Range range = getRange(paging);
+
+            Response<Status[]> status = mastodon.accounts().getStatuses( //
+                    (Long) id.getId(), false, true, false, false, range);
+
+            service.getRateLimit().addInfo(UserMediaTimeLine, status);
+            return MastodonMapper.timeLine(status.get(), service, paging);
+        });
     }
 
     // ============================================================== //
@@ -319,46 +376,37 @@ public class MastodonAction extends AccountActionImpl {
     // Paging
     // ============================================================== //
 
-    private static class InnerPage {
-        private Long count = null;
-        private Long maxId = null;
-        private Long sinceId = null;
-        private Long minId = null;
+    private static Range getRange(Paging paging) {
+        if (paging == null) {
+            return null;
+        }
 
-        public void applyPaging(Paging paging) {
-            if (paging != null) {
-                count = paging.getCount();
+        Range range = new Range();
+        range.setLimit(paging.getCount());
 
-                if (paging instanceof BorderPaging) {
-                    BorderPaging border = (BorderPaging) paging;
+        if (paging instanceof BorderPaging) {
+            BorderPaging border = (BorderPaging) paging;
 
-                    if (border.getHintNewer() == Boolean.TRUE) {
-                        minId = border.getSinceId();
-                    } else {
-                        sinceId = border.getSinceId();
-                    }
-                    maxId = border.getMaxId();
-                }
+            if (border.getHintNewer() == Boolean.TRUE) {
+                range.setMinId(border.getSinceId());
+            } else {
+                range.setSinceId(border.getSinceId());
             }
+            range.setMaxId(border.getMaxId());
         }
+        return range;
+    }
 
-        //region // Getter&Setter
-        public Long getCount() {
-            return count;
-        }
+    // ============================================================== //
+    // Cache
+    // ============================================================== //
 
-        public Long getMaxId() {
-            return maxId;
-        }
-
-        public Long getSinceId() {
-            return sinceId;
-        }
-
-        public Long getMinId() {
-            return minId;
-        }
-        //endregion
+    /**
+     * Get My AccountID (with Cache)
+     * 自分のアカウント ID を取得
+     */
+    private Identify getMyAccountId() {
+        return (myAccountId != null) ? myAccountId : getUserMe();
     }
 
 

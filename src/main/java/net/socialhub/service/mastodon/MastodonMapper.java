@@ -20,6 +20,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.socialhub.define.ServiceType.Mastodon;
 
@@ -222,6 +223,23 @@ public class MastodonMapper {
         Pageable<Comment> model = new Pageable<>();
         model.setEntities(statuses.stream().map(e -> comment(e, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
+                .collect(Collectors.toList()));
+
+        model.setPaging(MapperUtil.mappingBorderPaging(paging, Mastodon));
+        return model;
+    }
+
+    /**
+     * ユーザーマッピング
+     */
+    public static Pageable<User> users(
+            Account[] accounts, //
+            Service service,
+            Paging paging) {
+
+        Pageable<User> model = new Pageable<>();
+        model.setEntities(Stream.of(accounts) //
+                .map((a) -> user(a, service)) //
                 .collect(Collectors.toList()));
 
         model.setPaging(MapperUtil.mappingBorderPaging(paging, Mastodon));

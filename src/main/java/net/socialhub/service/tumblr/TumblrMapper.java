@@ -1,11 +1,15 @@
 package net.socialhub.service.tumblr;
 
 import com.tumblr.jumblr.types.*;
+import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.MediaType;
+import net.socialhub.define.service.tumblr.TumblrReactionType;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.*;
+import net.socialhub.model.service.addition.tumblr.TumblrComment;
 import net.socialhub.model.service.addition.tumblr.TumblrUser;
+import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.utils.MapperUtil;
 
 import java.net.URL;
@@ -95,11 +99,12 @@ public class TumblrMapper {
             Map<String, String> iconMap, //
             Service service) {
 
-        Comment model = new Comment(service);
+        TumblrComment model = new TumblrComment(service);
 
         model.setId(post.getId());
         model.setUser(user(post, iconMap, service));
 
+        model.setReblogKey(post.getReblogKey());
         model.setText(new AttributedString(post.getSummary()));
         model.setCreateAt(new Date(post.getTimestamp() * 1000));
         model.setMedias(new ArrayList<>());
@@ -149,6 +154,27 @@ public class TumblrMapper {
     }
 
     /**
+     * リアクション候補マッピング
+     */
+    public static List<ReactionCandidate> reactionCandidates() {
+        List<ReactionCandidate> candidates = new ArrayList<>();
+
+        ReactionCandidate like = new ReactionCandidate();
+        like.setCategory(EmojiCategoryType.Activities.getCode());
+        like.setName(TumblrReactionType.Like.getCode().get(0));
+        like.addAlias(TumblrReactionType.Like.getCode());
+        candidates.add(like);
+
+        ReactionCandidate share = new ReactionCandidate();
+        share.setCategory(EmojiCategoryType.Activities.getCode());
+        share.setName(TumblrReactionType.Reblog.getCode().get(0));
+        share.addAlias(TumblrReactionType.Reblog.getCode());
+        candidates.add(share);
+
+        return candidates;
+    }
+
+    /**
      * タイムラインマッピング
      */
     public static Pageable<Comment> timeLine(
@@ -162,6 +188,25 @@ public class TumblrMapper {
         model.setEntities(posts.stream() //
                 .map(e -> comment(e, iconMap, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
+                .collect(Collectors.toList()));
+
+        model.setPaging(MapperUtil.mappingTumblrPaging(paging));
+        return model;
+    }
+
+    /**
+     * ユーザーマッピング
+     */
+    public static Pageable<User> users(
+            List<com.tumblr.jumblr.types.User> users, //
+            Map<String, String> iconMap, //
+            Service service, //
+            Paging paging) {
+
+
+        Pageable<User> model = new Pageable<>();
+        model.setEntities(users.stream() //
+                .map(e -> user(e, iconMap, service)) //
                 .collect(Collectors.toList()));
 
         model.setPaging(MapperUtil.mappingTumblrPaging(paging));

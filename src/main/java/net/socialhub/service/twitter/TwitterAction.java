@@ -307,6 +307,22 @@ public class TwitterAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
+    public Comment getComment(Identify id) {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Status status = twitter.showStatus((Long) id.getId());
+
+            Service service = getAccount().getService();
+            service.getRateLimit().addInfo(GetComment, status);
+
+            return TwitterMapper.comment(status, service);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void like(Identify id) {
         proceed(() -> {
             Twitter twitter = auth.getAccessor();

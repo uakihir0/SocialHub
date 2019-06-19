@@ -82,6 +82,27 @@ public interface AccountAction {
     }
 
     // ============================================================== //
+    // User API
+    // ユーザー関連 API
+    // ============================================================== //
+
+    /**
+     * Get Following Account
+     * フォローしているユーザー情報を取得
+     */
+    default Pageable<User> getFollowingUsers(Identify id, Paging paging) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Get Follower Account
+     * フォローされているユーザー情報を取得
+     */
+    default Pageable<User> getFollowerUsers(Identify id, Paging paging) {
+        throw new NotImplimentedException();
+    }
+
+    // ============================================================== //
     // TimeLine API
     // タイムライン関連 API
     // ============================================================== //
@@ -130,6 +151,14 @@ public interface AccountAction {
     // Comment API
     // コメント関連 API
     // ============================================================== //
+
+    /**
+     * Get Comment
+     * 単品コメントを取得
+     */
+    default Comment getComment(Identify id) {
+        throw new NotImplimentedException();
+    }
 
     /**
      * Like Comment
@@ -207,7 +236,9 @@ public interface AccountAction {
     // エイリアス
     // ============================================================== //
 
-    /** Like <-> Favorite */
+    /**
+     * Like <-> Favorite
+     */
     default void favorite(Identify id) {
         like(id);
     }
@@ -216,7 +247,9 @@ public interface AccountAction {
         unlike(id);
     }
 
-    /** Share <-> Retweet */
+    /**
+     * Share <-> Retweet
+     */
     default void retweet(Identify id) {
         share(id);
     }
@@ -225,7 +258,9 @@ public interface AccountAction {
         unshare(id);
     }
 
-    /** Channel <-> List */
+    /**
+     * Channel <-> List
+     */
     default Pageable<Channel> getLists() {
         return getChannels();
     }

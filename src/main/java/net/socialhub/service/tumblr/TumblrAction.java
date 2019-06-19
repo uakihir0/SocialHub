@@ -5,9 +5,14 @@ import com.tumblr.jumblr.exceptions.JumblrException;
 import com.tumblr.jumblr.types.Blog;
 import com.tumblr.jumblr.types.Post;
 import net.socialhub.define.service.tumblr.TumblrIconSize;
+import net.socialhub.define.service.tumblr.TumblrReactionType;
 import net.socialhub.model.Account;
+import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.service.*;
+import net.socialhub.model.service.addition.tumblr.TumblrComment;
 import net.socialhub.model.service.addition.tumblr.TumblrPaging;
+import net.socialhub.model.service.support.ReactionCandidate;
+import net.socialhub.model.service.support.TupleIdentify;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.utils.LimitMap;
@@ -92,7 +97,60 @@ public class TumblrAction extends AccountActionImpl {
             String host = TumblrMapper.getBlogIdentify(blog);
             getAndSetCacheIconMap(host, iconMap);
             return TumblrMapper.user(blog, iconMap, service);
+        });
+    }
 
+    // ============================================================== //
+    // User
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<User> getFollowingUsers(Identify id, Paging paging) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Map<String, String> iconMap = new HashMap<>();
+
+            // TODO: 自分のアカウントのブログであるかどうか？
+
+            Map<String, Object> params = getPagingParams(paging);
+            List<Blog> blogs = auth.getAccessor().userFollowing(params);
+
+            // アイコン情報の取得
+            blogs.parallelStream().forEach((blog) -> {
+                String host = TumblrMapper.getBlogIdentify(blog);
+                getAndSetCacheIconMap(host, iconMap);
+            });
+
+            // TODO
+            return null;
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<User> getFollowerUsers(Identify id, Paging paging) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Map<String, String> iconMap = new HashMap<>();
+
+            // TODO: 自分のアカウントのブログであるかどうか？
+
+            Map<String, Object> params = getPagingParams(paging);
+            List<com.tumblr.jumblr.types.User> users = //
+                    auth.getAccessor().blogFollowers((String) id.getId(), params);
+
+            // アイコン情報の取得
+            users.parallelStream().forEach((user) -> {
+                String host = user.getName() + ".tumblr.com";
+                getAndSetCacheIconMap(host, iconMap);
+            });
+
+            return TumblrMapper.users(users, iconMap, service, paging);
         });
     }
 
@@ -166,6 +224,157 @@ public class TumblrAction extends AccountActionImpl {
         });
     }
 
+
+    // ============================================================== //
+    // Comment
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Comment getComment(Identify id) {
+        return proceed(() -> {
+            if (id instanceof TupleIdentify) {
+                TupleIdentify tuple = ((TupleIdentify) id);
+                Service service = getAccount().getService();
+                Post post = auth.getAccessor().blogPost( //
+                        (String) tuple.getSubId(), (Long) tuple.getId());
+
+                Map<String, String> iconMap = new HashMap<>();
+                String host = TumblrMapper.getBlogIdentify(post.getBlog());
+                getAndSetCacheIconMap(host, iconMap);
+
+                return TumblrMapper.comment(post, iconMap, service);
+
+            } else {
+                throw new NotSupportedException(
+                        "TupleIdentify required.");
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void like(Identify id) {
+        proceed(() -> {
+            if (id instanceof TumblrComment) {
+                String key = ((TumblrComment) id).getReblogKey();
+                auth.getAccessor().like((Long) id.getId(), key);
+
+            } else {
+                throw new NotSupportedException(
+                        "TumblrComment (id and reblogKey only) required.");
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unlike(Identify id) {
+        proceed(() -> {
+            if (id instanceof TumblrComment) {
+                String key = ((TumblrComment) id).getReblogKey();
+                auth.getAccessor().unlike((Long) id.getId(), key);
+
+            } else {
+                throw new NotSupportedException(
+                        "TumblrComment (id and reblogKey only) required.");
+            }
+        });
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void retweet(Identify id) {
+        proceed(() -> {
+            if (id instanceof TumblrComment) {
+                TumblrComment comment = ((TumblrComment) id);
+                String blog = comment.getUser().getScreenName();
+                String key = comment.getReblogKey();
+
+                auth.getAccessor().postReblog(blog, (Long) id.getId(), key);
+
+            } else {
+                throw new NotSupportedException(
+                        "TumblrComment (id, blogName reblogKey only) required.");
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unretweet(Identify id) {
+        proceed(() -> {
+            if (id instanceof TumblrComment) {
+                TumblrComment comment = ((TumblrComment) id);
+                String blog = comment.getUser().getScreenName();
+
+                auth.getAccessor().postDelete(blog, (Long) id.getId());
+
+            } else {
+                throw new NotSupportedException(
+                        "TumblrComment (id, blogName only) required.");
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void reaction(Identify id, String reaction) {
+        if (reaction != null && !reaction.isEmpty()) {
+            String type = reaction.toLowerCase();
+
+            if (TumblrReactionType.Like.getCode().contains(type)) {
+                like(id);
+                return;
+            }
+            if (TumblrReactionType.Reblog.getCode().contains(type)) {
+                retweet(id);
+                return;
+            }
+        }
+        throw new NotSupportedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unreaction(Identify id, String reaction) {
+        if (reaction != null && !reaction.isEmpty()) {
+            String type = reaction.toLowerCase();
+
+            if (TumblrReactionType.Like.getCode().contains(type)) {
+                unlike(id);
+                return;
+            }
+            if (TumblrReactionType.Reblog.getCode().contains(type)) {
+                unretweet(id);
+                return;
+            }
+        }
+        throw new NotSupportedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ReactionCandidate> getReactionCandidates() {
+        return TumblrMapper.reactionCandidates();
+    }
 
     // ============================================================== //
     // Cache

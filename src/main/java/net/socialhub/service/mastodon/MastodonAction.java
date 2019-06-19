@@ -154,6 +154,48 @@ public class MastodonAction extends AccountActionImpl {
         });
     }
 
+
+    // ============================================================== //
+    // User API
+    // ユーザー関連 API
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<User> getFollowingUsers(Identify id, Paging paging) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Range range = getRange(paging);
+
+            Response<mastodon4j.entity.Account[]> accounts = //
+                    mastodon.accounts().getFollowing((Long) id.getId(), range);
+
+            service.getRateLimit().addInfo(GetFollowingUsers, accounts);
+            return MastodonMapper.users(accounts.get(), service, paging);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<User> getFollowerUsers(Identify id, Paging paging) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Range range = getRange(paging);
+
+            Response<mastodon4j.entity.Account[]> accounts = //
+                    mastodon.accounts().getFollowers((Long) id.getId(), range);
+
+            service.getRateLimit().addInfo(GetFollowerUsers, accounts);
+            return MastodonMapper.users(accounts.get(), service, paging);
+        });
+    }
+
     // ============================================================== //
     // Timeline
     // ============================================================== //
@@ -270,6 +312,21 @@ public class MastodonAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
+    public Comment getComment(Identify id) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Response<Status> status = mastodon.statuses().getStatus((Long) id.getId());
+
+            Service service = getAccount().getService();
+            service.getRateLimit().addInfo(GetComment, status);
+            return MastodonMapper.comment(status.get(), service);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void like(Identify id) {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
@@ -299,7 +356,6 @@ public class MastodonAction extends AccountActionImpl {
      */
     @Override
     public void retweet(Identify id) {
-
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
@@ -314,7 +370,6 @@ public class MastodonAction extends AccountActionImpl {
      */
     @Override
     public void unretweet(Identify id) {
-
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
@@ -352,11 +407,11 @@ public class MastodonAction extends AccountActionImpl {
         if (reaction != null && !reaction.isEmpty()) {
             String type = reaction.toLowerCase();
 
-            if (type.equals(MastodonReactionType.Favorite.getCode())) {
+            if (MastodonReactionType.Favorite.getCode().contains(type)) {
                 unlike(id);
                 return;
             }
-            if (type.equals(MastodonReactionType.Reblog.getCode())) {
+            if (MastodonReactionType.Reblog.getCode().contains(type)) {
                 unretweet(id);
                 return;
             }
@@ -387,12 +442,17 @@ public class MastodonAction extends AccountActionImpl {
         if (paging instanceof BorderPaging) {
             BorderPaging border = (BorderPaging) paging;
 
-            if (border.getHintNewer() == Boolean.TRUE) {
-                range.setMinId(border.getSinceId());
-            } else {
-                range.setSinceId(border.getSinceId());
+            if (border.getSinceId() != null) {
+                if (border.getHintNewer() == Boolean.TRUE) {
+                    range.setMinId(border.getSinceId());
+                } else {
+                    range.setSinceId(border.getSinceId());
+                }
             }
-            range.setMaxId(border.getMaxId());
+
+            if (border.getMaxId() != null) {
+                range.setMaxId(border.getMaxId());
+            }
         }
         return range;
     }

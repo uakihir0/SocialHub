@@ -2,8 +2,10 @@ package net.socialhub.define.action;
 
 public enum OtherActionType implements ActionType {
 
-    // Comment
+    // Get Comment
     GetComment,
+
+    // Post Comment
     PostComment,
     DeleteComment,
     EditComment,
@@ -12,9 +14,13 @@ public enum OtherActionType implements ActionType {
     ShareComment,
     UnShareComment,
 
-    // User
+    // Get Users
     GetUser,
     GetUserMe,
+    GetFollowingUsers,
+    GetFollowerUsers,
+
+    // Post Users
     FollowUser,//
     UnfollowUser,
     MuteUser, //

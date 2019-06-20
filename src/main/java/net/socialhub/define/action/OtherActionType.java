@@ -27,5 +27,6 @@ public enum OtherActionType implements ActionType {
     UnmuteUser, //
     BlockUser, //
     UnblockUser, //
+    GetRelationship, //
     ;
 }

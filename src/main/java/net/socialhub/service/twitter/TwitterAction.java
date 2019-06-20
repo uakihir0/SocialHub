@@ -5,13 +5,13 @@ import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.service.*;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
-import twitter4j.ResponseList;
-import twitter4j.Status;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
+import twitter4j.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -143,6 +143,19 @@ public class TwitterAction extends AccountActionImpl {
         });
     }
 
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Relationship getRelationship(Identify id) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            ResponseList<Friendship> friendships = auth.getAccessor().lookupFriendships((Long) id.getId());
+            service.getRateLimit().addInfo(GetRelationship, friendships);
+            return TwitterMapper.relationship(friendships.get(0));
+        });
+    }
     // ============================================================== //
     // TimeLine
     // ============================================================== //

@@ -29,6 +29,7 @@ public class MiniBlogUser extends User {
     /** Profile url */
     private AttributedString profileUrl;
 
+
     //region // Getter&Setter
     public Long getFollowingsCount() {
         return followingsCount;

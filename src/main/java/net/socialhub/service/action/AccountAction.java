@@ -81,6 +81,15 @@ public interface AccountAction {
         throw new NotImplimentedException();
     }
 
+
+    /**
+     * Get relationship
+     * 認証アカウントとの関係を取得
+     */
+    default Relationship getRelationship(Identify id) {
+        throw new NotImplimentedException();
+    }
+
     // ============================================================== //
     // User API
     // ユーザー関連 API

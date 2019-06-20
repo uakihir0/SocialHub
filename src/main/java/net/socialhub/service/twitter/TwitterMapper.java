@@ -8,6 +8,7 @@ import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.MiniBlogComment;
@@ -206,6 +207,18 @@ public class TwitterMapper {
             }
         }
         return null;
+    }
+
+    /**
+     * ユーザー関係
+     */
+    public static Relationship relationship(
+            Friendship friendship) {
+
+        Relationship model = new Relationship();
+        model.setFollowed(friendship.isFollowedBy());
+        model.setFollowing(friendship.isFollowing());
+        return model;
     }
 
     /**

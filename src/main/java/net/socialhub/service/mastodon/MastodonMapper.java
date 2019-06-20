@@ -1,6 +1,9 @@
 package net.socialhub.service.mastodon;
 
-import mastodon4j.entity.*;
+import mastodon4j.entity.Account;
+import mastodon4j.entity.Attachment;
+import mastodon4j.entity.Field;
+import mastodon4j.entity.Status;
 import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.MediaType;
 import net.socialhub.define.service.mastodon.MastodonMediaType;
@@ -8,7 +11,6 @@ import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
-import net.socialhub.model.service.Application;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.mastodon.MastodonComment;
 import net.socialhub.model.service.addition.mastodon.MastodonUser;
@@ -43,7 +45,6 @@ public class MastodonMapper {
             Service service) {
 
         MastodonUser model = new MastodonUser(service);
-        AccountSource source = account.getSource();
 
         model.setId(account.getId());
         model.setName(account.getDisplayName());
@@ -57,6 +58,7 @@ public class MastodonMapper {
         model.setFollowingsCount(account.getFollowingCount());
         model.setStatusesCount(account.getStatusesCount());
         model.setProtected(account.isLocked());
+
 
         // プロフィールページの設定
         AttributedString profile = new AttributedString(account.getUrl());
@@ -79,6 +81,20 @@ public class MastodonMapper {
             }
         }
 
+        return model;
+    }
+
+    /**
+     * ユーザー関係
+     */
+    public static Relationship relationship(
+            mastodon4j.entity.Relationship relationship) {
+
+        Relationship model = new Relationship();
+        model.setFollowed(relationship.isFollowedBy());
+        model.setFollowing(relationship.isFollowing());
+        model.setBlocking(relationship.isBlocking());
+        model.setMuting(relationship.isMuting());
         return model;
     }
 

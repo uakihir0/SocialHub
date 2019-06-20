@@ -3,7 +3,6 @@ package net.socialhub.service.mastodon;
 import mastodon4j.Mastodon;
 import mastodon4j.Range;
 import mastodon4j.entity.Notification;
-import mastodon4j.entity.Relationship;
 import mastodon4j.entity.Status;
 import mastodon4j.entity.share.Response;
 import net.socialhub.define.service.mastodon.MastodonNotificationType;
@@ -11,6 +10,7 @@ import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
+import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
@@ -78,7 +78,7 @@ public class MastodonAction extends AccountActionImpl {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Relationship> relationship = mastodon.follow((Long) id.getId());
+            Response<?> relationship = mastodon.follow((Long) id.getId());
 
             service.getRateLimit().addInfo(FollowUser, relationship);
         });
@@ -92,7 +92,7 @@ public class MastodonAction extends AccountActionImpl {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Relationship> relationship = mastodon.unfollow((Long) id.getId());
+            Response<?> relationship = mastodon.unfollow((Long) id.getId());
 
             service.getRateLimit().addInfo(UnfollowUser, relationship);
         });
@@ -106,7 +106,7 @@ public class MastodonAction extends AccountActionImpl {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Relationship> relationship = mastodon.mute((Long) id.getId());
+            Response<?> relationship = mastodon.mute((Long) id.getId());
 
             service.getRateLimit().addInfo(MuteUser, relationship);
         });
@@ -120,7 +120,7 @@ public class MastodonAction extends AccountActionImpl {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Relationship> relationship = mastodon.unmute((Long) id.getId());
+            Response<?> relationship = mastodon.unmute((Long) id.getId());
 
             service.getRateLimit().addInfo(UnmuteUser, relationship);
         });
@@ -134,7 +134,7 @@ public class MastodonAction extends AccountActionImpl {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Relationship> relationship = mastodon.block((Long) id.getId());
+            Response<?> relationship = mastodon.block((Long) id.getId());
 
             service.getRateLimit().addInfo(BlockUser, relationship);
         });
@@ -148,9 +148,25 @@ public class MastodonAction extends AccountActionImpl {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Relationship> relationship = mastodon.unblock((Long) id.getId());
+            Response<?> relationship = mastodon.unblock((Long) id.getId());
 
             service.getRateLimit().addInfo(UnblockUser, relationship);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Relationship getRelationship(Identify id) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Response<mastodon4j.entity.Relationship[]> relationships = //
+                    mastodon.relationships((Long) id.getId());
+
+            service.getRateLimit().addInfo(GetRelationship, relationships);
+            return MastodonMapper.relationship(relationships.get()[0]);
         });
     }
 

@@ -194,6 +194,8 @@ public class TumblrMapper {
         return model;
     }
 
+
+
     /**
      * ユーザーマッピング
      */
@@ -206,6 +208,26 @@ public class TumblrMapper {
 
         Pageable<User> model = new Pageable<>();
         model.setEntities(users.stream() //
+                .map(e -> user(e, iconMap, service)) //
+                .collect(Collectors.toList()));
+
+        model.setPaging(MapperUtil.mappingTumblrPaging(paging));
+        return model;
+    }
+
+
+    /**
+     * ユーザーマッピング
+     */
+    public static Pageable<User> usersByBlogs(
+            List<com.tumblr.jumblr.types.Blog> blogs, //
+            Map<String, String> iconMap, //
+            Service service, //
+            Paging paging) {
+
+
+        Pageable<User> model = new Pageable<>();
+        model.setEntities(blogs.stream() //
                 .map(e -> user(e, iconMap, service)) //
                 .collect(Collectors.toList()));
 

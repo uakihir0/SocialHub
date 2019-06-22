@@ -124,8 +124,7 @@ public class TumblrAction extends AccountActionImpl {
                 getAndSetCacheIconMap(host, iconMap);
             });
 
-            // TODO
-            return null;
+            return TumblrMapper.usersByBlogs(blogs, iconMap, service, paging);
         });
     }
 
@@ -146,7 +145,7 @@ public class TumblrAction extends AccountActionImpl {
 
             // アイコン情報の取得
             users.parallelStream().forEach((user) -> {
-                String host = user.getName() + ".tumblr.com";
+                String host = TumblrMapper.getUserIdentify(user.getBlogs());
                 getAndSetCacheIconMap(host, iconMap);
             });
 
@@ -414,8 +413,8 @@ public class TumblrAction extends AccountActionImpl {
                 if (pg.getSinceId() != null) {
                     params.put("since_id", pg.getSinceId());
                 }
-                if (pg.getPage() != null && pg.getCount() != null) {
-                    params.put("offset", ((pg.getPage() - 1) * pg.getCount()));
+                if (pg.getOffset() != null) {
+                    params.put("offset", pg.getOffset());
                 }
             }
         }

@@ -1,11 +1,11 @@
 package net.socialhub.apis;
 
+import net.socialhub.SocialHub;
 import net.socialhub.TestProperty;
 import net.socialhub.define.service.mastodon.MsInstanceOrder;
 import net.socialhub.define.service.mastodon.MsInstanceSort;
 import net.socialhub.model.service.Instance;
-import net.socialhub.service.mastodon.MastodonSupport;
-import net.socialhub.service.mastodon.support.MastodonInstances;
+import net.socialhub.service.support.InstancesService;
 import org.junit.Test;
 
 import java.util.List;
@@ -15,7 +15,7 @@ public class GetInstancesTest {
     @Test
     public void testMastodonListInstances() {
 
-        MastodonInstances client = MastodonSupport.getMastodonInstances( //
+        InstancesService client = SocialHub.getSupportServices().getMastodonInstances( //
                 TestProperty.MastodonInstancesProperty.AccessToken);
 
         // Get Most Users Instances
@@ -30,7 +30,7 @@ public class GetInstancesTest {
     @Test
     public void testMastodonSearchInstances() {
 
-        MastodonInstances client = MastodonSupport.getMastodonInstances( //
+        InstancesService client = SocialHub.getSupportServices().getMastodonInstances( //
                 TestProperty.MastodonInstancesProperty.AccessToken);
 
         List<Instance> instances = client.searchInstances(10, "Anime");

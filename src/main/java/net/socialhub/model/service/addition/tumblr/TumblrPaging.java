@@ -14,8 +14,8 @@ public class TumblrPaging extends Paging {
     // Since ID
     private Long sinceId;
 
-    // Page Number (1 Origin)
-    private Long page;
+    // Offset
+    private Long offset;
 
     /**
      * {@inheritDoc}
@@ -38,10 +38,14 @@ public class TumblrPaging extends Paging {
     public <T extends Identify> Paging pastPage(List<T> entities) {
         TumblrPaging pg = copy();
 
-        if (pg.getPage() == null) {
-            pg.setPage(2L);
-        } else {
-            pg.setPage(pg.getPage() + 1);
+        if (entities.size() > 0) {
+            long count = (long) entities.size();
+            if (pg.getOffset() == null) {
+                pg.setOffset(0L);
+            }
+
+            // オフセット分を取得した量分変更
+            pg.setOffset(pg.getOffset() + count);
         }
         return pg;
     }
@@ -51,7 +55,7 @@ public class TumblrPaging extends Paging {
      */
     public TumblrPaging copy() {
         TumblrPaging pg = new TumblrPaging();
-        pg.setPage(getPage());
+        pg.setOffset(getOffset());
         pg.setCount(getCount());
         pg.setSinceId(getSinceId());
         pg.setHasMore(getHasMore());
@@ -67,12 +71,12 @@ public class TumblrPaging extends Paging {
         this.sinceId = sinceId;
     }
 
-    public Long getPage() {
-        return page;
+    public Long getOffset() {
+        return offset;
     }
 
-    public void setPage(Long page) {
-        this.page = page;
+    public void setOffset(Long offset) {
+        this.offset = offset;
     }
     //endregion
 }

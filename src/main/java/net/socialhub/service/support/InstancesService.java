@@ -1,5 +1,6 @@
-package net.socialhub.service.mastodon.support;
+package net.socialhub.service.support;
 
+import msinstance4j.MastodonInstances;
 import msinstance4j.entity.Instances;
 import net.socialhub.define.ServiceType;
 import net.socialhub.define.service.mastodon.MsInstanceOrder;
@@ -15,18 +16,20 @@ import java.util.stream.Collectors;
 import static net.socialhub.utils.HandlingUtil.ignore;
 
 /**
- * Wrapper Client for Mastodon Instances
+ * Wrapper Client for (Mastodon) Instances
  * https://instances.social/
  */
-public class MastodonInstances {
+public class InstancesService {
 
-    private msinstance4j.MastodonInstances action;
+    private MastodonInstances action;
 
-    /** Remove adult instances from result */
+    /**
+     * Remove adult instances from result
+     */
     private boolean isRemoveAdult = true;
 
-    public MastodonInstances(String accessToken) {
-        this.action = new msinstance4j.MastodonInstances(accessToken);
+    public InstancesService(String accessToken) {
+        this.action = new MastodonInstances(accessToken);
     }
 
     /**

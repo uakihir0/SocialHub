@@ -1,9 +1,9 @@
 package net.socialhub.service.tumblr;
 
 import com.tumblr.jumblr.JumblrClient;
-import com.tumblr.jumblr.exceptions.JumblrException;
 import com.tumblr.jumblr.types.Blog;
 import com.tumblr.jumblr.types.Post;
+import com.tumblr.jumblr.types.Trail;
 import net.socialhub.define.service.tumblr.TumblrIconSize;
 import net.socialhub.define.service.tumblr.TumblrReactionType;
 import net.socialhub.model.Account;
@@ -15,21 +15,19 @@ import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.model.service.support.TupleIdentify;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
-import net.socialhub.utils.LimitMap;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import static java.util.Collections.singletonList;
 
 public class TumblrAction extends AccountActionImpl {
 
     private ServiceAuth<JumblrClient> auth;
-
-    /**
-     * User Icon Cache Data
-     */
-    private Map<String, String> iconCache = Collections.synchronizedMap(new LimitMap<>(400));
 
     // ============================================================== //
     // Account
@@ -40,8 +38,8 @@ public class TumblrAction extends AccountActionImpl {
      * アバター画像 URL を取得
      */
     public String getUserAvatar(String host) {
-        Integer size = TumblrIconSize.S512.getSize();
-        return auth.getAccessor().blogAvatar(host, size);
+        TumblrIconSize size = TumblrIconSize.S512;
+        return TumblrMapper.getAvatarUrl(host, size);
     }
 
     /**
@@ -54,21 +52,23 @@ public class TumblrAction extends AccountActionImpl {
             com.tumblr.jumblr.types.User user = auth.getAccessor().user();
 
             // アイコンキャッシュから取得
-            Map<String, String> iconMap = new HashMap<>();
             String host = TumblrMapper.getUserIdentify(user.getBlogs());
-            getAndSetCacheIconMap(host, iconMap);
+            User result = TumblrMapper.user(user, service);
 
             // ホスト情報が存在
             if (host != null) {
 
                 // 投稿が一つでも存在すればその投稿情報を取得
                 List<Post> posts = auth.getAccessor().blogPosts(host, limit1());
+
                 if ((posts != null) && (posts.size() > 0)) {
-                    return TumblrMapper.user(posts.get(0), iconMap, service);
+                    Map<String, Trail> trails = TumblrMapper.getTrailMap(posts);
+                    User cover = TumblrMapper.user(posts.get(0), trails, service);
+                    TumblrMapper.margeUser(result, cover);
                 }
             }
 
-            return TumblrMapper.user(user, iconMap, service);
+            return result;
         });
     }
 
@@ -78,25 +78,32 @@ public class TumblrAction extends AccountActionImpl {
     @Override
     public User getUser(Identify id) {
         return proceed(() -> {
+            ExecutorService pool = Executors.newCachedThreadPool();
             Service service = getAccount().getService();
-            Map<String, String> iconMap = new HashMap<>();
 
-            // 投稿情報からユーザー情報を作成する場合
-            List<Post> posts = auth.getAccessor().blogPosts((String) id.getId(), limit1());
-            if ((posts != null) && (posts.size() > 0)) {
-                Post post = posts.get(0);
+            // デフォルトのユーザー情報の取得
+            Future<User> resultFuture = pool.submit(() -> {
+                Blog blog = auth.getAccessor().blogInfo((String) id.getId());
+                return TumblrMapper.user(blog, service);
+            });
 
-                String host = TumblrMapper.getBlogIdentify(post.getBlog());
-                getAndSetCacheIconMap(host, iconMap);
-                return TumblrMapper.user(posts.get(0), iconMap, service);
-            }
+            // カバー情報を取得するためのリクエスト
+            Future<User> coverFuture = pool.submit(() -> {
+                List<Post> posts = auth.getAccessor() //
+                        .blogPosts((String) id.getId(), limit1());
 
-            // ブログ一般情報からユーザー情報を作成する場合 (投稿情報が存在しない場合)
-            Blog blog = auth.getAccessor().blogInfo((String) id.getId());
+                if ((posts != null) && (posts.size() > 0)) {
+                    Map<String, Trail> trails = TumblrMapper.getTrailMap(posts);
+                    return TumblrMapper.user(posts.get(0), trails, service);
+                }
+                return null;
+            });
 
-            String host = TumblrMapper.getBlogIdentify(blog);
-            getAndSetCacheIconMap(host, iconMap);
-            return TumblrMapper.user(blog, iconMap, service);
+            User resultUser = resultFuture.get();
+            User coverUser = coverFuture.get();
+
+            TumblrMapper.margeUser(resultUser, coverUser);
+            return resultUser;
         });
     }
 
@@ -111,20 +118,14 @@ public class TumblrAction extends AccountActionImpl {
     public Pageable<User> getFollowingUsers(Identify id, Paging paging) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            Map<String, String> iconMap = new HashMap<>();
 
             // TODO: 自分のアカウントのブログであるかどうか？
 
             Map<String, Object> params = getPagingParams(paging);
             List<Blog> blogs = auth.getAccessor().userFollowing(params);
 
-            // アイコン情報の取得
-            blogs.parallelStream().forEach((blog) -> {
-                String host = TumblrMapper.getBlogIdentify(blog);
-                getAndSetCacheIconMap(host, iconMap);
-            });
 
-            return TumblrMapper.usersByBlogs(blogs, iconMap, service, paging);
+            return TumblrMapper.usersByBlogs(blogs, service, paging);
         });
     }
 
@@ -135,21 +136,14 @@ public class TumblrAction extends AccountActionImpl {
     public Pageable<User> getFollowerUsers(Identify id, Paging paging) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            Map<String, String> iconMap = new HashMap<>();
 
             // TODO: 自分のアカウントのブログであるかどうか？
 
             Map<String, Object> params = getPagingParams(paging);
-            List<com.tumblr.jumblr.types.User> users = //
-                    auth.getAccessor().blogFollowers((String) id.getId(), params);
+            List<com.tumblr.jumblr.types.User> users = auth.getAccessor() //
+                    .blogFollowers((String) id.getId(), params);
 
-            // アイコン情報の取得
-            users.parallelStream().forEach((user) -> {
-                String host = TumblrMapper.getUserIdentify(user.getBlogs());
-                getAndSetCacheIconMap(host, iconMap);
-            });
-
-            return TumblrMapper.users(users, iconMap, service, paging);
+            return TumblrMapper.users(users, service, paging);
         });
     }
 
@@ -164,18 +158,12 @@ public class TumblrAction extends AccountActionImpl {
     public Pageable<Comment> getHomeTimeLine(Paging paging) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            Map<String, String> iconMap = new HashMap<>();
-
             Map<String, Object> params = getPagingParams(paging);
+            setPagingOptions(params);
+
             List<Post> posts = auth.getAccessor().userDashboard(params);
 
-            // アイコン情報の取得
-            posts.parallelStream().forEach((post) -> {
-                String host = TumblrMapper.getBlogIdentify(post.getBlog());
-                getAndSetCacheIconMap(host, iconMap);
-            });
-
-            return TumblrMapper.timeLine(posts, iconMap, service, paging);
+            return TumblrMapper.timeLine(posts, service, paging);
         });
     }
 
@@ -186,18 +174,12 @@ public class TumblrAction extends AccountActionImpl {
     public Pageable<Comment> getUserCommentTimeLine(Identify id, Paging paging) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            Map<String, String> iconMap = new HashMap<>();
-
             Map<String, Object> params = getPagingParams(paging);
+            setPagingOptions(params);
+
             List<Post> posts = auth.getAccessor().blogPosts((String) id.getId(), params);
 
-            // アイコン情報の取得
-            posts.parallelStream().forEach((post) -> {
-                String host = TumblrMapper.getBlogIdentify(post.getBlog());
-                getAndSetCacheIconMap(host, iconMap);
-            });
-
-            return TumblrMapper.timeLine(posts, iconMap, service, paging);
+            return TumblrMapper.timeLine(posts, service, paging);
         });
     }
 
@@ -208,18 +190,11 @@ public class TumblrAction extends AccountActionImpl {
     public Pageable<Comment> getUserLikeTimeLine(Identify id, Paging paging) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            Map<String, String> iconMap = new HashMap<>();
-
             Map<String, Object> params = getPagingParams(paging);
+
             List<Post> posts = auth.getAccessor().blogLikes((String) id.getId(), params);
 
-            // アイコン情報の取得
-            posts.parallelStream().forEach((post) -> {
-                String host = TumblrMapper.getBlogIdentify(post.getBlog());
-                getAndSetCacheIconMap(host, iconMap);
-            });
-
-            return TumblrMapper.timeLine(posts, iconMap, service, paging);
+            return TumblrMapper.timeLine(posts, service, paging);
         });
     }
 
@@ -240,11 +215,8 @@ public class TumblrAction extends AccountActionImpl {
                 Post post = auth.getAccessor().blogPost( //
                         (String) tuple.getSubId(), (Long) tuple.getId());
 
-                Map<String, String> iconMap = new HashMap<>();
-                String host = TumblrMapper.getBlogIdentify(post.getBlog());
-                getAndSetCacheIconMap(host, iconMap);
-
-                return TumblrMapper.comment(post, iconMap, service);
+                Map<String, Trail> trails = TumblrMapper.getTrailMap(singletonList(post));
+                return TumblrMapper.comment(post, trails, service);
 
             } else {
                 throw new NotSupportedException(
@@ -265,7 +237,7 @@ public class TumblrAction extends AccountActionImpl {
 
             } else {
                 throw new NotSupportedException(
-                        "TumblrComment (id and reblogKey only) required.");
+                        "TumblrComment (id and reblog key only) required.");
             }
         });
     }
@@ -282,7 +254,7 @@ public class TumblrAction extends AccountActionImpl {
 
             } else {
                 throw new NotSupportedException(
-                        "TumblrComment (id and reblogKey only) required.");
+                        "TumblrComment (id and reblog key only) required.");
             }
         });
     }
@@ -303,7 +275,7 @@ public class TumblrAction extends AccountActionImpl {
 
             } else {
                 throw new NotSupportedException(
-                        "TumblrComment (id, blogName reblogKey only) required.");
+                        "TumblrComment (id, blogName reblog key only) required.");
             }
         });
     }
@@ -322,7 +294,7 @@ public class TumblrAction extends AccountActionImpl {
 
             } else {
                 throw new NotSupportedException(
-                        "TumblrComment (id, blogName only) required.");
+                        "TumblrComment (id, blog n ame only) required.");
             }
         });
     }
@@ -376,26 +348,6 @@ public class TumblrAction extends AccountActionImpl {
     }
 
     // ============================================================== //
-    // Cache
-    // ============================================================== //
-
-    /**
-     * アイコンキャッシュ処理
-     */
-    private void getAndSetCacheIconMap(String host, Map<String, String> iconMap) {
-        String url = iconCache.get(host);
-
-        if (url != null) {
-            iconMap.put(host, url);
-
-        } else {
-            String avatar = getUserAvatar(host);
-            iconCache.put(host, avatar);
-            iconMap.put(host, avatar);
-        }
-    }
-
-    // ============================================================== //
     // Paging
     // ============================================================== //
 
@@ -418,6 +370,7 @@ public class TumblrAction extends AccountActionImpl {
                 }
             }
         }
+
         return params;
     }
 
@@ -432,28 +385,32 @@ public class TumblrAction extends AccountActionImpl {
         return params;
     }
 
+    private void setPagingOptions(Map<String, Object> params) {
+        params.put("reblog_info", true);
+    }
+
     // ============================================================== //
     // Utils
     // ============================================================== //
 
-    private <T> T proceed(ActionCaller<T, JumblrException> runner) {
+    private <T> T proceed(ActionCaller<T, Exception> runner) {
         try {
             return runner.proceed();
-        } catch (JumblrException e) {
+        } catch (Exception e) {
             handleTumblrException(e);
             return null;
         }
     }
 
-    private void proceed(ActionRunner<JumblrException> runner) {
+    private void proceed(ActionRunner<Exception> runner) {
         try {
             runner.proceed();
-        } catch (JumblrException e) {
+        } catch (Exception e) {
             handleTumblrException(e);
         }
     }
 
-    private static void handleTumblrException(JumblrException e) {
+    private static void handleTumblrException(Exception e) {
         System.out.println(e.getMessage());
     }
 

@@ -3,6 +3,7 @@ package net.socialhub.service.tumblr;
 import com.tumblr.jumblr.types.*;
 import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.MediaType;
+import net.socialhub.define.service.tumblr.TumblrIconSize;
 import net.socialhub.define.service.tumblr.TumblrReactionType;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.User;
@@ -16,6 +17,8 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static net.socialhub.define.service.tumblr.TumblrIconSize.S512;
+
 public class TumblrMapper {
 
     /** J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
@@ -24,6 +27,10 @@ public class TumblrMapper {
             com.tumblr.jumblr.types.Video.class, //
             com.tumblr.jumblr.types.Note.class);
 
+    // ============================================================== //
+    // User
+    // ============================================================== //
+
     /**
      * ユーザーマッピング
      * (Primary のブログをユーザーと設定)
@@ -31,12 +38,12 @@ public class TumblrMapper {
      */
     public static User user(
             com.tumblr.jumblr.types.User user, //
-            Map<String, String> iconMap, Service service) {
+            Service service) {
 
         // プライマリブログについての処理
         for (Blog blog : user.getBlogs()) {
             if (blog.isPrimary()) {
-                return user(blog, iconMap, service);
+                return user(blog, service);
             }
         }
 
@@ -52,15 +59,16 @@ public class TumblrMapper {
      */
     public static User user(
             com.tumblr.jumblr.types.Blog blog, //
-            Map<String, String> iconMap, Service service) {
+            Service service) {
 
         TumblrUser model = new TumblrUser(service);
 
         model.setName(blog.getName());
+        model.setBlogTitle(blog.getTitle());
         model.setDescription(new AttributedString(blog.getDescription()));
 
         String host = getBlogIdentify(blog);
-        model.setIconImageUrl(iconMap.get(host));
+        model.setIconImageUrl(getAvatarUrl(host, S512));
         model.setScreenName(host);
         model.setId(host);
 
@@ -77,14 +85,14 @@ public class TumblrMapper {
      * (そのブログの投稿に紐づくユーザーと設定)
      */
     public static User user(
-            com.tumblr.jumblr.types.Post post,
-            Map<String, String> iconMap, Service service) {
+            com.tumblr.jumblr.types.Post post, //
+            Map<String, Trail> trails, //
+            Service service) {
 
-        User model = user(post.getBlog(), iconMap, service);
-        List<Trail> trails = post.getTrail();
-        if ((trails != null) && (trails.size() > 0)) {
+        User model = user(post.getBlog(), service);
 
-            Trail trail = trails.get(0);
+        if (trails.containsKey(post.getBlog().getName())) {
+            Trail trail = trails.get(post.getBlog().getName());
             model.setCoverImageUrl(trail.getBlog().getTheme().getHeaderImage());
         }
 
@@ -92,21 +100,94 @@ public class TumblrMapper {
     }
 
     /**
+     * ユーザーマッピング
+     * (そのブログの投稿に紐づくユーザーと設定)
+     */
+    public static User reblogUser(
+            com.tumblr.jumblr.types.Post post, //
+            Map<String, Trail> trails, //
+            Service service) {
+
+        TumblrUser model = new TumblrUser(service);
+
+        String host = getUrlHost(post.getRebloggedRootUrl());
+        model.setIconImageUrl(getAvatarUrl(host, S512));
+        model.setScreenName(host);
+        model.setId(host);
+
+        String name = post.getRebloggedRootName();
+
+        if (trails.containsKey(name)) {
+            Trail trail = trails.get(name);
+            model.setCoverImageUrl(trail.getBlog().getTheme().getHeaderImage());
+        }
+
+        return model;
+    }
+
+    // ============================================================== //
+    // Comment
+    // ============================================================== //
+
+    /**
      * コメントマッピング
      */
     public static Comment comment(
             com.tumblr.jumblr.types.Post post, //
-            Map<String, String> iconMap, //
+            Map<String, Trail> trails, //
             Service service) {
 
         TumblrComment model = new TumblrComment(service);
+        model.setCreateAt(new Date(post.getTimestamp() * 1000));
+        model.setReblogKey(post.getReblogKey());
 
         model.setId(post.getId());
-        model.setUser(user(post, iconMap, service));
+        model.setUser(user(post, trails, service));
 
-        model.setReblogKey(post.getReblogKey());
-        model.setText(new AttributedString(post.getSummary()));
+        // リブログ情報を設定
+        if (post.getRebloggedRootId() != null) {
+            model.setSharedComment(reblogComment(post, trails, service));
+            model.setMedias(new ArrayList<>());
+
+        } else {
+
+            // コンテンツを格納
+            setMedia(model, post);
+        }
+
+        return model;
+    }
+
+    /**
+     * コメントマッピング
+     * (Handle as shared post)
+     */
+    public static Comment reblogComment(
+            com.tumblr.jumblr.types.Post post, //
+            Map<String, Trail> trails, //
+            Service service) {
+
+        TumblrComment model = new TumblrComment(service);
         model.setCreateAt(new Date(post.getTimestamp() * 1000));
+        model.setReblogKey(post.getReblogKey());
+
+        model.setId(post.getRebloggedRootId());
+        model.setUser(reblogUser(post, trails, service));
+        setMedia(model, post);
+
+
+        return model;
+    }
+
+    // ============================================================== //
+    // Medias
+    // ============================================================== //
+
+    public static void setMedia(
+            TumblrComment model, //
+            com.tumblr.jumblr.types.Post post) {
+
+        model.setText(new AttributedString(post.getSummary()));
         model.setMedias(new ArrayList<>());
 
         if (post instanceof PhotoPost) {
@@ -117,9 +198,8 @@ public class TumblrMapper {
         if (post instanceof VideoPost) {
             model.getMedias().add(video((VideoPost) post));
         }
-
-        return model;
     }
+
 
     /**
      * 画像マッピング
@@ -153,6 +233,10 @@ public class TumblrMapper {
         return media;
     }
 
+    // ============================================================== //
+    // Reactions
+    // ============================================================== //
+
     /**
      * リアクション候補マッピング
      */
@@ -174,19 +258,24 @@ public class TumblrMapper {
         return candidates;
     }
 
+
+    // ============================================================== //
+    // Timelines
+    // ============================================================== //
+
     /**
      * タイムラインマッピング
      */
     public static Pageable<Comment> timeLine(
             List<com.tumblr.jumblr.types.Post> posts, //
-            Map<String, String> iconMap, //
             Service service, //
             Paging paging) {
 
-
         Pageable<Comment> model = new Pageable<>();
+        Map<String, Trail> trails = getTrailMap(posts);
+
         model.setEntities(posts.stream() //
-                .map(e -> comment(e, iconMap, service)) //
+                .map(e -> comment(e, trails, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(Collectors.toList()));
 
@@ -194,21 +283,21 @@ public class TumblrMapper {
         return model;
     }
 
-
+    // ============================================================== //
+    // UserList
+    // ============================================================== //
 
     /**
      * ユーザーマッピング
      */
     public static Pageable<User> users(
             List<com.tumblr.jumblr.types.User> users, //
-            Map<String, String> iconMap, //
             Service service, //
             Paging paging) {
 
-
         Pageable<User> model = new Pageable<>();
         model.setEntities(users.stream() //
-                .map(e -> user(e, iconMap, service)) //
+                .map(e -> user(e, service)) //
                 .collect(Collectors.toList()));
 
         model.setPaging(MapperUtil.mappingTumblrPaging(paging));
@@ -221,19 +310,22 @@ public class TumblrMapper {
      */
     public static Pageable<User> usersByBlogs(
             List<com.tumblr.jumblr.types.Blog> blogs, //
-            Map<String, String> iconMap, //
             Service service, //
             Paging paging) {
 
 
         Pageable<User> model = new Pageable<>();
         model.setEntities(blogs.stream() //
-                .map(e -> user(e, iconMap, service)) //
+                .map(e -> user(e, service)) //
                 .collect(Collectors.toList()));
 
         model.setPaging(MapperUtil.mappingTumblrPaging(paging));
         return model;
     }
+
+    // ============================================================== //
+    // Supports
+    // ============================================================== //
 
     /**
      * ホスト名を取得 (プライマリを取得)
@@ -253,13 +345,54 @@ public class TumblrMapper {
      * Get blog host from url
      */
     public static String getBlogIdentify(Blog blog) {
-        try {
-            URL url = new URL(blog.getUrl());
-            return url.getHost();
+        return getUrlHost(blog.getUrl());
+    }
 
+    /**
+     * ホスト名を取得
+     * Get host from url
+     */
+    public static String getUrlHost(String url) {
+        try {
+            return new URL(url).getHost();
         } catch (Exception ignore) {
             return null;
         }
+    }
+
+    /**
+     * ユーザーの画面マップを取得
+     * Get Trail Map
+     */
+    public static Map<String, Trail> getTrailMap(
+            List<com.tumblr.jumblr.types.Post> posts) {
+
+        List<Trail> trails = posts.stream() //
+                .flatMap(e -> e.getTrail().stream()) //
+                .collect(Collectors.toList());
+
+        Map<String, Trail> results = new HashMap<>();
+        for (Trail trail : trails) {
+            results.put(trail.getBlog().getName(), trail);
+        }
+        return results;
+    }
+
+    /**
+     * ユーザー情報のマージ処理
+     */
+    public static void margeUser(User to, User from) {
+        if ((to != null) && (from != null)) {
+            to.setCoverImageUrl(from.getCoverImageUrl());
+        }
+    }
+
+    /**
+     * アバター画像を取得
+     * Get avatar url
+     */
+    public static String getAvatarUrl(String host, TumblrIconSize size) {
+        return "https://api.tumblr.com/v2/blog/" + host + "/avatar/" + size.getSize();
     }
 
 }

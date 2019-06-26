@@ -50,7 +50,6 @@ public class GetUserMeTest extends AbstractApiTest {
         User user = account.action().getUserMe();
         System.out.println(user.getName());
         System.out.println(user.getCoverImageUrl());
-
     }
 
     @Test

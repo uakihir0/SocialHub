@@ -18,8 +18,11 @@ public class TumblrUser extends User {
     /** Count of likes */
     private Integer likesCount;
 
-    /** blogUrl */
+    /** Blog Url */
     private String blogUrl;
+
+    /** Blog Title */
+    private String blogTitle;
 
     //region // Getter&Setter
     public Integer getFollowersCount() {
@@ -52,6 +55,14 @@ public class TumblrUser extends User {
 
     public void setBlogUrl(String blogUrl) {
         this.blogUrl = blogUrl;
+    }
+
+    public String getBlogTitle() {
+        return blogTitle;
+    }
+
+    public void setBlogTitle(String blogTitle) {
+        this.blogTitle = blogTitle;
     }
     //endregion
 }

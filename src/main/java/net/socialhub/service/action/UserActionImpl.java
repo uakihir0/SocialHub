@@ -20,6 +20,14 @@ public class UserActionImpl implements UserAction {
      * {@inheritDoc}
      */
     @Override
+    public User refresh() {
+        return action.getUser(user);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void followUser() {
         action.followUser(user);
     }

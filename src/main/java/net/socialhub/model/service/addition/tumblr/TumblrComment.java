@@ -16,6 +16,12 @@ public class TumblrComment extends Comment {
     // Reblog Key
     private String reblogKey;
 
+    @Override
+    public Comment getDisplayComment() {
+        return (getSharedComment() != null) //
+                ? this.getSharedComment() : this;
+    }
+
     //region // Getter&Setter
     public String getReblogKey() {
         return reblogKey;

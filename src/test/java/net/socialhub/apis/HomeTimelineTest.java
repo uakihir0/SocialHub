@@ -144,7 +144,6 @@ public class HomeTimelineTest extends AbstractApiTest {
             System.out.println(c.getId());
             System.out.println(c.getCreateAt());
 
-
             Comment dc = c.getDisplayComment();
             System.out.println("T> " + dc.getText());
 

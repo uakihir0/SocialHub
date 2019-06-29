@@ -1,58 +1,50 @@
 package net.socialhub.service.action;
 
-import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Service;
 
 public interface CommentAction {
+
+    /**
+     * Get Comment
+     * コメントを再度取得
+     */
+    Comment refresh();
 
     /**
      * Add Reaction
      * リアクションをする
      */
-    default void reaction(String action) {
-        throw new NotImplimentedException();
-    }
+    void reaction(String action);
 
     /**
      * Remove Reaction
      * リアクションをする
      */
-    default void unreaction(String action) {
-        throw new NotImplimentedException();
-    }
+    void unreaction(String action);
 
     /**
      * Like Comment
      * コメントをいいねする
      */
-    default void like() {
-        throw new NotImplimentedException();
-    }
+    void like();
 
     /**
      * UnLike Comment
      * コメントのいいねを消す
      */
-    default void unlike() {
-        throw new NotImplimentedException();
-    }
+    void unlike();
 
     /**
      * Share Comment
      * コメントをシェアする
      */
-    default void share() {
-        throw new NotImplimentedException();
-    }
+    void share();
 
     /**
      * Unshare Comment
      * コメントのシェアを取り消す
      */
-    default void unshare() {
-        throw new NotImplimentedException();
-    }
+    void unshare();
 
     // ============================================================== //
     // Alias

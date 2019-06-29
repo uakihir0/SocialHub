@@ -9,7 +9,5 @@ public interface RequestGroupAction {
      * Get Comments
      * コメントを取得
      */
-    default CommentGroup getComments() {
-        throw new NotImplimentedException();
-    }
+    CommentGroup getComments();
 }

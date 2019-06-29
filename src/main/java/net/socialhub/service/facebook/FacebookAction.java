@@ -95,7 +95,7 @@ public class FacebookAction extends AccountActionImpl {
         logger.debug(e.getMessage(), e);
     }
 
-    //<editor-fold desc="// Getter&Setter">
+    //region // Getter&Setter
     FacebookAction(Account account, ServiceAuth<Facebook> auth) {
         this.account(account);
         this.auth(auth);
@@ -105,5 +105,5 @@ public class FacebookAction extends AccountActionImpl {
         this.auth = auth;
         return this;
     }
-    //</editor-fold>
+    //endregion
 }

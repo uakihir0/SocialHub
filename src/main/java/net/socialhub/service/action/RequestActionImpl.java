@@ -23,6 +23,9 @@ public class RequestActionImpl implements RequestAction {
         this.args = args;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<Comment> getComments(Paging paging) {
 

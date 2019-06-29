@@ -1,54 +1,48 @@
 package net.socialhub.service.action;
 
-import net.socialhub.model.error.NotImplimentedException;
+import net.socialhub.model.service.User;
 
 public interface UserAction {
+
+    /**
+     * Get Account
+     * アカウントを再度取得
+     */
+    User refresh();
 
     /**
      * Follow User
      * アカウントをフォロー
      */
-    default void followUser() {
-        throw new IllegalStateException();
-    }
+    void followUser();
 
     /**
      * UnFollow User
      * アカウントをアンフォロー
      */
-    default void unfollowUser() {
-        throw new IllegalStateException();
-    }
+    void unfollowUser();
 
     /**
      * Mute User
      * ユーザーをミュート
      */
-    default void muteUser() {
-        throw new NotImplimentedException();
-    }
+    void muteUser();
 
     /**
      * UnMute User
      * ユーザーをミュート解除
      */
-    default void unmuteUser() {
-        throw new NotImplimentedException();
-    }
+    void unmuteUser();
 
     /**
      * Block User
      * ユーザーをブロック
      */
-    default void blockUser() {
-        throw new NotImplimentedException();
-    }
+    void blockUser();
 
     /**
      * UnBlock User
      * ユーザーをブロック解除
      */
-    default void unblockUser() {
-        throw new NotImplimentedException();
-    }
+    void unblockUser();
 }

@@ -8,25 +8,25 @@ import java.util.List;
 /**
  * Paging with cursor
  * カーソル付きページング
- * (Slack)
+ * (Twitter, Slack)
  */
-public class CursorPaging extends Paging {
+public class CursorPaging<Type> extends Paging {
 
     /** prev cursor */
-    private String prevCursor;
+    private Type prevCursor;
 
     /** current cursor */
-    private String currentCursor;
+    private Type currentCursor;
 
     /** next cursor */
-    private String nextCursor;
+    private Type nextCursor;
 
     /**
      * {@inheritDoc}
      */
     @Override
     public <T extends Identify> Paging newPage(List<T> entities) {
-        CursorPaging newPage = new CursorPaging();
+        CursorPaging<Type> newPage = new CursorPaging<>();
 
         if (prevCursor != null) {
             newPage.setCurrentCursor(prevCursor);
@@ -42,7 +42,7 @@ public class CursorPaging extends Paging {
      */
     @Override
     public <T extends Identify> Paging pastPage(List<T> entities) {
-        CursorPaging pastPage = new CursorPaging();
+        CursorPaging<Type> pastPage = new CursorPaging<>();
 
         if (nextCursor != null) {
             pastPage.setCurrentCursor(nextCursor);
@@ -53,28 +53,41 @@ public class CursorPaging extends Paging {
         return pastPage;
     }
 
+    /**
+     * オプジェクトコピー
+     */
+    public CursorPaging<Type> copy() {
+        CursorPaging<Type> pg = new CursorPaging<>();
+        pg.setCurrentCursor(getCurrentCursor());
+        pg.setNextCursor(getNextCursor());
+        pg.setPrevCursor(getPrevCursor());
+        pg.setCount(getCount());
+        pg.setHasMore(getHasMore());
+        return pg;
+    }
+
     //region // Getter&Setter
-    public String getCurrentCursor() {
+    public Type getCurrentCursor() {
         return currentCursor;
     }
 
-    public void setCurrentCursor(String currentCursor) {
+    public void setCurrentCursor(Type currentCursor) {
         this.currentCursor = currentCursor;
     }
 
-    public String getPrevCursor() {
+    public Type getPrevCursor() {
         return prevCursor;
     }
 
-    public void setPrevCursor(String prevCursor) {
+    public void setPrevCursor(Type prevCursor) {
         this.prevCursor = prevCursor;
     }
 
-    public String getNextCursor() {
+    public Type getNextCursor() {
         return nextCursor;
     }
 
-    public void setNextCursor(String nextCursor) {
+    public void setNextCursor(Type nextCursor) {
         this.nextCursor = nextCursor;
     }
     //endregion

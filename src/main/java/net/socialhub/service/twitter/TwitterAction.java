@@ -4,10 +4,11 @@ import net.socialhub.define.MediaType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.service.*;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
+import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
@@ -143,7 +144,6 @@ public class TwitterAction extends AccountActionImpl {
         });
     }
 
-
     /**
      * {@inheritDoc}
      */
@@ -156,6 +156,71 @@ public class TwitterAction extends AccountActionImpl {
             return TwitterMapper.relationship(friendships.get(0));
         });
     }
+
+    // ============================================================== //
+    // Users
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<User> getFollowingUsers(Identify id, Paging paging) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+
+            long cursor = -1;
+            int count = 20;
+            if (paging != null) {
+                if (paging.getCount() != null) {
+                    count = paging.getCount().intValue();
+                }
+                if (paging instanceof CursorPaging) {
+                    CursorPaging cpg = (CursorPaging) paging;
+                    if (cpg.getCurrentCursor() instanceof Long) {
+                        cursor = (long) cpg.getCurrentCursor();
+                    }
+                }
+            }
+
+            PagableResponseList<twitter4j.User> users = auth.getAccessor() //
+                    .getFriendsList((Long) id.getId(), cursor, count);
+
+            service.getRateLimit().addInfo(GetFollowingUsers, users);
+            return TwitterMapper.users(users, service, paging);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<User> getFollowerUsers(Identify id, Paging paging) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+
+            long cursor = -1;
+            int count = 20;
+            if (paging != null) {
+                if (paging.getCount() != null) {
+                    count = paging.getCount().intValue();
+                }
+                if (paging instanceof CursorPaging) {
+                    CursorPaging cpg = (CursorPaging) paging;
+                    if (cpg.getCurrentCursor() instanceof Long) {
+                        cursor = (long) cpg.getCurrentCursor();
+                    }
+                }
+            }
+
+            PagableResponseList<twitter4j.User> users = auth.getAccessor() //
+                    .getFollowersList((Long) id.getId(), cursor, count);
+
+            service.getRateLimit().addInfo(GetFollowerUsers, users);
+            return TwitterMapper.users(users, service, paging);
+        });
+    }
+
     // ============================================================== //
     // TimeLine
     // ============================================================== //

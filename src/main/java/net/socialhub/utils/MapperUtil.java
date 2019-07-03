@@ -4,6 +4,7 @@ import net.socialhub.define.ServiceType;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.addition.tumblr.TumblrPaging;
 import net.socialhub.model.service.paging.BorderPaging;
+import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.paging.DatePaging;
 import net.socialhub.model.service.paging.IndexPaging;
 
@@ -87,6 +88,19 @@ public class MapperUtil {
             pg.setCount(paging.getCount());
         }
 
+        return pg;
+    }
+
+    /**
+     * CursorPaging の作成
+     */
+    public static <T> CursorPaging<T> mappingCursorPaging(Paging paging) {
+
+        // Count の取得
+        CursorPaging<T> pg = new CursorPaging<>();
+        if ((paging != null) && (paging.getCount() != null)) {
+            pg.setCount(paging.getCount());
+        }
         return pg;
     }
 }

@@ -1,5 +1,6 @@
 package net.socialhub.service.action;
 
+import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.User;
 
 public class UserActionImpl implements UserAction {
@@ -70,6 +71,14 @@ public class UserActionImpl implements UserAction {
     @Override
     public void unblockUser() {
         action.unmuteUser(user);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Relationship getRelationship() {
+        return action.getRelationship(user);
     }
 }
 

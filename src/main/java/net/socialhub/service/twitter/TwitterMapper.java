@@ -15,6 +15,7 @@ import net.socialhub.model.service.addition.MiniBlogComment;
 import net.socialhub.model.service.addition.twitter.TwitterMedia;
 import net.socialhub.model.service.addition.twitter.TwitterUser;
 import net.socialhub.model.service.paging.BorderPaging;
+import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.utils.MapperUtil;
@@ -369,6 +370,25 @@ public class TwitterMapper {
                 .collect(Collectors.toList()));
 
         model.setPaging(MapperUtil.mappingBorderPaging(paging, Twitter));
+        return model;
+    }
+
+    /**
+     * ユーザーマッピング
+     */
+    public static Pageable<User> users(
+            PagableResponseList<twitter4j.User> users, //
+            Service service, //
+            Paging paging) {
+
+        Pageable<User> model = new Pageable<>();
+        model.setEntities(users.stream().map(e -> user(e, service)) //
+                .collect(Collectors.toList()));
+
+        CursorPaging<Long> pg = MapperUtil.mappingCursorPaging(paging);
+        pg.setPrevCursor(users.getPreviousCursor());
+        pg.setNextCursor(users.getNextCursor());
+        model.setPaging(pg);
         return model;
     }
 

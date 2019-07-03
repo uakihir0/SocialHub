@@ -81,7 +81,6 @@ public interface AccountAction {
         throw new NotImplimentedException();
     }
 
-
     /**
      * Get relationship
      * 認証アカウントとの関係を取得

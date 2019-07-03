@@ -1,5 +1,6 @@
 package net.socialhub.service.action;
 
+import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.User;
 
 public interface UserAction {
@@ -45,4 +46,10 @@ public interface UserAction {
      * ユーザーをブロック解除
      */
     void unblockUser();
+
+    /**
+     * Get relationship
+     * 認証アカウントとの関係を取得
+     */
+    Relationship getRelationship();
 }

@@ -377,6 +377,23 @@ public class TwitterAction extends AccountActionImpl {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getSearchTimeLine(String query, Paging paging) {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            Query q = TwitterMapper.queryFromPaging(paging).query(query);
+            QueryResult result = twitter.search(q);
+
+            service.getRateLimit().addInfo(SearchTimeLine, result);
+            return TwitterMapper.timeLine(result, service, paging);
+        });
+    }
+
     // ============================================================== //
     // Comment
     // ============================================================== //

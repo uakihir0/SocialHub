@@ -77,6 +77,11 @@ public class TumblrMapper {
         model.setLikesCount(blog.getLikeCount());
         model.setBlogUrl(blog.getUrl());
 
+        Relationship relationship = new Relationship();
+        relationship.setFollowing((blog.getFollowed() == Boolean.TRUE));
+        relationship.setBlocking((blog.getIsBlockedFromPrimary() == Boolean.TRUE));
+        model.setRelationship(relationship);
+
         return model;
     }
 

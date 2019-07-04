@@ -11,6 +11,7 @@ import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.tumblr.TumblrComment;
 import net.socialhub.model.service.addition.tumblr.TumblrPaging;
+import net.socialhub.model.service.addition.tumblr.TumblrUser;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.model.service.support.TupleIdentify;
 import net.socialhub.service.ServiceAuth;
@@ -107,6 +108,29 @@ public class TumblrAction extends AccountActionImpl {
         });
     }
 
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Relationship getRelationship(Identify id) {
+        return proceed(() -> {
+
+            // オブジェクトに格納済みなので返却
+            if (id instanceof TumblrUser) {
+                return ((TumblrUser) id).getRelationship();
+            }
+
+            // ユーザーの一部なのでそれを返却
+            User user = getUser(id);
+            if (user instanceof TumblrUser) {
+                return ((TumblrUser) user).getRelationship();
+            }
+
+            throw new IllegalStateException();
+        });
+    }
+
     // ============================================================== //
     // User
     // ============================================================== //
@@ -123,7 +147,6 @@ public class TumblrAction extends AccountActionImpl {
 
             Map<String, Object> params = getPagingParams(paging);
             List<Blog> blogs = auth.getAccessor().userFollowing(params);
-
 
             return TumblrMapper.usersByBlogs(blogs, service, paging);
         });
@@ -198,6 +221,20 @@ public class TumblrAction extends AccountActionImpl {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getSearchTimeLine(String query, Paging paging) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Map<String, Object> params = getPagingParams(paging);
+
+            List<Post> posts = auth.getAccessor().tagged(query, params);
+
+            return TumblrMapper.timeLine(posts, service, paging);
+        });
+    }
 
     // ============================================================== //
     // Comment

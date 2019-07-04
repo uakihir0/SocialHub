@@ -1,5 +1,6 @@
 package net.socialhub.model.service.addition.tumblr;
 
+import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
 
@@ -23,6 +24,12 @@ public class TumblrUser extends User {
 
     /** Blog Title */
     private String blogTitle;
+
+    /**
+     * Relationship
+     * (Only following and blocked)
+     */
+    private Relationship relationship;
 
     //region // Getter&Setter
     public Integer getFollowersCount() {
@@ -63,6 +70,14 @@ public class TumblrUser extends User {
 
     public void setBlogTitle(String blogTitle) {
         this.blogTitle = blogTitle;
+    }
+
+    public Relationship getRelationship() {
+        return relationship;
+    }
+
+    public void setRelationship(Relationship relationship) {
+        this.relationship = relationship;
     }
     //endregion
 }

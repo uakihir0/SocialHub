@@ -1,8 +1,10 @@
 package net.socialhub.service.mastodon;
 
 import mastodon4j.Mastodon;
+import mastodon4j.Page;
 import mastodon4j.Range;
 import mastodon4j.entity.Notification;
+import mastodon4j.entity.Results;
 import mastodon4j.entity.Status;
 import mastodon4j.entity.share.Response;
 import net.socialhub.define.service.mastodon.MastodonNotificationType;
@@ -10,9 +12,9 @@ import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.paging.BorderPaging;
+import net.socialhub.model.service.paging.OffsetPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
@@ -320,6 +322,23 @@ public class MastodonAction extends AccountActionImpl {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getSearchTimeLine(String query, Paging paging) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Page page = getPage(paging);
+
+            Response<Results> results = mastodon.search().search(query, false, false, page);
+
+            service.getRateLimit().addInfo(SearchTimeLine, results);
+            return MastodonMapper.timeLine(results.get().getStatuses(), service, paging);
+        });
+    }
+
     // ============================================================== //
     // Comment
     // ============================================================== //
@@ -471,6 +490,24 @@ public class MastodonAction extends AccountActionImpl {
             }
         }
         return range;
+    }
+
+    private static Page getPage(Paging paging) {
+        if (paging == null) {
+            return null;
+        }
+
+        Page pg = new Page();
+        pg.setLimit(paging.getCount());
+
+        if (paging instanceof OffsetPaging) {
+            OffsetPaging offset = (OffsetPaging) paging;
+
+            if (offset.getOffset() != null) {
+                pg.setOffset(offset.getOffset());
+            }
+        }
+        return pg;
     }
 
     // ============================================================== //

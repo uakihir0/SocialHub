@@ -155,6 +155,14 @@ public interface AccountAction {
         throw new NotImplimentedException();
     }
 
+    /**
+     * Get Search TimeLine
+     * 検索タイムラインを取得
+     */
+    default Pageable<Comment> getSearchTimeLine(String query, Paging paging) {
+        throw new NotImplimentedException();
+    }
+
     // ============================================================== //
     // Comment API
     // コメント関連 API

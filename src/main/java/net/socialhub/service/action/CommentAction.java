@@ -1,6 +1,7 @@
 package net.socialhub.service.action;
 
 import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
 
 public interface CommentAction {
 
@@ -45,6 +46,12 @@ public interface CommentAction {
      * コメントのシェアを取り消す
      */
     void unshare();
+
+    /**
+     * Get Comment Context
+     * 前後のコメントを取得する
+     */
+    Context getCommentContext();
 
     // ============================================================== //
     // Alias

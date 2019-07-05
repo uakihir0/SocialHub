@@ -8,14 +8,20 @@ import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.*;
+import net.socialhub.model.service.addition.MiniBlogComment;
 import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+import net.socialhub.utils.SnowflakeUtil;
 import twitter4j.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import static net.socialhub.define.action.OtherActionType.*;
 import static net.socialhub.define.action.TimeLineActionType.*;
@@ -325,7 +331,6 @@ public class TwitterAction extends AccountActionImpl {
         });
     }
 
-
     /**
      * {@inheritDoc}
      */
@@ -347,7 +352,6 @@ public class TwitterAction extends AccountActionImpl {
             Paging storedCursor = paging;
             Paging currentCursor = paging;
             List<Comment> comments = new ArrayList<>();
-
 
             // 順にリクエストする必要があるのでループを実行
             while ((requestCount < 10) && (comments.size() <= maxMediaCount)) {
@@ -518,28 +522,125 @@ public class TwitterAction extends AccountActionImpl {
         return TwitterMapper.reactionCandidates();
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Context getCommentContext(Identify id) {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Service service = getAccount().getService();
+            ExecutorService pool = Executors.newCachedThreadPool();
+
+            Context context = new Context();
+            context.setAncestors(new ArrayList<>());
+            context.setDescendants(new ArrayList<>());
+            MiniBlogComment comment = toMiniBlogComment(id);
+
+            Future<?> ancestors = null;
+            Future<?> descendants;
+
+            // 前の会話内容を取得
+            if (comment.getReplyTo() != null) {
+                ancestors = pool.submit(() -> {
+                    proceed(() -> {
+                        Long replyId = (Long) comment.getReplyTo().getId();
+
+                        for (int i = 0; i < 10; i++) {
+                            Status status = twitter.showStatus(replyId);
+                            Comment c = TwitterMapper.comment(status, service);
+                            context.getAncestors().add(0, c);
+
+                            if (status.getInReplyToStatusId() > 0) {
+                                replyId = status.getInReplyToStatusId();
+                                continue;
+                            }
+                            return;
+                        }
+                    });
+                });
+            }
+
+            // 後の会話情報を取得
+            descendants = pool.submit(() -> {
+                proceed(() -> {
+
+                    // クエリを組み上げる処理
+                    User user = comment.getUser();
+                    String mention = "@" + user.getScreenName();
+
+                    // ツイート後の二時間を対象に取得
+                    Long sinceId = (Long) id.getId();
+                    Long maxId = SnowflakeUtil.ofTwitter().addHoursToID(sinceId, 2L);
+
+                    Query query = new Query();
+                    query.setSinceId(sinceId);
+                    query.setMaxId(maxId);
+                    query.setQuery(mention + " -RT");
+                    query.setCount(200);
+
+                    QueryResult result = twitter.search(query);
+                    context.getDescendants().addAll(result.getTweets().stream() //
+                            .filter((c) -> c.getInReplyToStatusId() == ((long) id.getId())) //
+                            .map((c) -> TwitterMapper.comment(c, service)) //
+                            .collect(Collectors.toList()));
+                });
+            });
+
+            descendants.get();
+            if (ancestors != null) {
+                ancestors.get();
+            }
+
+            return context;
+        });
+    }
+
+    // ============================================================== //
+    // Support
+    // ============================================================== //
+
+    /**
+     * ID を MiniBlogComment に変換
+     */
+    private MiniBlogComment toMiniBlogComment(Identify id) {
+
+        // コメント情報を取得
+        if (id instanceof MiniBlogComment) {
+            return (MiniBlogComment) id;
+        } else {
+            Comment c = getComment(id);
+            if (c instanceof MiniBlogComment) {
+                return (MiniBlogComment) c;
+            }
+        }
+
+        throw new IllegalStateException();
+    }
+
     // ============================================================== //
     // Utils
     // ============================================================== //
 
-    private <T> T proceed(ActionCaller<T, TwitterException> runner) {
+    // FIXME: TwitterException
+    private <T> T proceed(ActionCaller<T, Exception> runner) {
         try {
             return runner.proceed();
-        } catch (TwitterException e) {
+        } catch (Exception e) {
             handleTwitterException(e);
             return null;
         }
     }
 
-    private void proceed(ActionRunner<TwitterException> runner) {
+    private void proceed(ActionRunner<Exception> runner) {
         try {
             runner.proceed();
-        } catch (TwitterException e) {
+        } catch (Exception e) {
             handleTwitterException(e);
         }
     }
 
-    private static void handleTwitterException(TwitterException e) {
+    private static void handleTwitterException(Exception e) {
         System.out.println(e.getMessage());
     }
 

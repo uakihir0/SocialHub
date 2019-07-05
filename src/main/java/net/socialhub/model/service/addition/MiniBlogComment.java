@@ -1,6 +1,7 @@
 package net.socialhub.model.service.addition;
 
 import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Reaction;
 import net.socialhub.model.service.Service;
 
@@ -17,6 +18,9 @@ public class MiniBlogComment extends Comment {
 
     /** Share count (Alias with ReTweet) */
     private Long shareCount;
+
+    /** Reply To ID */
+    private Identify replyTo;
 
     public MiniBlogComment(Service service) {
         super(service);
@@ -60,6 +64,14 @@ public class MiniBlogComment extends Comment {
 
     public void setShareCount(Long shareCount) {
         this.shareCount = shareCount;
+    }
+
+    public Identify getReplyTo() {
+        return replyTo;
+    }
+
+    public void setReplyTo(Identify replyTo) {
+        this.replyTo = replyTo;
     }
     //endregion
 }

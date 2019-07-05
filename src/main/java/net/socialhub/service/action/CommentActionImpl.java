@@ -1,6 +1,7 @@
 package net.socialhub.service.action;
 
 import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
 
 public class CommentActionImpl implements CommentAction {
 
@@ -70,5 +71,13 @@ public class CommentActionImpl implements CommentAction {
     @Override
     public void unshare() {
         action.unshare(comment);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Context getCommentContext() {
+        return action.getCommentContext(comment);
     }
 }

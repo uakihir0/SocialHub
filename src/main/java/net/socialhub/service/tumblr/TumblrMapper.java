@@ -116,11 +116,12 @@ public class TumblrMapper {
         TumblrUser model = new TumblrUser(service);
 
         String host = getUrlHost(post.getRebloggedRootUrl());
+        String name = post.getRebloggedRootName();
+
         model.setIconImageUrl(getAvatarUrl(host, S512));
         model.setScreenName(host);
+        model.setName(name);
         model.setId(host);
-
-        String name = post.getRebloggedRootName();
 
         if (trails.containsKey(name)) {
             Trail trail = trails.get(name);

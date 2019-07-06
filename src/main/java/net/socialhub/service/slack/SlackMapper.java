@@ -130,6 +130,8 @@ public final class SlackMapper {
         SlackComment model = new SlackComment(service);
 
         model.setId(message.getTs());
+        model.setThreadId(message.getThreadTs());
+
         model.setText(new AttributedString(message.getText()));
         model.setCreateAt(getDateFromTimeStamp(message.getTs()));
         model.setUser(user);

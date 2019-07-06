@@ -14,6 +14,8 @@ public class SlackComment extends Comment {
 
     private String channel;
 
+    private String threadId;
+
     private List<Reaction> reactions;
 
     public SlackComment(Service service) {
@@ -42,6 +44,14 @@ public class SlackComment extends Comment {
 
     public void setChannel(String channel) {
         this.channel = channel;
+    }
+
+    public String getThreadId() {
+        return threadId;
+    }
+
+    public void setThreadId(String threadId) {
+        this.threadId = threadId;
     }
     //endregion
 }

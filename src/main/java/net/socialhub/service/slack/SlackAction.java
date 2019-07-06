@@ -3,6 +3,7 @@ package net.socialhub.service.slack;
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsHistoryRequest;
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsHistoryRequest.ChannelsHistoryRequestBuilder;
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsListRequest;
+import com.github.seratch.jslack.api.methods.request.channels.ChannelsRepliesRequest;
 import com.github.seratch.jslack.api.methods.request.emoji.EmojiListRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsAddRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsRemoveRequest;
@@ -11,6 +12,7 @@ import com.github.seratch.jslack.api.methods.request.users.UsersIdentityRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersInfoRequest;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsHistoryResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
+import com.github.seratch.jslack.api.methods.response.channels.ChannelsRepliesResponse;
 import com.github.seratch.jslack.api.methods.response.emoji.EmojiListResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsAddResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsRemoveResponse;
@@ -173,6 +175,76 @@ public class SlackAction extends AccountActionImpl {
 
             this.reactionCandidate = SlackMapper.reactionCandidates(response);
             return this.reactionCandidate;
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Context getCommentContext(Identify id) {
+        return proceed(() -> {
+            ExecutorService pool = Executors.newCachedThreadPool();
+
+            // ------------------------------------------------ //
+            // Async Request
+            // ------------------------------------------------ //
+
+            Future<ChannelsRepliesResponse> responseFuture = pool.submit(() -> {
+
+                // スレッドID を取得する (SlackComment であることを期待)
+                String threadId = (id instanceof SlackComment) ? //
+                        ((SlackComment) id).getThreadId() : (String) id.getId();
+
+                return auth.getAccessor().getSlack() //
+                        .methods().channelsReplies(ChannelsRepliesRequest.builder() //
+                                .token(auth.getAccessor().getToken()) //
+                                .channel(getChannelId(id)) //
+                                .threadTs(threadId) //
+                                .build());
+            });
+
+            Future<List<ReactionCandidate>> candidatesFuture = //
+                    pool.submit(this::getReactionCandidates);
+
+            // ------------------------------------------------ //
+            // Await Request
+            // ------------------------------------------------ //
+
+            ChannelsRepliesResponse response = responseFuture.get();
+            List<ReactionCandidate> candidates = candidatesFuture.get();
+
+            // ------------------------------------------------ //
+            // Get User Instances
+            // ------------------------------------------------ //
+
+            Service service = getAccount().getService();
+            List<String> users = response.getMessages().stream() //
+                    .map(Message::getUser).filter(Objects::nonNull) //
+                    .distinct().collect(Collectors.toList());
+
+            Map<String, User> userMap = users.parallelStream() //
+                    .collect(Collectors.toMap(Function.identity(), //
+                            (i) -> getUserWithCache(new Identify(service, i))));
+
+
+            Context context = new Context();
+            context.setAncestors(new ArrayList<>());
+            context.setDescendants(new ArrayList<>());
+
+            boolean isProceededMine = false;
+            for (Message m : response.getMessages()) {
+                if (m.getTs().equals(id.getId())) {
+                    isProceededMine = true;
+                    continue;
+                }
+
+                User user = userMap.get(m.getUser());
+                Comment comment = SlackMapper.comment(m, user, candidates, getChannelId(id), service);
+                ((!isProceededMine) ? context.getAncestors() : context.getDescendants()).add(comment);
+            }
+
+            return context;
         });
     }
 

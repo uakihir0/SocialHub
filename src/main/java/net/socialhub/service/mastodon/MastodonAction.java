@@ -462,6 +462,31 @@ public class MastodonAction extends AccountActionImpl {
         return MastodonMapper.reactionCandidates();
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Context getCommentContext(Identify id) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            Response<mastodon4j.entity.Context> response =  //
+                    mastodon.getContext((Long) id.getId());
+
+            service.getRateLimit().addInfo(GetContext, response);
+
+            Context context = new Context();
+            context.setDescendants(Arrays.stream(response.get().getDescendants()) //
+                    .map(e -> MastodonMapper.comment(e, service)) //
+                    .collect(Collectors.toList()));
+            context.setAncestors(Arrays.stream(response.get().getAncestors())
+                    .map(e -> MastodonMapper.comment(e, service)) //
+                    .collect(Collectors.toList()));
+
+            return context;
+        });
+    }
     // ============================================================== //
     // Paging
     // ============================================================== //

@@ -4,6 +4,7 @@ public enum OtherActionType implements ActionType {
 
     // Get Comment
     GetComment,
+    GetContext,
 
     // Post Comment
     PostComment,

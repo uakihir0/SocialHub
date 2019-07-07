@@ -13,6 +13,9 @@ import java.io.Serializable;
  */
 public class Account implements Serializable {
 
+    /** Identify (not used by SocialHub) */
+    private String tag;
+
     private Service service;
 
     private AccountAction action;
@@ -32,6 +35,14 @@ public class Account implements Serializable {
 
     public void setAction(AccountAction action) {
         this.action = action;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
     }
     //endregion
 }

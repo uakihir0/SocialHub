@@ -34,6 +34,9 @@ public class TwitterAction extends AccountActionImpl {
 
     private ServiceAuth<Twitter> auth;
 
+    /** My Account */
+    private User me;
+
     // ============================================================== //
     // Account
     // ============================================================== //
@@ -48,7 +51,8 @@ public class TwitterAction extends AccountActionImpl {
             twitter4j.User user = auth.getAccessor().verifyCredentials();
             service.getRateLimit().addInfo(GetUserMe, user);
 
-            return TwitterMapper.user(user, service);
+            me = TwitterMapper.user(user, service);
+            return me;
         });
     }
 
@@ -157,9 +161,13 @@ public class TwitterAction extends AccountActionImpl {
     public Relationship getRelationship(Identify id) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            ResponseList<Friendship> friendships = auth.getAccessor().lookupFriendships((Long) id.getId());
-            service.getRateLimit().addInfo(GetRelationship, friendships);
-            return TwitterMapper.relationship(friendships.get(0));
+
+            User me = getUserMeWithCache();
+            twitter4j.Relationship relationship = auth.getAccessor() //
+                    .showFriendship((Long) me.getId(), (Long) id.getId());
+
+            service.getRateLimit().addInfo(GetRelationship, relationship);
+            return TwitterMapper.relationship(relationship);
         });
     }
 
@@ -616,6 +624,16 @@ public class TwitterAction extends AccountActionImpl {
         }
 
         throw new IllegalStateException();
+    }
+
+    /**
+     * キャッシュ付きで自分のユーザーを取得
+     */
+    private User getUserMeWithCache() {
+        if (me == null) {
+            me = getUserMe();
+        }
+        return me;
     }
 
     // ============================================================== //

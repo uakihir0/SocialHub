@@ -229,6 +229,18 @@ public class TwitterMapper {
     }
 
     /**
+     * ユーザー関係
+     */
+    public static Relationship relationship(
+            twitter4j.Relationship relationship) {
+
+        Relationship model = new Relationship();
+        model.setFollowed(relationship.isSourceFollowedByTarget());
+        model.setFollowing(relationship.isSourceFollowingTarget());
+        return model;
+    }
+
+    /**
      * アプリケーションマッピング
      */
     public static Application application(

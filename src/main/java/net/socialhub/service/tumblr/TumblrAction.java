@@ -108,6 +108,25 @@ public class TumblrAction extends AccountActionImpl {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void followUser(Identify id) {
+        proceed(() -> {
+            auth.getAccessor().follow((String) id.getId());
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unfollowUser(Identify id) {
+        proceed(() -> {
+            auth.getAccessor().unfollow((String) id.getId());
+        });
+    }
 
     /**
      * {@inheritDoc}

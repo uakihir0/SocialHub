@@ -337,7 +337,7 @@ public final class SlackMapper {
             entity.setCreateAt(new Date(c.getCreated() * 1000));
         });
 
-        CursorPaging pg = new CursorPaging();
+        CursorPaging<String> pg = new CursorPaging<>();
         pg.setCount((long) entities.size());
 
         // カーソル情報が存在する場合は設定

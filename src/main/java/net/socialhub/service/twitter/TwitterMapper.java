@@ -114,6 +114,9 @@ public class TwitterMapper {
         model.setLikeCount((long) status.getFavoriteCount());
         model.setShareCount((long) status.getRetweetCount());
 
+        model.setLiked(status.isFavorited());
+        model.setShared(status.isRetweeted());
+
         if (status.getInReplyToStatusId() > 0) {
             Identify replyTo = new Identify(service);
             replyTo.setId(status.getInReplyToStatusId());

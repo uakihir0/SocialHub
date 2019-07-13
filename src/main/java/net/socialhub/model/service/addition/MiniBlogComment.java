@@ -16,8 +16,14 @@ public class MiniBlogComment extends Comment {
     /** Like count (Alias with Favorite) */
     private Long likeCount;
 
+    /** User likes this comment */
+    private Boolean isLiked;
+
     /** Share count (Alias with ReTweet) */
     private Long shareCount;
+
+    /** User shared this comment */
+    private Boolean isShared;
 
     /** Reply To ID */
     private Identify replyTo;
@@ -72,6 +78,22 @@ public class MiniBlogComment extends Comment {
 
     public void setReplyTo(Identify replyTo) {
         this.replyTo = replyTo;
+    }
+
+    public Boolean getLiked() {
+        return isLiked;
+    }
+
+    public void setLiked(Boolean liked) {
+        isLiked = liked;
+    }
+
+    public Boolean getShared() {
+        return isShared;
+    }
+
+    public void setShared(Boolean shared) {
+        isShared = shared;
     }
     //endregion
 }

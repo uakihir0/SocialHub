@@ -5,6 +5,8 @@ import net.socialhub.model.service.paging.BorderPaging;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * ページング可能レスポンス
@@ -17,6 +19,9 @@ public class Pageable<T extends Identify> implements Serializable {
 
     /** Entities */
     private List<T> entities;
+
+    /** Displayable predicate */
+    private Predicate<T> predicate;
 
     /**
      * Get New Page
@@ -50,6 +55,20 @@ public class Pageable<T extends Identify> implements Serializable {
         return paging.nextPage(entities);
     }
 
+    /**
+     * Get Displayable Entities
+     * 表示条件を満たしたアイテムを取得
+     */
+    public List<T> getDisplayableEntities(){
+        if(predicate == null) {
+            return getEntities();
+        }
+        return getEntities() //
+                .stream() //
+                .filter(predicate) //
+                .collect(Collectors.toList());
+    }
+
     //region // Getter&Setter
     public Paging getPaging() {
         return paging;
@@ -65,6 +84,14 @@ public class Pageable<T extends Identify> implements Serializable {
 
     public void setEntities(List<T> entities) {
         this.entities = entities;
+    }
+
+    public Predicate<T> getPredicate() {
+        return predicate;
+    }
+
+    public void setPredicate(Predicate<T> predicate) {
+        this.predicate = predicate;
     }
     //endregion
 }

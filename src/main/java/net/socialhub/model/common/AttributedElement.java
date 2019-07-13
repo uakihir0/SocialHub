@@ -1,6 +1,6 @@
 package net.socialhub.model.common;
 
-import net.socialhub.define.AttributeType;
+import net.socialhub.define.AttributedTypes;
 import net.socialhub.utils.StringUtil;
 
 /**
@@ -9,7 +9,7 @@ import net.socialhub.utils.StringUtil;
  */
 public class AttributedElement {
 
-    private AttributeType type;
+    private AttributedType type;
 
     /** オリジナルテキスト */
     private String text;
@@ -46,12 +46,6 @@ public class AttributedElement {
         if (displayText != null) {
             return displayText;
         }
-
-        // URL の場合は短縮
-        if (type == AttributeType.Link) {
-            return StringUtil.getDisplayUrl(text);
-        }
-
         return text;
     }
 
@@ -70,11 +64,11 @@ public class AttributedElement {
         this.expandedText = expandedText;
     }
 
-    public AttributeType getType() {
+    public AttributedType getType() {
         return type;
     }
 
-    public void setType(AttributeType type) {
+    public void setType(AttributedType type) {
         this.type = type;
     }
 

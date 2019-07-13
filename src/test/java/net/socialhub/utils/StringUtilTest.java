@@ -1,5 +1,6 @@
 package net.socialhub.utils;
 
+import net.socialhub.define.service.slack.SlackAttributedTypes;
 import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
 import org.junit.Test;
@@ -7,7 +8,7 @@ import org.junit.Test;
 public class StringUtilTest {
 
     @Test
-    public void testDecodeUrlEncode(){
+    public void testDecodeUrlEncode() {
         System.out.println(StringUtil.decodeUrl("&gt;"));
     }
 
@@ -66,6 +67,20 @@ public class StringUtilTest {
     }
 
     @Test
+    public void testSlackAttributeText() {
+
+        AttributedString string = new AttributedString(
+                "SLACK: " //
+                        + "<https://www.googole.com> " //
+                        + "<mailto:sample@example.com> " //
+                        + "<@ABCDEFG12> " //
+                        + "END",
+                SlackAttributedTypes.slack());
+
+        printAttributedString(string);
+    }
+
+    @Test
     public void testGetDisplayUrl() {
 
         System.out.println(StringUtil.getDisplayUrl( //
@@ -78,7 +93,7 @@ public class StringUtilTest {
     }
 
     @Test
-    public void testTrimLast(){
+    public void testTrimLast() {
         System.out.print(StringUtil.trimLast("A "));
         System.out.println("B");
 

@@ -1,6 +1,6 @@
 package net.socialhub.model.common;
 
-import net.socialhub.define.AttributeType;
+import net.socialhub.define.AttributedTypes;
 import net.socialhub.utils.StringUtil;
 
 import java.util.ArrayList;
@@ -16,32 +16,11 @@ import java.util.stream.Collectors;
  */
 public class AttributedString {
 
-    /** URL の正規表現 */
-    private static final String FULL_URL_REGEX = "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)";
-
-    /** URL の正規表現 */
-    private static final String SHORT_URL_REGEX = "[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)";
-
-    /** EMail の簡易的な正規表現 */
-    private static final String SIMPLE_EMAIL_REGEX = "[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)+";
-
-    /** 電話番号 (国際対応) の正規表現 */
-    private static final String SIMPLE_PHONE_REGEX = "[0\\+\\(][\\d\\-\\(\\)]{9,16}";
-
-    /** ハッシュタグ (国際対応) の正規表現 */
-    private static final String HASH_TAG_REGEX = "[#＃][A-Za-z0-9_À-ÖØ-öø-ÿĀ-ɏɓ-ɔɖ-ɗəɛɣɨɯɲʉʋʻ̀-ͯḀ-ỿЀ-ӿԀ-ԧⷠ-ⷿꙀ-֑ꚟ-ֿׁ-ׂׄ-ׇׅא-תװ-״\uFB12-ﬨשׁ-זּטּ-לּמּנּ-סּףּ-פּצּ-ﭏؐ-ؚؠ-ٟٮ-ۓە-ۜ۞-۪ۨ-ۯۺ-ۼۿݐ-ݿࢠࢢ-ࢬࣤ-ࣾﭐ-ﮱﯓ-ﴽﵐ-ﶏﶒ-ﷇﷰ-ﷻﹰ-ﹴﹶ-ﻼ\u200Cก-ฺเ-๎ᄀ-ᇿ\u3130-ㆅꥠ-\uA97F가-\uD7AFힰ-\uD7FFﾡ-ￜァ-ヺー-ヾｦ-ﾟｰ０-９Ａ-Ｚａ-ｚぁ-ゖ゙-ゞ㐀-\u4DBF一-\u9FFF꜀-뜿띀-렟\uF800-﨟〃々〻]+";
-
-    /** Mastodon アカウントの正規表現 */
-    private static final String MASTODON_ACCOUNT_REGEX = "@[a-zA-Z0-9_]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*";
-
-    /** Twitter アカウントの正規表現 */
-    private static final String TWITTER_ACCOUNT_REGEX = "@[a-zA-Z0-9_]{2,}";
-
     private String text;
 
     private String displayText;
 
-    private List<AttributeType> kinds;
+    private List<AttributedType> kinds;
 
     private List<AttributedElement> attribute;
 
@@ -52,14 +31,14 @@ public class AttributedString {
      * (属性文字列に変換)
      */
     public AttributedString(String text) {
-        this(text, AttributeType.all());
+        this(text, AttributedTypes.simple());
     }
 
     /**
      * Attributed String
      * (属性文字列に変換)
      */
-    public AttributedString(String text, List<AttributeType> kinds) {
+    public AttributedString(String text, List<AttributedType> kinds) {
         this.displayAttribute = null;
         this.attribute = null;
         this.kinds = kinds;
@@ -67,7 +46,7 @@ public class AttributedString {
 
         // 無指定の場合は全部
         if (kinds == null) {
-            this.kinds = AttributeType.all();
+            this.kinds = AttributedTypes.simple();
         }
     }
 
@@ -84,26 +63,9 @@ public class AttributedString {
         // 初期化
         attribute = new ArrayList<>();
 
-        // リンクを取得 (プロトコル含む)
-        scanElements(AttributeType.Link, FULL_URL_REGEX);
-
-        // Mastodon アカウントを取得
-        scanElements(AttributeType.MastodonAccount, MASTODON_ACCOUNT_REGEX);
-
-        // Email を取得
-        scanElements(AttributeType.Email, SIMPLE_EMAIL_REGEX);
-
-        // リンクを取得 (プロトコル含めず)
-        scanElements(AttributeType.Link, SHORT_URL_REGEX);
-
-        // 電話番号を取得
-        scanElements(AttributeType.Phone, SIMPLE_PHONE_REGEX);
-
-        // ハッシュタグを取得
-        scanElements(AttributeType.HashTag, HASH_TAG_REGEX);
-
-        // Twitter アカウントを取得
-        scanElements(AttributeType.TwitterAccount, TWITTER_ACCOUNT_REGEX);
+        for (AttributedType kind : kinds) {
+            scanElements(kind);
+        }
 
         // 範囲の開始順にソート
         attribute.sort(Comparator.comparingInt(e -> e.getRange().getStart()));
@@ -168,9 +130,9 @@ public class AttributedString {
     /**
      * エレメントを走査
      */
-    private void scanElements(AttributeType attributeType, String regex) {
-        if (kinds.contains(attributeType)) {
-            Pattern p = Pattern.compile(regex);
+    private void scanElements(AttributedType kind) {
+        if (kinds.contains(kind)) {
+            Pattern p = Pattern.compile(kind.getRegex());
             Matcher m = p.matcher(text);
 
             while (m.find()) {
@@ -178,9 +140,10 @@ public class AttributedString {
                 // 範囲が被っていない事を確認
                 if (this.isUnusedRange(m)) {
                     AttributedElement element = new AttributedElement();
+                    element.setDisplayText(kind.getDisplayedText(m));
                     element.setRange(new AttributedRange(m));
-                    element.setType(attributeType);
                     element.setText(m.group());
+                    element.setType(kind);
                     attribute.add(element);
                 }
             }
@@ -225,11 +188,11 @@ public class AttributedString {
         this.text = text;
     }
 
-    public List<AttributeType> getKinds() {
+    public List<AttributedType> getKinds() {
         return kinds;
     }
 
-    public void setKinds(List<AttributeType> kinds) {
+    public void setKinds(List<AttributedType> kinds) {
         this.markedElementChanged();
         this.kinds = kinds;
     }

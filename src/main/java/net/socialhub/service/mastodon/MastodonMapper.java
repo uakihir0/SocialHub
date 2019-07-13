@@ -119,6 +119,9 @@ public class MastodonMapper {
             model.setLikeCount(status.getFavouritesCount());
             model.setShareCount(status.getReblogsCount());
 
+            model.setLiked(status.isFavourited());
+            model.setShared(status.isReblogged());
+
             // リツイートの場合は内部を展開
             if (status.getReblog() != null) {
                 model.setSharedComment(comment(status.getReblog(), service));

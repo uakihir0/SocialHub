@@ -23,7 +23,14 @@ import com.github.seratch.jslack.api.model.Message;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.SocialHubException;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.addition.slack.SlackIdentify;
 import net.socialhub.model.service.addition.slack.SlackTeam;
@@ -34,13 +41,17 @@ import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.service.slack.SlackAuth.SlackAccessor;
 import net.socialhub.utils.LimitMap;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 
 /**
  * Slack Actions
@@ -170,8 +181,7 @@ public class SlackAction extends AccountActionImpl {
         return proceed(() -> {
             EmojiListResponse response = auth.getAccessor().getSlack() //
                     .methods().emojiList(EmojiListRequest.builder() //
-                            .token(auth.getAccessor().getToken())
-                            .build());
+                            .token(auth.getAccessor().getToken()).build());
 
             this.reactionCandidate = SlackMapper.reactionCandidates(response);
             return this.reactionCandidate;
@@ -226,7 +236,6 @@ public class SlackAction extends AccountActionImpl {
             Map<String, User> userMap = users.parallelStream() //
                     .collect(Collectors.toMap(Function.identity(), //
                             (i) -> getUserWithCache(new Identify(service, i))));
-
 
             Context context = new Context();
             context.setAncestors(new ArrayList<>());
@@ -317,8 +326,16 @@ public class SlackAction extends AccountActionImpl {
                     .collect(Collectors.toMap(Function.identity(), //
                             (id) -> getUserWithCache(new Identify(service, id))));
 
-            return SlackMapper.timeLine(response, userMap, candidates, //
-                    getGeneralChannel(), service, paging);
+            Pageable<Comment> pageable = SlackMapper.timeLine(response, //
+                    userMap, candidates, getGeneralChannel(), service, paging);
+
+            // スレッド対象外 or スレッド元のみ表示対象
+            pageable.setPredicate((comment) -> {
+                String threadId = ((SlackComment) comment).getThreadId();
+                return (threadId == null) || comment.getId().equals(threadId);
+            });
+
+            return pageable;
         });
     }
 
@@ -426,7 +443,6 @@ public class SlackAction extends AccountActionImpl {
         }
         return getUser(id);
     }
-
 
     // ============================================================== //
     // Proceed

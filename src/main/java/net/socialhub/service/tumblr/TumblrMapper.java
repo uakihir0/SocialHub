@@ -23,6 +23,7 @@ public class TumblrMapper {
 
     /** J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
     private final static List<Class<?>> ClassLoader = Arrays.asList( //
+            com.tumblr.jumblr.types.QuotePost.class, //
             com.tumblr.jumblr.types.TextPost.class, //
             com.tumblr.jumblr.types.Video.class, //
             com.tumblr.jumblr.types.Note.class);

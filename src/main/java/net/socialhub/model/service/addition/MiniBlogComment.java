@@ -43,11 +43,13 @@ public class MiniBlogComment extends Comment {
         List<Reaction> reactions = super.getReactions();
 
         Reaction like = new Reaction();
+        like.setReacting(isLiked);
         like.setCount(likeCount);
         like.setName("like");
         reactions.add(like);
 
         Reaction share = new Reaction();
+        share.setReacting(isShared);
         share.setCount(shareCount);
         share.setName("share");
         reactions.add(share);

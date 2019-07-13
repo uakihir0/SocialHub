@@ -13,6 +13,7 @@ import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.EmojiType;
 import net.socialhub.define.EmojiVariationType;
 import net.socialhub.define.MediaType;
+import net.socialhub.define.service.slack.SlackAttributedTypes;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.*;
@@ -123,6 +124,7 @@ public final class SlackMapper {
     public static Comment comment(
             Message message, //
             User user, //
+            User userMe, //
             List<ReactionCandidate> candidates, //
             String channel, //
             Service service) {
@@ -132,7 +134,7 @@ public final class SlackMapper {
         model.setId(message.getTs());
         model.setThreadId(message.getThreadTs());
 
-        model.setText(new AttributedString(message.getText()));
+        model.setText(new AttributedString(message.getText(), SlackAttributedTypes.simple()));
         model.setCreateAt(getDateFromTimeStamp(message.getTs()));
         model.setUser(user);
 
@@ -155,10 +157,7 @@ public final class SlackMapper {
         }
 
         // リアクションを追加で格納
-        if ((message.getReactions() != null) //
-                && !message.getReactions().isEmpty()) {
-            model.setReactions(reactions(message.getReactions(), candidates));
-        }
+            model.setReactions(reactions(message, userMe, candidates));
 
         return model;
     }
@@ -209,16 +208,21 @@ public final class SlackMapper {
      * リアクションマッピング
      */
     public static List<Reaction> reactions(
-            List<com.github.seratch.jslack.api.model.Reaction> reactions, //
+            Message message, //
+            User userMe, //
             List<ReactionCandidate> candidates) {
 
         List<Reaction> models = new ArrayList<>();
+        List<com.github.seratch.jslack.api.model.Reaction> reactions = message.getReactions();
 
         if (reactions != null) {
             reactions.forEach((reaction) -> {
                 Reaction model = new Reaction();
                 model.setCount((long) reaction.getCount());
                 model.setName(reaction.getName());
+
+                // 自分がリアクションしたかどうかを設定
+                model.setReacting(reaction.getUsers().contains((String) userMe.getId()));
 
                 // 絵文字や URL を注入
                 if (candidates != null) {
@@ -298,6 +302,7 @@ public final class SlackMapper {
     public static Pageable<Comment> timeLine(
             ChannelsHistoryResponse history, //
             Map<String, User> userMap, //
+            User userMe, //
             List<ReactionCandidate> candidates, //
             String channel, //
             Service service, //
@@ -305,7 +310,7 @@ public final class SlackMapper {
 
         Pageable<Comment> model = new Pageable<>();
         model.setEntities(history.getMessages().stream() //
-                .map(e -> comment(e, userMap.get(e.getUser()), candidates, channel, service)) //
+                .map(e -> comment(e, userMap.get(e.getUser()), userMe, candidates, channel, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(Collectors.toList()));
 
@@ -370,6 +375,45 @@ public final class SlackMapper {
     // ============================================================== //
     // Support
     // ============================================================== //
+
+    /**
+     * リプライしているユーザーを全て取得
+     */
+    public static List<String> getReplayUserIds(List<Comment> comments) {
+
+        return comments.stream().map((c) -> {
+
+            // 特定のコメントについて含まれるメンションを取得
+            return c.getText().getAttribute().stream() //
+                    .filter((a) -> a.getType().equals(SlackAttributedTypes.mention))
+                    .map((a) -> a.getDisplayText().substring(1))
+                    .filter((n) -> !n.equals("here")) //
+                    .filter((n) -> !n.equals("all")) //
+                    .collect(Collectors.toList());
+
+        }).flatMap(Collection::stream).distinct() //
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * リプライしているユーザーの名前を埋める
+     */
+    public static void setMentionName(List<Comment> comments, Map<String, User> userMap) {
+        comments.forEach((c) -> {
+
+            // メンション情報を書き換える
+            c.getText().getAttribute().stream() //
+                    .filter((a) -> a.getType().equals(SlackAttributedTypes.mention))
+                    .forEach((a) -> {
+
+                        String userId = a.getDisplayText().substring(1);
+                        if (userMap.containsKey(userId)) {
+                            User user = userMap.get(userId);
+                            a.setDisplayText("@" + user.getName());
+                        }
+                    });
+        });
+    }
 
     private static Date getDateFromTimeStamp(String ts) {
 

@@ -75,7 +75,7 @@ public class StringUtilTest {
                         + "<mailto:sample@example.com> " //
                         + "<@ABCDEFG12> " //
                         + "END",
-                SlackAttributedTypes.slack());
+                SlackAttributedTypes.simple());
 
         printAttributedString(string);
     }

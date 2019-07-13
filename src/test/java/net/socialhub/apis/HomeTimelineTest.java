@@ -145,7 +145,7 @@ public class HomeTimelineTest extends AbstractApiTest {
             System.out.println(c.getCreateAt());
 
             Comment dc = c.getDisplayComment();
-            System.out.println("T> " + dc.getText());
+            System.out.println("T> " + dc.getText().getDisplayText());
 
             if (c instanceof SlackComment) {
                 System.out.println("C> " + ((SlackComment) c).getChannel());

@@ -23,14 +23,7 @@ import com.github.seratch.jslack.api.model.Message;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.SocialHubException;
-import net.socialhub.model.service.Channel;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Context;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.addition.slack.SlackIdentify;
 import net.socialhub.model.service.addition.slack.SlackTeam;
@@ -41,12 +34,7 @@ import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.service.slack.SlackAuth.SlackAccessor;
 import net.socialhub.utils.LimitMap;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -64,6 +52,9 @@ public class SlackAction extends AccountActionImpl {
 
     /** Cached team info */
     private SlackTeam team;
+
+    /** Cached my account */
+    private User me;
 
     /** Cached General Channel Id */
     private String generalChannel;
@@ -96,7 +87,8 @@ public class SlackAction extends AccountActionImpl {
                             .user(identity.getUser().getId()) //
                             .build());
 
-            return userCache(SlackMapper.user(account, getTeam(), service));
+            me = userCache(SlackMapper.user(account, getTeam(), service));
+            return me;
         });
     }
 
@@ -217,12 +209,15 @@ public class SlackAction extends AccountActionImpl {
             Future<List<ReactionCandidate>> candidatesFuture = //
                     pool.submit(this::getReactionCandidates);
 
+            Future<User> userMeFuture = pool.submit(this::getUserMeWithCache);
+
             // ------------------------------------------------ //
             // Await Request
             // ------------------------------------------------ //
 
             ChannelsRepliesResponse response = responseFuture.get();
             List<ReactionCandidate> candidates = candidatesFuture.get();
+            User userMe = userMeFuture.get();
 
             // ------------------------------------------------ //
             // Get User Instances
@@ -249,9 +244,14 @@ public class SlackAction extends AccountActionImpl {
                 }
 
                 User user = userMap.get(m.getUser());
-                Comment comment = SlackMapper.comment(m, user, candidates, getChannelId(id), service);
+                Comment comment = SlackMapper.comment(m, user, userMe, candidates, getChannelId(id), service);
                 ((!isProceededMine) ? context.getAncestors() : context.getDescendants()).add(comment);
             }
+
+            List<Comment> comments = new ArrayList<>();
+            comments.addAll(context.getAncestors());
+            comments.addAll(context.getDescendants());
+            setMentionName(comments, service);
 
             return context;
         });
@@ -304,6 +304,7 @@ public class SlackAction extends AccountActionImpl {
                     pool.submit(this::getReactionCandidates);
 
             Future<SlackTeam> teamFuture = pool.submit(this::getTeam);
+            Future<User> userMeFuture = pool.submit(this::getUserMeWithCache);
 
             // ------------------------------------------------ //
             // Await Request
@@ -311,6 +312,7 @@ public class SlackAction extends AccountActionImpl {
 
             ChannelsHistoryResponse response = responseFuture.get();
             List<ReactionCandidate> candidates = candidatesFuture.get();
+            User userMe = userMeFuture.get();
             teamFuture.get();
 
             // ------------------------------------------------ //
@@ -327,7 +329,7 @@ public class SlackAction extends AccountActionImpl {
                             (id) -> getUserWithCache(new Identify(service, id))));
 
             Pageable<Comment> pageable = SlackMapper.timeLine(response, //
-                    userMap, candidates, getGeneralChannel(), service, paging);
+                    userMap, userMe, candidates, getGeneralChannel(), service, paging);
 
             // スレッド対象外 or スレッド元のみ表示対象
             pageable.setPredicate((comment) -> {
@@ -335,6 +337,7 @@ public class SlackAction extends AccountActionImpl {
                 return (threadId == null) || comment.getId().equals(threadId);
             });
 
+            setMentionName(pageable.getEntities(), service);
             return pageable;
         });
     }
@@ -424,6 +427,30 @@ public class SlackAction extends AccountActionImpl {
 
         String message = "No Channel Info. Identify must be SlackIdentify or SlackComment.";
         throw new SocialHubException(message);
+    }
+
+    /**
+     * キャッシュ付きで自分のユーザーを取得
+     */
+    private User getUserMeWithCache() {
+        return (me != null) ? me : getUserMe();
+    }
+
+    /**
+     * リプライのユーザー情報を埋める
+     */
+    private void setMentionName(List<Comment> comments, Service service) {
+
+        // リプライされている ID 一覧を取得
+        List<String> userIds = SlackMapper.getReplayUserIds(comments);
+
+
+        // ユーザー一覧を取得
+        Map<String, User> userMap = userIds.parallelStream() //
+                .collect(Collectors.toMap(Function.identity(), //
+                        (id) -> getUserWithCache(new Identify(service, id))));
+
+        SlackMapper.setMentionName(comments, userMap);
     }
 
     // ============================================================== //

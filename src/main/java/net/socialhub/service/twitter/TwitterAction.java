@@ -630,10 +630,7 @@ public class TwitterAction extends AccountActionImpl {
      * キャッシュ付きで自分のユーザーを取得
      */
     private User getUserMeWithCache() {
-        if (me == null) {
-            me = getUserMe();
-        }
-        return me;
+        return (me != null) ? me : getUserMe();
     }
 
     // ============================================================== //

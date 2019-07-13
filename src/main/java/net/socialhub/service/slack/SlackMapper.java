@@ -39,7 +39,6 @@ public final class SlackMapper {
             com.github.seratch.jslack.api.model.Attachment.class, //
             com.github.seratch.jslack.api.model.Option.class, //
             com.github.seratch.jslack.api.model.Action.class, //
-            com.github.seratch.jslack.api.model.Icon.class, //
             com.github.seratch.jslack.api.model.Field.class);
 
     /**

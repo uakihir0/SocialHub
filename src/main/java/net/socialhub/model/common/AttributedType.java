@@ -5,6 +5,9 @@ import java.util.regex.Matcher;
 
 public interface AttributedType {
 
+    /** 属性の種類を取得 */
+    AttributedKind getKind();
+
     /** 正規表現を取得 */
     String getRegex();
 
@@ -17,13 +20,25 @@ public interface AttributedType {
      */
     class CommonAttributedType implements AttributedType {
 
+        private AttributedKind kind;
+
         private String regex;
 
         private Function<Matcher, String> converter;
 
-        public CommonAttributedType(String regex, Function<Matcher, String> converter) {
+        public CommonAttributedType(
+                AttributedKind kind,
+                String regex,
+                Function<Matcher, String> converter) {
+
             this.converter = converter;
             this.regex = regex;
+            this.kind = kind;
+        }
+
+        @Override
+        public AttributedKind getKind() {
+            return kind;
         }
 
         @Override

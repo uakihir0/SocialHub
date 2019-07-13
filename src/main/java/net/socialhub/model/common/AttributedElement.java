@@ -1,8 +1,5 @@
 package net.socialhub.model.common;
 
-import net.socialhub.define.AttributedTypes;
-import net.socialhub.utils.StringUtil;
-
 /**
  * Attributes Elements
  * 属性情報

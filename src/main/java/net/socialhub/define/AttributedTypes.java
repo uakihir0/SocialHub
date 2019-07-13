@@ -8,29 +8,30 @@ import java.util.Arrays;
 import java.util.List;
 
 import static net.socialhub.define.AttributedTypes.Regex.*;
+import static net.socialhub.model.common.AttributedKind.*;
 
 public class AttributedTypes {
 
     // Commons
     public static AttributedType fullLink =
-            new CommonAttributedType(FULL_URL_REGEX, //
+            new CommonAttributedType(Link, FULL_URL_REGEX, //
                     (m) -> StringUtil.getDisplayUrl(m.group()));
 
     public static AttributedType shortLink =
-            new CommonAttributedType(SHORT_URL_REGEX, //
+            new CommonAttributedType(Link, SHORT_URL_REGEX, //z
                     (m) -> StringUtil.getDisplayUrl(m.group()));
 
     public static AttributedType email =
-            new CommonAttributedType(SIMPLE_EMAIL_REGEX, null);
+            new CommonAttributedType(EMail, SIMPLE_EMAIL_REGEX, null);
     public static AttributedType phone =
-            new CommonAttributedType(SIMPLE_PHONE_REGEX, null);
+            new CommonAttributedType(Phone, SIMPLE_PHONE_REGEX, null);
     public static AttributedType hashTag =
-            new CommonAttributedType(HASH_TAG_REGEX, null);
+            new CommonAttributedType(HashTag, HASH_TAG_REGEX, null);
 
     public static AttributedType twitterAccount =
-            new CommonAttributedType(TWITTER_ACCOUNT_REGEX, null);
+            new CommonAttributedType(Account, TWITTER_ACCOUNT_REGEX, null);
     public static AttributedType mastodonAccount =
-            new CommonAttributedType(MASTODON_ACCOUNT_REGEX, null);
+            new CommonAttributedType(Account, MASTODON_ACCOUNT_REGEX, null);
 
 
     public static List<AttributedType> simple() {

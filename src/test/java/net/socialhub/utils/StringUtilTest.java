@@ -72,7 +72,7 @@ public class StringUtilTest {
         AttributedString string = new AttributedString(
                 "SLACK: " //
                         + "<https://www.googole.com> " //
-                        + "<mailto:sample@example.com> " //
+                        + "<mailto:sample@example.com|sample@example.com> " //
                         + "<@ABCDEFG12> " //
                         + "END",
                 SlackAttributedTypes.simple());

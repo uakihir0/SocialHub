@@ -156,7 +156,7 @@ public final class SlackMapper {
         }
 
         // リアクションを追加で格納
-            model.setReactions(reactions(message, userMe, candidates));
+        model.setReactions(reactions(message, userMe, candidates));
 
         return model;
     }
@@ -235,6 +235,14 @@ public final class SlackMapper {
 
                 models.add(model);
             });
+        }
+
+
+        if (message.getReplyCount() != null) {
+            Reaction model = new Reaction();
+            model.setCount(message.getReplyCount().longValue());
+            model.setName("reply");
+            models.add(model);
         }
 
         return models;

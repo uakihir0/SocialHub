@@ -5,23 +5,28 @@ import net.socialhub.model.common.AttributedType;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+import java.util.regex.Matcher;
 
 import static net.socialhub.define.service.slack.SlackAttributedTypes.Regex.*;
 import static net.socialhub.model.common.AttributedKind.*;
 
 public class SlackAttributedTypes {
 
+    private static Function<Matcher, String> GET_INNER_STRING = //
+            (m) -> (m.groupCount() > 0) ? m.group(1) : m.group();
+
     public static AttributedType fullLink =
             new AttributedType.CommonAttributedType(Link, SLACK_FULL_URL_REGEX, //
-                    (m) -> (m.groupCount() > 0) ? m.group(1) : m.group());
+                    GET_INNER_STRING, GET_INNER_STRING);
 
     public static AttributedType email =
             new AttributedType.CommonAttributedType(EMail, SLACK_MAIL_REGEX, //
-                    (m) -> (m.groupCount() > 0) ? m.group(1) : m.group());
+                    GET_INNER_STRING, GET_INNER_STRING);
 
     public static AttributedType mention =
             new AttributedType.CommonAttributedType(Account, SLACK_MENTION_REGEX, //
-                    (m) -> (m.groupCount() > 0) ? m.group(1) : m.group());
+                    GET_INNER_STRING, GET_INNER_STRING);
 
     public static List<AttributedType> simple() {
         return Arrays.asList( //

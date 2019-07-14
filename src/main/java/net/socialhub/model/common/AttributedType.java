@@ -14,6 +14,8 @@ public interface AttributedType {
     /** 表示文字列を取得 */
     String getDisplayedText(Matcher m);
 
+    /** 実行文字列を取得 */
+    String getExpandedText(Matcher m);
 
     /**
      * AttributedType のデフォルト実装
@@ -24,16 +26,26 @@ public interface AttributedType {
 
         private String regex;
 
-        private Function<Matcher, String> converter;
+        private Function<Matcher, String> display;
+
+        private Function<Matcher, String> expand;
 
         public CommonAttributedType(
                 AttributedKind kind,
                 String regex,
-                Function<Matcher, String> converter) {
+                Function<Matcher, String> display,
+                Function<Matcher, String> expand) {
 
-            this.converter = converter;
+            this.display = display;
+            this.expand = expand;
             this.regex = regex;
             this.kind = kind;
+        }
+
+        public CommonAttributedType(
+                AttributedKind kind,
+                String regex) {
+            this(kind, regex, null, null);
         }
 
         @Override
@@ -48,11 +60,20 @@ public interface AttributedType {
 
         @Override
         public String getDisplayedText(Matcher m) {
-            if (converter != null) {
-                return converter.apply(m);
+            if (display != null) {
+                return display.apply(m);
             }
             // 未定義の場合は全体
             return m.group();
+        }
+
+        @Override
+        public String getExpandedText(Matcher m) {
+            if (expand != null) {
+                return expand.apply(m);
+            }
+            // 未定義の場合は全体
+            return null;
         }
     }
 }

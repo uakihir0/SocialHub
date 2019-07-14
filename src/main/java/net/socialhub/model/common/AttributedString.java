@@ -141,6 +141,7 @@ public class AttributedString {
                 if (this.isUnusedRange(m)) {
                     AttributedElement element = new AttributedElement();
                     element.setDisplayText(kind.getDisplayedText(m));
+                    element.setExpandedText(kind.getExpandedText(m));
                     element.setRange(new AttributedRange(m));
                     element.setText(m.group());
                     element.setType(kind);

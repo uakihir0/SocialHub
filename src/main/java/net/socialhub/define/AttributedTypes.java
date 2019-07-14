@@ -15,23 +15,23 @@ public class AttributedTypes {
     // Commons
     public static AttributedType fullLink =
             new CommonAttributedType(Link, FULL_URL_REGEX, //
-                    (m) -> StringUtil.getDisplayUrl(m.group()));
+                    (m) -> StringUtil.getDisplayUrl(m.group()), null);
 
     public static AttributedType shortLink =
-            new CommonAttributedType(Link, SHORT_URL_REGEX, //z
-                    (m) -> StringUtil.getDisplayUrl(m.group()));
+            new CommonAttributedType(Link, SHORT_URL_REGEX, //
+                    (m) -> StringUtil.getDisplayUrl(m.group()), null);
 
     public static AttributedType email =
-            new CommonAttributedType(EMail, SIMPLE_EMAIL_REGEX, null);
+            new CommonAttributedType(EMail, SIMPLE_EMAIL_REGEX);
     public static AttributedType phone =
-            new CommonAttributedType(Phone, SIMPLE_PHONE_REGEX, null);
+            new CommonAttributedType(Phone, SIMPLE_PHONE_REGEX);
     public static AttributedType hashTag =
-            new CommonAttributedType(HashTag, HASH_TAG_REGEX, null);
+            new CommonAttributedType(HashTag, HASH_TAG_REGEX);
 
     public static AttributedType twitterAccount =
-            new CommonAttributedType(Account, TWITTER_ACCOUNT_REGEX, null);
+            new CommonAttributedType(Account, TWITTER_ACCOUNT_REGEX);
     public static AttributedType mastodonAccount =
-            new CommonAttributedType(Account, MASTODON_ACCOUNT_REGEX, null);
+            new CommonAttributedType(Account, MASTODON_ACCOUNT_REGEX);
 
 
     public static List<AttributedType> simple() {

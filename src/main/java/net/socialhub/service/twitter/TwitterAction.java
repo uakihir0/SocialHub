@@ -510,11 +510,11 @@ public class TwitterAction extends AccountActionImpl {
         if (reaction != null && !reaction.isEmpty()) {
             String type = reaction.toLowerCase();
 
-            if (type.equals(TwitterReactionType.Favorite.getCode())) {
+            if (TwitterReactionType.Favorite.getCode().contains(type)) {
                 unlike(id);
                 return;
             }
-            if (type.equals(TwitterReactionType.Retweet.getCode())) {
+            if (TwitterReactionType.Retweet.getCode().contains(type)) {
                 unretweet(id);
                 return;
             }

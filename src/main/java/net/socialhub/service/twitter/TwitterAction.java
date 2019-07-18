@@ -473,13 +473,7 @@ public class TwitterAction extends AccountActionImpl {
      */
     @Override
     public void unretweet(Identify id) {
-        proceed(() -> {
-            Twitter twitter = auth.getAccessor();
-            Status status = twitter.tweets().destroyStatus((Long) id.getId());
-
-            Service service = getAccount().getService();
-            service.getRateLimit().addInfo(DeleteComment, status);
-        });
+        throw new NotSupportedException();
     }
 
     /**
@@ -512,10 +506,6 @@ public class TwitterAction extends AccountActionImpl {
 
             if (TwitterReactionType.Favorite.getCode().contains(type)) {
                 unlike(id);
-                return;
-            }
-            if (TwitterReactionType.Retweet.getCode().contains(type)) {
-                unretweet(id);
                 return;
             }
         }

@@ -8,7 +8,13 @@ import net.socialhub.define.service.tumblr.TumblrIconSize;
 import net.socialhub.define.service.tumblr.TumblrReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.tumblr.TumblrComment;
 import net.socialhub.model.service.addition.tumblr.TumblrPaging;
 import net.socialhub.model.service.addition.tumblr.TumblrUser;
@@ -275,8 +281,7 @@ public class TumblrAction extends AccountActionImpl {
                 return TumblrMapper.comment(post, trails, service);
 
             } else {
-                throw new NotSupportedException(
-                        "TupleIdentify required.");
+                throw new NotSupportedException("TupleIdentify required.");
             }
         });
     }
@@ -285,15 +290,14 @@ public class TumblrAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void like(Identify id) {
+    public void likeComment(Identify id) {
         proceed(() -> {
             if (id instanceof TumblrComment) {
                 String key = ((TumblrComment) id).getReblogKey();
                 auth.getAccessor().like((Long) id.getId(), key);
 
             } else {
-                throw new NotSupportedException(
-                        "TumblrComment (id and reblog key only) required.");
+                throw new NotSupportedException("TumblrComment (id and reblog key only) required.");
             }
         });
     }
@@ -302,25 +306,23 @@ public class TumblrAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void unlike(Identify id) {
+    public void unlikeComment(Identify id) {
         proceed(() -> {
             if (id instanceof TumblrComment) {
                 String key = ((TumblrComment) id).getReblogKey();
                 auth.getAccessor().unlike((Long) id.getId(), key);
 
             } else {
-                throw new NotSupportedException(
-                        "TumblrComment (id and reblog key only) required.");
+                throw new NotSupportedException("TumblrComment (id and reblog key only) required.");
             }
         });
     }
-
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void retweet(Identify id) {
+    public void shareComment(Identify id) {
         proceed(() -> {
             if (id instanceof TumblrComment) {
                 TumblrComment comment = ((TumblrComment) id);
@@ -330,8 +332,7 @@ public class TumblrAction extends AccountActionImpl {
                 auth.getAccessor().postReblog(blog, (Long) id.getId(), key);
 
             } else {
-                throw new NotSupportedException(
-                        "TumblrComment (id, blogName reblog key only) required.");
+                throw new NotSupportedException("TumblrComment (id, blogName reblog key only) required.");
             }
         });
     }
@@ -340,7 +341,51 @@ public class TumblrAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void unretweet(Identify id) {
+    public void unshareComment(Identify id) {
+        throw new NotSupportedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void reactionComment(Identify id, String reaction) {
+        if (reaction != null && !reaction.isEmpty()) {
+            String type = reaction.toLowerCase();
+
+            if (TumblrReactionType.Like.getCode().contains(type)) {
+                likeComment(id);
+                return;
+            }
+            if (TumblrReactionType.Reblog.getCode().contains(type)) {
+                retweetComment(id);
+                return;
+            }
+        }
+        throw new NotSupportedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unreactionComment(Identify id, String reaction) {
+        if (reaction != null && !reaction.isEmpty()) {
+            String type = reaction.toLowerCase();
+
+            if (TumblrReactionType.Like.getCode().contains(type)) {
+                unlikeComment(id);
+                return;
+            }
+        }
+        throw new NotSupportedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteComment(Identify id) {
         proceed(() -> {
             if (id instanceof TumblrComment) {
                 TumblrComment comment = ((TumblrComment) id);
@@ -349,50 +394,9 @@ public class TumblrAction extends AccountActionImpl {
                 auth.getAccessor().postDelete(blog, (Long) id.getId());
 
             } else {
-                throw new NotSupportedException(
-                        "TumblrComment (id, blog n ame only) required.");
+                throw new NotSupportedException("TumblrComment (id, blog n ame only) required.");
             }
         });
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void reaction(Identify id, String reaction) {
-        if (reaction != null && !reaction.isEmpty()) {
-            String type = reaction.toLowerCase();
-
-            if (TumblrReactionType.Like.getCode().contains(type)) {
-                like(id);
-                return;
-            }
-            if (TumblrReactionType.Reblog.getCode().contains(type)) {
-                retweet(id);
-                return;
-            }
-        }
-        throw new NotSupportedException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void unreaction(Identify id, String reaction) {
-        if (reaction != null && !reaction.isEmpty()) {
-            String type = reaction.toLowerCase();
-
-            if (TumblrReactionType.Like.getCode().contains(type)) {
-                unlike(id);
-                return;
-            }
-            if (TumblrReactionType.Reblog.getCode().contains(type)) {
-                unretweet(id);
-                return;
-            }
-        }
-        throw new NotSupportedException();
     }
 
     /**
@@ -429,7 +433,6 @@ public class TumblrAction extends AccountActionImpl {
 
         return params;
     }
-
 
     // ============================================================== //
     // Request Samples

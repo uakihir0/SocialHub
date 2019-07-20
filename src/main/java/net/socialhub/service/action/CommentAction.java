@@ -51,7 +51,7 @@ public interface CommentAction {
      * Get Comment Context
      * 前後のコメントを取得する
      */
-    Context getCommentContext();
+    Context getContext();
 
     // ============================================================== //
     // Alias

@@ -4,17 +4,28 @@ import net.socialhub.define.MediaType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
+import net.socialhub.model.request.CommentRequest;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.MiniBlogComment;
 import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.utils.SnowflakeUtil;
-import twitter4j.*;
+import twitter4j.PagableResponseList;
+import twitter4j.Query;
+import twitter4j.QueryResult;
+import twitter4j.ResponseList;
+import twitter4j.Status;
+import twitter4j.StatusUpdate;
+import twitter4j.Twitter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +34,27 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import static net.socialhub.define.action.OtherActionType.*;
-import static net.socialhub.define.action.TimeLineActionType.*;
+import static net.socialhub.define.action.OtherActionType.BlockUser;
+import static net.socialhub.define.action.OtherActionType.DeleteComment;
+import static net.socialhub.define.action.OtherActionType.FollowUser;
+import static net.socialhub.define.action.OtherActionType.GetComment;
+import static net.socialhub.define.action.OtherActionType.GetFollowerUsers;
+import static net.socialhub.define.action.OtherActionType.GetFollowingUsers;
+import static net.socialhub.define.action.OtherActionType.GetRelationship;
+import static net.socialhub.define.action.OtherActionType.GetUser;
+import static net.socialhub.define.action.OtherActionType.GetUserMe;
+import static net.socialhub.define.action.OtherActionType.LikeComment;
+import static net.socialhub.define.action.OtherActionType.MuteUser;
+import static net.socialhub.define.action.OtherActionType.ShareComment;
+import static net.socialhub.define.action.OtherActionType.UnblockUser;
+import static net.socialhub.define.action.OtherActionType.UnfollowUser;
+import static net.socialhub.define.action.OtherActionType.UnlikeComment;
+import static net.socialhub.define.action.OtherActionType.UnmuteUser;
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.SearchTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
 
 /**
  * Twitter Actions
@@ -414,6 +444,29 @@ public class TwitterAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
+    public void postComment(CommentRequest req) {
+        proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+
+            StatusUpdate update = new StatusUpdate(req.getMessage());
+
+            if (req.getReplyId() != null) {
+                update.setInReplyToStatusId((Long) req.getReplyId());
+            }
+
+            //List<Future<Object>> idFutures = req.getImages().stream().map()
+
+            Status status = twitter.updateStatus(update);
+            Service service = getAccount().getService();
+            service.getRateLimit().addInfo(GetComment, status);
+
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Comment getComment(Identify id) {
         return proceed(() -> {
             Twitter twitter = auth.getAccessor();
@@ -430,7 +483,7 @@ public class TwitterAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void like(Identify id) {
+    public void likeComment(Identify id) {
         proceed(() -> {
             Twitter twitter = auth.getAccessor();
             Status status = twitter.favorites().createFavorite((Long) id.getId());
@@ -444,7 +497,7 @@ public class TwitterAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void unlike(Identify id) {
+    public void unlikeComment(Identify id) {
         proceed(() -> {
             Twitter twitter = auth.getAccessor();
             Status status = twitter.favorites().destroyFavorite((Long) id.getId());
@@ -458,7 +511,7 @@ public class TwitterAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void retweet(Identify id) {
+    public void shareComment(Identify id) {
         proceed(() -> {
             Twitter twitter = auth.getAccessor();
             Status status = twitter.tweets().retweetStatus((Long) id.getId());
@@ -472,7 +525,7 @@ public class TwitterAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void unretweet(Identify id) {
+    public void unshareComment(Identify id) {
         throw new NotSupportedException();
     }
 
@@ -480,16 +533,16 @@ public class TwitterAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void reaction(Identify id, String reaction) {
+    public void reactionComment(Identify id, String reaction) {
         if (reaction != null && !reaction.isEmpty()) {
             String type = reaction.toLowerCase();
 
             if (TwitterReactionType.Favorite.getCode().contains(type)) {
-                like(id);
+                likeComment(id);
                 return;
             }
             if (TwitterReactionType.Retweet.getCode().contains(type)) {
-                retweet(id);
+                shareComment(id);
                 return;
             }
         }
@@ -500,16 +553,30 @@ public class TwitterAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void unreaction(Identify id, String reaction) {
+    public void unreactionComment(Identify id, String reaction) {
         if (reaction != null && !reaction.isEmpty()) {
             String type = reaction.toLowerCase();
 
             if (TwitterReactionType.Favorite.getCode().contains(type)) {
-                unlike(id);
+                unlikeComment(id);
                 return;
             }
         }
         throw new NotSupportedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteComment(Identify id) {
+        proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Status status = twitter.tweets().destroyStatus((Long) id.getId());
+
+            Service service = getAccount().getService();
+            service.getRateLimit().addInfo(DeleteComment, status);
+        });
     }
 
     /**
@@ -595,6 +662,14 @@ public class TwitterAction extends AccountActionImpl {
     }
 
     // ============================================================== //
+    // Only Twitter Action
+    // ============================================================== //
+
+    public void uploadImage(byte[] image) {
+
+    }
+
+    // ============================================================== //
     // Support
     // ============================================================== //
 
@@ -615,6 +690,10 @@ public class TwitterAction extends AccountActionImpl {
 
         throw new IllegalStateException();
     }
+
+    // ============================================================== //
+    // Cache
+    // ============================================================== //
 
     /**
      * キャッシュ付きで自分のユーザーを取得

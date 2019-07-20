@@ -18,6 +18,6 @@ public class AddReactionTest extends AbstractApiTest {
         identify.setChannel("CHANNEL_ID");
         identify.setId("TIME_STAMP");
 
-        account.action().reaction(identify, EmojiType.ThinkingFace.getName());
+        account.action().reactionComment(identify, EmojiType.ThinkingFace.getName());
     }
 }

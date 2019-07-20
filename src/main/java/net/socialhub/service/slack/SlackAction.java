@@ -4,6 +4,7 @@ import com.github.seratch.jslack.api.methods.request.channels.ChannelsHistoryReq
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsHistoryRequest.ChannelsHistoryRequestBuilder;
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsListRequest;
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsRepliesRequest;
+import com.github.seratch.jslack.api.methods.request.chat.ChatDeleteRequest;
 import com.github.seratch.jslack.api.methods.request.emoji.EmojiListRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsAddRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsRemoveRequest;
@@ -13,6 +14,7 @@ import com.github.seratch.jslack.api.methods.request.users.UsersInfoRequest;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsHistoryResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsRepliesResponse;
+import com.github.seratch.jslack.api.methods.response.chat.ChatDeleteResponse;
 import com.github.seratch.jslack.api.methods.response.emoji.EmojiListResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsAddResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsRemoveResponse;
@@ -23,7 +25,14 @@ import com.github.seratch.jslack.api.model.Message;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.SocialHubException;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.addition.slack.SlackIdentify;
 import net.socialhub.model.service.addition.slack.SlackTeam;
@@ -34,7 +43,12 @@ import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.service.slack.SlackAuth.SlackAccessor;
 import net.socialhub.utils.LimitMap;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -117,23 +131,23 @@ public class SlackAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void like(Identify id) {
-        reaction(id, "heart");
+    public void likeComment(Identify id) {
+        reactionComment(id, "heart");
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void unlike(Identify id) {
-        unreaction(id, "heart");
+    public void unlikeComment(Identify id) {
+        unreactionComment(id, "heart");
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void reaction(Identify id, String reaction) {
+    public void reactionComment(Identify id, String reaction) {
         proceed(() -> {
             ReactionsAddResponse response = auth.getAccessor().getSlack() //
                     .methods().reactionsAdd(ReactionsAddRequest.builder() //
@@ -149,7 +163,7 @@ public class SlackAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void unreaction(Identify id, String reaction) {
+    public void unreactionComment(Identify id, String reaction) {
         proceed(() -> {
             ReactionsRemoveResponse response = auth.getAccessor().getSlack() //
                     .methods().reactionsRemove(ReactionsRemoveRequest.builder() //
@@ -157,6 +171,21 @@ public class SlackAction extends AccountActionImpl {
                             .timestamp((String) id.getId()) //
                             .channel(getChannelId(id)) //
                             .name(reaction) //
+                            .build());
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteComment(Identify id) {
+        proceed(() -> {
+            ChatDeleteResponse response = auth.getAccessor().getSlack() //
+                    .methods().chatDelete(ChatDeleteRequest.builder() //
+                            .token(auth.getAccessor().getToken()) //
+                            .channel(getChannelId(id)) //
+                            .ts((String) id.getId()) //
                             .build());
         });
     }
@@ -443,7 +472,6 @@ public class SlackAction extends AccountActionImpl {
 
         // リプライされている ID 一覧を取得
         List<String> userIds = SlackMapper.getReplayUserIds(comments);
-
 
         // ユーザー一覧を取得
         Map<String, User> userMap = userIds.parallelStream() //

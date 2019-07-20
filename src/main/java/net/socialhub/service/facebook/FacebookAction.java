@@ -54,7 +54,7 @@ public class FacebookAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void like(Identify id) {
+    public void likeComment(Identify id) {
         proceed(() -> {
             auth.getAccessor().comments().likeComment((String) id.getId());
         });
@@ -64,7 +64,7 @@ public class FacebookAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void unlike(Identify id) {
+    public void unlikeComment(Identify id) {
         proceed(() -> {
             auth.getAccessor().comments().unlikeComment((String) id.getId());
         });

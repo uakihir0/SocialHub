@@ -12,7 +12,14 @@ import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.paging.OffsetPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
@@ -24,8 +31,30 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static net.socialhub.define.action.OtherActionType.*;
-import static net.socialhub.define.action.TimeLineActionType.*;
+import static net.socialhub.define.action.OtherActionType.BlockUser;
+import static net.socialhub.define.action.OtherActionType.DeleteComment;
+import static net.socialhub.define.action.OtherActionType.FollowUser;
+import static net.socialhub.define.action.OtherActionType.GetComment;
+import static net.socialhub.define.action.OtherActionType.GetContext;
+import static net.socialhub.define.action.OtherActionType.GetFollowerUsers;
+import static net.socialhub.define.action.OtherActionType.GetFollowingUsers;
+import static net.socialhub.define.action.OtherActionType.GetRelationship;
+import static net.socialhub.define.action.OtherActionType.GetUser;
+import static net.socialhub.define.action.OtherActionType.GetUserMe;
+import static net.socialhub.define.action.OtherActionType.LikeComment;
+import static net.socialhub.define.action.OtherActionType.MuteUser;
+import static net.socialhub.define.action.OtherActionType.ShareComment;
+import static net.socialhub.define.action.OtherActionType.UnShareComment;
+import static net.socialhub.define.action.OtherActionType.UnblockUser;
+import static net.socialhub.define.action.OtherActionType.UnfollowUser;
+import static net.socialhub.define.action.OtherActionType.UnlikeComment;
+import static net.socialhub.define.action.OtherActionType.UnmuteUser;
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.SearchTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserMediaTimeLine;
 
 public class MastodonAction extends AccountActionImpl {
 
@@ -172,7 +201,6 @@ public class MastodonAction extends AccountActionImpl {
         });
     }
 
-
     // ============================================================== //
     // User API
     // ユーザー関連 API
@@ -243,18 +271,16 @@ public class MastodonAction extends AccountActionImpl {
             Service service = getAccount().getService();
             Range range = getRange(paging);
 
-
-            Response<Notification[]> status =
+            Response<Notification[]> status = //
                     mastodon.notifications() //
-                            .getNotifications(range, Arrays.asList( //
-                                    MastodonNotificationType.follow.getCode(), //
-                                    MastodonNotificationType.favourite.getCode(), //
-                                    MastodonNotificationType.reblog.getCode()), //
-                                    null);
+                    .getNotifications(range, Arrays.asList( //
+                            MastodonNotificationType.follow.getCode(), //
+                            MastodonNotificationType.favourite.getCode(), //
+                            MastodonNotificationType.reblog.getCode()), //
+                            null);
 
-            List<Status> statuses = Stream.of(status.get())
-                    .map(Notification::getStatus)
-                    .collect(Collectors.toList());
+            List<Status> statuses = Stream.of(status.get()) //
+                    .map(Notification::getStatus).collect(Collectors.toList());
 
             service.getRateLimit().addInfo(MentionTimeLine, status);
             return MastodonMapper.timeLine(statuses, service, paging);
@@ -300,7 +326,7 @@ public class MastodonAction extends AccountActionImpl {
                 }
             }
 
-            throw new NotSupportedException(
+            throw new NotSupportedException( //
                     "Sorry, user favorites timeline is only support only verified account on Mastodon.");
         });
     }
@@ -362,7 +388,7 @@ public class MastodonAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void like(Identify id) {
+    public void likeComment(Identify id) {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
@@ -376,7 +402,7 @@ public class MastodonAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void unlike(Identify id) {
+    public void unlikeComment(Identify id) {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
@@ -390,7 +416,7 @@ public class MastodonAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void retweet(Identify id) {
+    public void shareComment(Identify id) {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
@@ -404,7 +430,7 @@ public class MastodonAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void unretweet(Identify id) {
+    public void unshareComment(Identify id) {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
@@ -418,16 +444,16 @@ public class MastodonAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void reaction(Identify id, String reaction) {
+    public void reactionComment(Identify id, String reaction) {
         if (reaction != null && !reaction.isEmpty()) {
             String type = reaction.toLowerCase();
 
             if (MastodonReactionType.Favorite.getCode().contains(type)) {
-                like(id);
+                likeComment(id);
                 return;
             }
             if (MastodonReactionType.Reblog.getCode().contains(type)) {
-                retweet(id);
+                retweetComment(id);
                 return;
             }
         }
@@ -438,20 +464,34 @@ public class MastodonAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void unreaction(Identify id, String reaction) {
+    public void unreactionComment(Identify id, String reaction) {
         if (reaction != null && !reaction.isEmpty()) {
             String type = reaction.toLowerCase();
 
             if (MastodonReactionType.Favorite.getCode().contains(type)) {
-                unlike(id);
+                unlikeComment(id);
                 return;
             }
             if (MastodonReactionType.Reblog.getCode().contains(type)) {
-                unretweet(id);
+                unretweetComment(id);
                 return;
             }
         }
         throw new NotSupportedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteComment(Identify id) {
+        proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Response<Void> voids = mastodon.statuses().deleteStatus((Long) id.getId());
+
+            service.getRateLimit().addInfo(DeleteComment, voids);
+        });
     }
 
     /**
@@ -480,7 +520,7 @@ public class MastodonAction extends AccountActionImpl {
             context.setDescendants(Arrays.stream(response.get().getDescendants()) //
                     .map(e -> MastodonMapper.comment(e, service)) //
                     .collect(Collectors.toList()));
-            context.setAncestors(Arrays.stream(response.get().getAncestors())
+            context.setAncestors(Arrays.stream(response.get().getAncestors()) //
                     .map(e -> MastodonMapper.comment(e, service)) //
                     .collect(Collectors.toList()));
 
@@ -546,7 +586,6 @@ public class MastodonAction extends AccountActionImpl {
     private Identify getMyAccountId() {
         return (myAccountId != null) ? myAccountId : getUserMe();
     }
-
 
     // ============================================================== //
     // Utils

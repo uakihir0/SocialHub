@@ -30,7 +30,7 @@ public class CommentActionImpl implements CommentAction {
      */
     @Override
     public void reaction(String action) {
-        this.action.reaction(comment, action);
+        this.action.reactionComment(comment, action);
     }
 
     /**
@@ -38,7 +38,7 @@ public class CommentActionImpl implements CommentAction {
      */
     @Override
     public void unreaction(String action) {
-        this.action.unreaction(comment, action);
+        this.action.unreactionComment(comment, action);
     }
 
     /**
@@ -46,7 +46,7 @@ public class CommentActionImpl implements CommentAction {
      */
     @Override
     public void like() {
-        action.like(comment);
+        action.likeComment(comment);
     }
 
     /**
@@ -54,7 +54,7 @@ public class CommentActionImpl implements CommentAction {
      */
     @Override
     public void unlike() {
-        action.unlike(comment);
+        action.unlikeComment(comment);
     }
 
     /**
@@ -62,7 +62,7 @@ public class CommentActionImpl implements CommentAction {
      */
     @Override
     public void share() {
-        action.share(comment);
+        action.shareComment(comment);
     }
 
     /**
@@ -70,14 +70,14 @@ public class CommentActionImpl implements CommentAction {
      */
     @Override
     public void unshare() {
-        action.unshare(comment);
+        action.unshareComment(comment);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Context getCommentContext() {
+    public Context getContext() {
         return action.getCommentContext(comment);
     }
 }

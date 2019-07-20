@@ -1,6 +1,7 @@
 package net.socialhub.service.action;
 
 import net.socialhub.model.error.NotImplimentedException;
+import net.socialhub.model.request.CommentRequest;
 import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Context;
@@ -176,6 +177,14 @@ public interface AccountAction {
     // ============================================================== //
 
     /**
+     * Post Comment
+     * コメントを作成
+     */
+    default void postComment(CommentRequest req) {
+        throw new NotImplimentedException();
+    }
+
+    /**
      * Get Comment
      * 単品コメントを取得
      */
@@ -188,7 +197,7 @@ public interface AccountAction {
      * コメントにたいしてイイねする
      * (Twitter Mastodon ではお気に入りをする)
      */
-    default void like(Identify id) {
+    default void likeComment(Identify id) {
         throw new NotImplimentedException();
     }
 
@@ -197,7 +206,7 @@ public interface AccountAction {
      * コメントに対してのイイねを取り消す
      * (Twitter Mastodon ではお気に入りを消す)
      */
-    default void unlike(Identify id) {
+    default void unlikeComment(Identify id) {
         throw new NotImplimentedException();
     }
 
@@ -205,7 +214,7 @@ public interface AccountAction {
      * Share Comment
      * コメントをシェアする
      */
-    default void share(Identify id) {
+    default void shareComment(Identify id) {
         throw new NotImplimentedException();
     }
 
@@ -213,7 +222,7 @@ public interface AccountAction {
      * Unshare Comment
      * コメントのシェアを取り消す
      */
-    default void unshare(Identify id) {
+    default void unshareComment(Identify id) {
         throw new NotImplimentedException();
     }
 
@@ -221,7 +230,7 @@ public interface AccountAction {
      * Reaction Comment
      * リアクションする
      */
-    default void reaction(Identify id, String reaction) {
+    default void reactionComment(Identify id, String reaction) {
         throw new NotImplimentedException();
     }
 
@@ -229,7 +238,15 @@ public interface AccountAction {
      * UnReaction Comment
      * リアクションを取り消す
      */
-    default void unreaction(Identify id, String reaction) {
+    default void unreactionComment(Identify id, String reaction) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Delete Comment
+     * 自分のコメントを削除
+     */
+    default void deleteComment(Identify id) {
         throw new NotImplimentedException();
     }
 
@@ -270,23 +287,23 @@ public interface AccountAction {
     /**
      * Like <-> Favorite
      */
-    default void favorite(Identify id) {
-        like(id);
+    default void favoriteComment(Identify id) {
+        likeComment(id);
     }
 
-    default void unfavorite(Identify id) {
-        unlike(id);
+    default void unfavoriteComment(Identify id) {
+        unlikeComment(id);
     }
 
     /**
      * Share <-> Retweet
      */
-    default void retweet(Identify id) {
-        share(id);
+    default void retweetComment(Identify id) {
+        shareComment(id);
     }
 
-    default void unretweet(Identify id) {
-        unshare(id);
+    default void unretweetComment(Identify id) {
+        unshareComment(id);
     }
 
     /**

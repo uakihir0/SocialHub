@@ -6,6 +6,7 @@ import net.socialhub.model.service.Reaction;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.addition.MiniBlogComment;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,13 +30,14 @@ public class MastodonComment extends MiniBlogComment {
 
     @Override
     public List<Reaction> getReactions() {
-        List<Reaction> reactions = super.getReactions();
+        List<Reaction> reactions = new ArrayList<>();
 
         Reaction reply = new Reaction();
         reply.setCount(replyCount);
         reply.setName("reply");
         reactions.add(reply);
 
+        reactions.addAll(super.getReactions());
         return reactions;
     }
 

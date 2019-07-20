@@ -29,7 +29,7 @@ public class UserActionImpl implements UserAction {
      * {@inheritDoc}
      */
     @Override
-    public void followUser() {
+    public void follow() {
         action.followUser(user);
     }
 
@@ -37,7 +37,7 @@ public class UserActionImpl implements UserAction {
      * {@inheritDoc}
      */
     @Override
-    public void unfollowUser() {
+    public void unfollow() {
         action.unfollowUser(user);
     }
 
@@ -45,7 +45,7 @@ public class UserActionImpl implements UserAction {
      * {@inheritDoc}
      */
     @Override
-    public void muteUser() {
+    public void mute() {
         action.muteUser(user);
     }
 
@@ -53,7 +53,7 @@ public class UserActionImpl implements UserAction {
      * {@inheritDoc}
      */
     @Override
-    public void unmuteUser() {
+    public void unmute() {
         action.unmuteUser(user);
     }
 
@@ -61,7 +61,7 @@ public class UserActionImpl implements UserAction {
      * {@inheritDoc}
      */
     @Override
-    public void blockUser() {
+    public void block() {
         action.muteUser(user);
     }
 
@@ -69,7 +69,7 @@ public class UserActionImpl implements UserAction {
      * {@inheritDoc}
      */
     @Override
-    public void unblockUser() {
+    public void unblock() {
         action.unmuteUser(user);
     }
 

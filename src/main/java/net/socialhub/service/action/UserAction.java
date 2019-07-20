@@ -15,37 +15,37 @@ public interface UserAction {
      * Follow User
      * アカウントをフォロー
      */
-    void followUser();
+    void follow();
 
     /**
      * UnFollow User
      * アカウントをアンフォロー
      */
-    void unfollowUser();
+    void unfollow();
 
     /**
      * Mute User
      * ユーザーをミュート
      */
-    void muteUser();
+    void mute();
 
     /**
      * UnMute User
      * ユーザーをミュート解除
      */
-    void unmuteUser();
+    void unmute();
 
     /**
      * Block User
      * ユーザーをブロック
      */
-    void blockUser();
+    void block();
 
     /**
      * UnBlock User
      * ユーザーをブロック解除
      */
-    void unblockUser();
+    void unblock();
 
     /**
      * Get relationship

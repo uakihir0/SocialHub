@@ -600,7 +600,7 @@ public class TwitterAction extends AccountActionImpl {
                 return proceed(() -> {
 
                     // クエリを組み上げる処理
-                    User user = comment.getUser();
+                    User user = comment.getDisplayComment().getUser();
                     String mention = "@" + user.getScreenName();
 
                     // ツイート後の二時間を対象に取得

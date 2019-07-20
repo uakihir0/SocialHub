@@ -5,27 +5,17 @@ import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.request.CommentRequest;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Context;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
-import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.MiniBlogComment;
 import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.utils.SnowflakeUtil;
-import twitter4j.PagableResponseList;
-import twitter4j.Query;
-import twitter4j.QueryResult;
-import twitter4j.ResponseList;
-import twitter4j.Status;
-import twitter4j.StatusUpdate;
-import twitter4j.Twitter;
+import twitter4j.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,27 +24,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import static net.socialhub.define.action.OtherActionType.BlockUser;
-import static net.socialhub.define.action.OtherActionType.DeleteComment;
-import static net.socialhub.define.action.OtherActionType.FollowUser;
-import static net.socialhub.define.action.OtherActionType.GetComment;
-import static net.socialhub.define.action.OtherActionType.GetFollowerUsers;
-import static net.socialhub.define.action.OtherActionType.GetFollowingUsers;
-import static net.socialhub.define.action.OtherActionType.GetRelationship;
-import static net.socialhub.define.action.OtherActionType.GetUser;
-import static net.socialhub.define.action.OtherActionType.GetUserMe;
-import static net.socialhub.define.action.OtherActionType.LikeComment;
-import static net.socialhub.define.action.OtherActionType.MuteUser;
-import static net.socialhub.define.action.OtherActionType.ShareComment;
-import static net.socialhub.define.action.OtherActionType.UnblockUser;
-import static net.socialhub.define.action.OtherActionType.UnfollowUser;
-import static net.socialhub.define.action.OtherActionType.UnlikeComment;
-import static net.socialhub.define.action.OtherActionType.UnmuteUser;
-import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.SearchTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
+import static net.socialhub.define.action.OtherActionType.*;
+import static net.socialhub.define.action.TimeLineActionType.*;
 
 /**
  * Twitter Actions
@@ -596,39 +567,37 @@ public class TwitterAction extends AccountActionImpl {
             Twitter twitter = auth.getAccessor();
             Service service = getAccount().getService();
             ExecutorService pool = Executors.newCachedThreadPool();
-
-            Context context = new Context();
-            context.setAncestors(new ArrayList<>());
-            context.setDescendants(new ArrayList<>());
             MiniBlogComment comment = toMiniBlogComment(id);
 
-            Future<?> ancestors = null;
-            Future<?> descendants;
+            Future<List<Comment>> ancestors = null;
+            Future<List<Comment>> descendants;
 
             // 前の会話内容を取得
             if (comment.getReplyTo() != null) {
                 ancestors = pool.submit(() -> {
-                    proceed(() -> {
+                    return proceed(() -> {
+                        List<Comment> results = new ArrayList<>();
                         Long replyId = (Long) comment.getReplyTo().getId();
 
                         for (int i = 0; i < 10; i++) {
                             Status status = twitter.showStatus(replyId);
                             Comment c = TwitterMapper.comment(status, service);
-                            context.getAncestors().add(0, c);
+                            results.add(0, c);
 
                             if (status.getInReplyToStatusId() > 0) {
                                 replyId = status.getInReplyToStatusId();
                                 continue;
                             }
-                            return;
+                            break;
                         }
+                        return results;
                     });
                 });
             }
 
             // 後の会話情報を取得
             descendants = pool.submit(() -> {
-                proceed(() -> {
+                return proceed(() -> {
 
                     // クエリを組み上げる処理
                     User user = comment.getUser();
@@ -645,17 +614,16 @@ public class TwitterAction extends AccountActionImpl {
                     query.setCount(200);
 
                     QueryResult result = twitter.search(query);
-                    context.getDescendants().addAll(result.getTweets().stream() //
+                    return result.getTweets().stream() //
                             .filter((c) -> c.getInReplyToStatusId() == ((long) id.getId())) //
                             .map((c) -> TwitterMapper.comment(c, service)) //
-                            .collect(Collectors.toList()));
+                            .collect(Collectors.toList());
                 });
             });
 
-            descendants.get();
-            if (ancestors != null) {
-                ancestors.get();
-            }
+            Context context = new Context();
+            context.setDescendants(descendants.get());
+            context.setAncestors((ancestors != null) ? ancestors.get() : new ArrayList<>());
 
             return context;
         });

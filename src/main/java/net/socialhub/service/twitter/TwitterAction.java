@@ -604,7 +604,7 @@ public class TwitterAction extends AccountActionImpl {
                     String mention = "@" + user.getScreenName();
 
                     // ツイート後の二時間を対象に取得
-                    Long sinceId = (Long) id.getId();
+                    Long sinceId = (Long) comment.getDisplayComment().getId();
                     Long maxId = SnowflakeUtil.ofTwitter().addHoursToID(sinceId, 2L);
 
                     Query query = new Query();
@@ -615,7 +615,7 @@ public class TwitterAction extends AccountActionImpl {
 
                     QueryResult result = twitter.search(query);
                     return result.getTweets().stream() //
-                            .filter((c) -> c.getInReplyToStatusId() == ((long) id.getId())) //
+                            .filter((c) -> c.getInReplyToStatusId() == sinceId) //
                             .map((c) -> TwitterMapper.comment(c, service)) //
                             .collect(Collectors.toList());
                 });

@@ -1,6 +1,8 @@
 package net.socialhub.utils;
 
 import net.socialhub.define.ServiceType;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.addition.tumblr.TumblrPaging;
 import net.socialhub.model.service.paging.BorderPaging;
@@ -8,10 +10,28 @@ import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.paging.DatePaging;
 import net.socialhub.model.service.paging.IndexPaging;
 
+import java.util.Comparator;
+
 /**
  * Mapper 補助関数
  */
 public class MapperUtil {
+
+    // ============================================================== //
+    // Context
+    // ============================================================== //
+
+    /**
+     * Sort Context
+     */
+    public static void sortContext(Context context) {
+        context.getDescendants().sort(Comparator.comparing(Comment::getCreateAt).reversed());
+        context.getAncestors().sort(Comparator.comparing(Comment::getCreateAt).reversed());
+    }
+    
+    // ============================================================== //
+    // Paging
+    // ============================================================== //
 
     /**
      * BorderPaging の作成

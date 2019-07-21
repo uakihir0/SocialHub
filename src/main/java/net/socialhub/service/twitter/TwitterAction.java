@@ -14,6 +14,7 @@ import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.SnowflakeUtil;
 import twitter4j.*;
 
@@ -624,7 +625,7 @@ public class TwitterAction extends AccountActionImpl {
             Context context = new Context();
             context.setDescendants(descendants.get());
             context.setAncestors((ancestors != null) ? ancestors.get() : new ArrayList<>());
-
+            MapperUtil.sortContext(context);
             return context;
         });
     }

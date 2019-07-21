@@ -56,6 +56,7 @@ public class GetContextTest extends AbstractApiTest {
             System.out.println(">ID: " + comment.getId());
             Comment display = comment.getDisplayComment();
             System.out.println(">Text: " + display.getText());
+            System.out.println(">Date: " + display.getCreateAt());
         }
 
         System.out.println("========================");
@@ -66,6 +67,7 @@ public class GetContextTest extends AbstractApiTest {
             System.out.println(">ID: " + comment.getId());
             Comment display = comment.getDisplayComment();
             System.out.println(">Text: " + display.getText());
+            System.out.println(">Date: " + display.getCreateAt());
         }
     }
 }

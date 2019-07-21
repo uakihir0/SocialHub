@@ -12,49 +12,21 @@ import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Context;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Relationship;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.paging.OffsetPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+import net.socialhub.utils.MapperUtil;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static net.socialhub.define.action.OtherActionType.BlockUser;
-import static net.socialhub.define.action.OtherActionType.DeleteComment;
-import static net.socialhub.define.action.OtherActionType.FollowUser;
-import static net.socialhub.define.action.OtherActionType.GetComment;
-import static net.socialhub.define.action.OtherActionType.GetContext;
-import static net.socialhub.define.action.OtherActionType.GetFollowerUsers;
-import static net.socialhub.define.action.OtherActionType.GetFollowingUsers;
-import static net.socialhub.define.action.OtherActionType.GetRelationship;
-import static net.socialhub.define.action.OtherActionType.GetUser;
-import static net.socialhub.define.action.OtherActionType.GetUserMe;
-import static net.socialhub.define.action.OtherActionType.LikeComment;
-import static net.socialhub.define.action.OtherActionType.MuteUser;
-import static net.socialhub.define.action.OtherActionType.ShareComment;
-import static net.socialhub.define.action.OtherActionType.UnShareComment;
-import static net.socialhub.define.action.OtherActionType.UnblockUser;
-import static net.socialhub.define.action.OtherActionType.UnfollowUser;
-import static net.socialhub.define.action.OtherActionType.UnlikeComment;
-import static net.socialhub.define.action.OtherActionType.UnmuteUser;
-import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.SearchTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserMediaTimeLine;
+import static net.socialhub.define.action.OtherActionType.*;
+import static net.socialhub.define.action.TimeLineActionType.*;
 
 public class MastodonAction extends AccountActionImpl {
 
@@ -273,11 +245,11 @@ public class MastodonAction extends AccountActionImpl {
 
             Response<Notification[]> status = //
                     mastodon.notifications() //
-                    .getNotifications(range, Arrays.asList( //
-                            MastodonNotificationType.follow.getCode(), //
-                            MastodonNotificationType.favourite.getCode(), //
-                            MastodonNotificationType.reblog.getCode()), //
-                            null);
+                            .getNotifications(range, Arrays.asList( //
+                                    MastodonNotificationType.follow.getCode(), //
+                                    MastodonNotificationType.favourite.getCode(), //
+                                    MastodonNotificationType.reblog.getCode()), //
+                                    null);
 
             List<Status> statuses = Stream.of(status.get()) //
                     .map(Notification::getStatus).collect(Collectors.toList());
@@ -511,8 +483,10 @@ public class MastodonAction extends AccountActionImpl {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
 
-            Response<mastodon4j.entity.Context> response =  //
-                    mastodon.getContext((Long) id.getId());
+            Long displayId = (Long) ((id instanceof Comment) ? //
+                    ((Comment) id).getDisplayComment().getId() : id.getId());
+
+            Response<mastodon4j.entity.Context> response = mastodon.getContext(displayId);
 
             service.getRateLimit().addInfo(GetContext, response);
 
@@ -524,6 +498,7 @@ public class MastodonAction extends AccountActionImpl {
                     .map(e -> MastodonMapper.comment(e, service)) //
                     .collect(Collectors.toList()));
 
+            MapperUtil.sortContext(context);
             return context;
         });
     }

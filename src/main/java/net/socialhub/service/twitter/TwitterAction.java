@@ -568,7 +568,9 @@ public class TwitterAction extends AccountActionImpl {
             Twitter twitter = auth.getAccessor();
             Service service = getAccount().getService();
             ExecutorService pool = Executors.newCachedThreadPool();
-            MiniBlogComment comment = toMiniBlogComment(id);
+
+            MiniBlogComment originComment = toMiniBlogComment(id);
+            MiniBlogComment comment = toMiniBlogComment(originComment.getDisplayComment());
 
             Future<List<Comment>> ancestors = null;
             Future<List<Comment>> descendants;
@@ -601,11 +603,11 @@ public class TwitterAction extends AccountActionImpl {
                 return proceed(() -> {
 
                     // クエリを組み上げる処理
-                    User user = comment.getDisplayComment().getUser();
+                    User user = comment.getUser();
                     String mention = "@" + user.getScreenName();
 
                     // ツイート後の二時間を対象に取得
-                    Long sinceId = (Long) comment.getDisplayComment().getId();
+                    Long sinceId = (Long) comment.getId();
                     Long maxId = SnowflakeUtil.ofTwitter().addHoursToID(sinceId, 2L);
 
                     Query query = new Query();

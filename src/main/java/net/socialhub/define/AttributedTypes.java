@@ -37,7 +37,6 @@ public class AttributedTypes {
     public static List<AttributedType> simple() {
         return Arrays.asList( //
                 AttributedTypes.fullLink, //
-                AttributedTypes.shortLink, //
                 AttributedTypes.email, //
                 AttributedTypes.phone, //
                 AttributedTypes.hashTag, //

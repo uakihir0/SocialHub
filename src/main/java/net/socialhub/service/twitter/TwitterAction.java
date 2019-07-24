@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 
 import static net.socialhub.define.action.OtherActionType.*;
 import static net.socialhub.define.action.TimeLineActionType.*;
+import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
+import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
 
 /**
  * Twitter Actions

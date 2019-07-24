@@ -18,8 +18,6 @@ public enum OtherActionType implements ActionType {
     // Get Users
     GetUser,
     GetUserMe,
-    GetFollowingUsers,
-    GetFollowerUsers,
 
     // Post Users
     FollowUser,//

@@ -2,12 +2,11 @@ package net.socialhub.service.action;
 
 import net.socialhub.define.action.ActionType;
 import net.socialhub.model.error.NotImplimentedException;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.*;
 
 import static net.socialhub.define.action.TimeLineActionType.*;
+import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
+import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
 
 public class RequestActionImpl implements RequestAction {
 
@@ -51,6 +50,29 @@ public class RequestActionImpl implements RequestAction {
             if ((args.length == 1) && //
                     (args[0] instanceof Identify)) {
                 return action.getUserMediaTimeLine((Identify) args[0], paging);
+            }
+        }
+
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<User> getUsers(Paging paging) {
+
+        if (type == GetFollowingUsers) {
+            if ((args.length == 1) && //
+                    (args[0] instanceof Identify)) {
+                return action.getFollowingUsers((Identify) args[0], paging);
+            }
+        }
+
+        if (type == GetFollowerUsers) {
+            if ((args.length == 1) && //
+                    (args[0] instanceof Identify)) {
+                return action.getFollowerUsers((Identify) args[0], paging);
             }
         }
 

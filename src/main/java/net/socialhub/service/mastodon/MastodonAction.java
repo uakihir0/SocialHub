@@ -27,8 +27,7 @@ import java.util.stream.Stream;
 
 import static net.socialhub.define.action.OtherActionType.*;
 import static net.socialhub.define.action.TimeLineActionType.*;
-import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
-import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
+import static net.socialhub.define.action.UsersActionType.*;
 
 public class MastodonAction extends AccountActionImpl {
 
@@ -216,6 +215,24 @@ public class MastodonAction extends AccountActionImpl {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<User> searchUsers(String query, Paging paging) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Page page = getPage(paging);
+
+            Response<Results> results = mastodon.search().search( //
+                    query, false, false, page);
+
+            service.getRateLimit().addInfo(SearchUsers, results);
+            return MastodonMapper.users(results.get().getAccounts(), service, paging);
+        });
+    }
+
     // ============================================================== //
     // Timeline
     // ============================================================== //
@@ -330,12 +347,25 @@ public class MastodonAction extends AccountActionImpl {
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Page page = getPage(paging);
 
-            Response<Results> results = mastodon.search().search(query, false, false, page);
+            if (query.startsWith("#")) {
 
-            service.getRateLimit().addInfo(SearchTimeLine, results);
-            return MastodonMapper.timeLine(results.get().getStatuses(), service, paging);
+                // ハッシュタグのクエリの場合
+                Range range = getRange(paging);
+                Response<Status[]> results = mastodon.getHashtagTimeline( //
+                        query.substring(1), false, false, range);
+
+                return MastodonMapper.timeLine(results.get(), service, paging);
+
+            } else {
+
+                // それ以外は通常の検索を実施
+                Page page = getPage(paging);
+                Response<Results> results = mastodon.search().search( //
+                        query, false, false, page);
+
+                return MastodonMapper.timeLine(results.get().getStatuses(), service, paging);
+            }
         });
     }
 

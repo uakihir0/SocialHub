@@ -2,9 +2,10 @@ package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
 import net.socialhub.model.Account;
-import net.socialhub.model.service.*;
-import net.socialhub.model.service.addition.slack.SlackComment;
-import net.socialhub.model.service.paging.BorderPaging;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.User;
 import org.junit.Test;
 
 public class MediaTimelineTest extends AbstractApiTest {
@@ -23,46 +24,5 @@ public class MediaTimelineTest extends AbstractApiTest {
 
         printTimeline("Now", comments);
         printTimeline("Past", pasts);
-    }
-
-
-    private void printTimeline(String title, Pageable<Comment> timeline) {
-
-        System.out.println("========================");
-        System.out.println("> " + title);
-        printPaging(timeline.getPaging());
-        System.out.println("========================");
-
-        for (Comment c : timeline.getEntities()) {
-            System.out.println(c.getId());
-
-            Comment dc = c.getDisplayComment();
-            System.out.println("T> " + dc.getText());
-
-            if (c instanceof SlackComment) {
-                System.out.println("C> " + ((SlackComment) c).getChannel());
-            }
-
-            if (dc.getApplication() != null) {
-                System.out.println("A> " + dc.getApplication().getName());
-            }
-
-            for (Media m : dc.getMedias()) {
-                System.out.println("M> " + m.getType() + " : " + m.getPreviewUrl());
-            }
-
-            for (Reaction m : dc.getReactions()) {
-                System.out.println("R> " + m.getEmoji() + " : " + m.getCount());
-            }
-        }
-    }
-
-    private void printPaging(Paging paging) {
-
-        if (paging instanceof BorderPaging) {
-            BorderPaging bp = (BorderPaging) paging;
-            System.out.println("> Max: " + bp.getMaxId());
-            System.out.println("> Sin: " + bp.getSinceId());
-        }
     }
 }

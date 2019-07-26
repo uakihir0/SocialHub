@@ -52,6 +52,13 @@ public class RequestActionImpl implements RequestAction {
                 return action.getUserMediaTimeLine((Identify) args[0], paging);
             }
         }
+        if (type == SearchTimeLine) {
+            if ((args.length == 1) && //
+                    (args[0] instanceof String)) {
+                return action.getSearchTimeLine((String) args[0], paging);
+            }
+
+        }
 
         throw new NotImplimentedException();
     }

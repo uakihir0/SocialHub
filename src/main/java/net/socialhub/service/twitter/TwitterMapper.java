@@ -413,6 +413,23 @@ public class TwitterMapper {
         return model;
     }
 
+    /**
+     * ユーザーマッピング
+     */
+    public static Pageable<User> users(
+            ResponseList<twitter4j.User> users, //
+            Service service, //
+            Paging paging) {
+
+        Pageable<User> model = new Pageable<>();
+        model.setEntities(users.stream().map(e -> user(e, service)) //
+                .collect(Collectors.toList()));
+
+        IndexPaging pg = MapperUtil.mappingIndexPaging(paging);
+        model.setPaging(pg);
+        return model;
+    }
+
     // ============================================================== //
     // Support
     // ============================================================== //

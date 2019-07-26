@@ -99,7 +99,11 @@ public class TumblrMapper {
 
         if (trails.containsKey(post.getBlog().getName())) {
             Trail trail = trails.get(post.getBlog().getName());
-            model.setCoverImageUrl(trail.getBlog().getTheme().getHeaderImage());
+            List<Theme> themes = trail.getBlog().getTheme();
+
+            if (themes != null && !themes.isEmpty()) {
+                model.setCoverImageUrl(themes.get(0).getHeaderImage());
+            }
         }
 
         return model;
@@ -126,7 +130,11 @@ public class TumblrMapper {
 
         if (trails.containsKey(name)) {
             Trail trail = trails.get(name);
-            model.setCoverImageUrl(trail.getBlog().getTheme().getHeaderImage());
+            List<Theme> themes = trail.getBlog().getTheme();
+
+            if (themes != null && !themes.isEmpty()) {
+                model.setCoverImageUrl(themes.get(0).getHeaderImage());
+            }
         }
 
         return model;

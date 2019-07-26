@@ -2,14 +2,7 @@ package net.socialhub.service.action;
 
 import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.request.CommentRequest;
-import net.socialhub.model.service.Channel;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Context;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Relationship;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.support.ReactionCandidate;
 
 import java.util.List;
@@ -115,6 +108,14 @@ public interface AccountAction {
      * フォローされているユーザー情報を取得
      */
     default Pageable<User> getFollowerUsers(Identify id, Paging paging) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Search User Account
+     * ユーザーアカウントを検索
+     */
+    default Pageable<User> searchUsers(String query, Paging paging) {
         throw new NotImplimentedException();
     }
 

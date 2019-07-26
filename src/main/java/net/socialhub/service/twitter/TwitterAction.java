@@ -3,6 +3,7 @@ package net.socialhub.service.twitter;
 import net.socialhub.define.MediaType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
+import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.request.CommentRequest;
 import net.socialhub.model.service.Paging;
@@ -11,6 +12,7 @@ import net.socialhub.model.service.User;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.MiniBlogComment;
 import net.socialhub.model.service.paging.CursorPaging;
+import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
@@ -27,8 +29,7 @@ import java.util.stream.Collectors;
 
 import static net.socialhub.define.action.OtherActionType.*;
 import static net.socialhub.define.action.TimeLineActionType.*;
-import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
-import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
+import static net.socialhub.define.action.UsersActionType.*;
 
 /**
  * Twitter Actions
@@ -238,6 +239,36 @@ public class TwitterAction extends AccountActionImpl {
             return TwitterMapper.users(users, service, paging);
         });
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<User> searchUsers(String query, Paging paging) {
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+
+            int page = 1;
+            if (paging != null) {
+                paging.setCount(20L);
+
+                if (paging instanceof IndexPaging) {
+                    IndexPaging ind = (IndexPaging) paging;
+                    if (ind.getPage() != null) {
+                        page = ind.getPage().intValue();
+                    }
+                }
+            }
+
+            ResponseList<twitter4j.User> users = auth.getAccessor() //
+                    .searchUsers(query, page);
+
+            service.getRateLimit().addInfo(SearchUsers, users);
+            return TwitterMapper.users(users, service, paging);
+        });
+    }
+
 
     // ============================================================== //
     // TimeLine

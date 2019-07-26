@@ -7,7 +7,7 @@ import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import org.junit.Test;
 
-public class SearchTimelineTest extends AbstractApiTest {
+public class SearchTimelineTest extends AbstractTimelineTest {
 
     @Test
     public void testUserMediaTimelineTwitter() {

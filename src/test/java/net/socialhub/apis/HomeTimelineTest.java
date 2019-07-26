@@ -3,11 +3,9 @@ package net.socialhub.apis;
 import net.socialhub.SocialAuthUtil;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.*;
-import net.socialhub.model.service.addition.slack.SlackComment;
-import net.socialhub.model.service.paging.BorderPaging;
 import org.junit.Test;
 
-public class HomeTimelineTest extends AbstractApiTest {
+public class HomeTimelineTest extends AbstractTimelineTest {
 
     @Test
     public void testHomeTimelineTwitter_New() {

@@ -8,7 +8,7 @@ import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.User;
 import org.junit.Test;
 
-public class MediaTimelineTest extends AbstractApiTest {
+public class MediaTimelineTest extends AbstractTimelineTest {
 
     @Test
     public void testUserMediaTimelineTwitter_Past() {

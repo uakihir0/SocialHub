@@ -21,6 +21,8 @@ SocialHub is a multi social network service's API library written in **Java**, a
   * [Discord API](https://discordapp.com) does not provide the way to write messege api as user to channel.
 * [**Instagram**](https://www.instagram.com/)
   * [Instagram API](https://www.instagram.com/developer/) is deplicated, and [new Graph API](https://developers.facebook.com/products/instagram/) is buissiness use.
+* [**Pleroma**](https://pleroma.social/)
+* [**Misskey**](https://joinmisskey.github.io/ja/)
 
 
 Most of all libraries are modified (remove complex dependency and unused functions in SocialHub) for compilation to Objective-C with [J2ObjC].

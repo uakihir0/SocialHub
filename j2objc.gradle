@@ -48,7 +48,7 @@ dependencies {
 
     // J2ObjC Common Library
     compile('com.github.uakihir0:JLogger:1.1')
-    compile('com.github.uakihir0:JHttpClient:1.1.4')
+    compile('com.github.uakihir0:JHttpClient:1.1.5')
 
     // J2ObjC Network Library
     compile('com.github.uakihir0.twitter4j:twitter4j-core:4.0.6.15')
@@ -56,7 +56,7 @@ dependencies {
     compile('com.github.uakihir0.jslack:jslack-api-client:1.7.4.1')
     compile('com.github.uakihir0.jslack:jslack-api-model:1.7.4.1')
     compile('com.github.uakihir0:msinstance4j:0.0.3')
-    compile('com.github.uakihir0:mastodon4j:0.2.15')
+    compile('com.github.uakihir0:mastodon4j:0.2.20')
     compile('com.github.uakihir0:jumblr:0.0.13.6')
 
     // Test

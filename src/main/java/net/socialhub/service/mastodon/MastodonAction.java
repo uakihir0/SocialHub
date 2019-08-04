@@ -3,25 +3,34 @@ package net.socialhub.service.mastodon;
 import mastodon4j.Mastodon;
 import mastodon4j.Page;
 import mastodon4j.Range;
+import mastodon4j.entity.Attachment;
 import mastodon4j.entity.Notification;
 import mastodon4j.entity.Results;
 import mastodon4j.entity.Status;
+import mastodon4j.entity.request.StatusUpdate;
 import mastodon4j.entity.share.Response;
 import net.socialhub.define.service.mastodon.MastodonNotificationType;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
+import net.socialhub.model.request.CommentRequest;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.paging.OffsetPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -372,6 +381,51 @@ public class MastodonAction extends AccountActionImpl {
     // ============================================================== //
     // Comment
     // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void postComment(CommentRequest req) {
+        proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            ExecutorService pool = Executors.newCachedThreadPool();
+            Service service = getAccount().getService();
+
+            StatusUpdate update = new StatusUpdate();
+            update.setContent(req.getMessage());
+
+            // 返信の処理
+            if (req.getReplyId() != null) {
+                update.setInReplyToId((Long) req.getReplyId());
+            }
+
+            // 画像の処理
+            if (req.getImages() != null && !req.getImages().isEmpty()) {
+
+                // 画像を並列でアップロードする
+                List<Future<Long>> medias = req.getImages() //
+                        .stream().map(image -> pool.submit(() -> {
+                            InputStream input = new ByteArrayInputStream(image.getData());
+                            Response<Attachment> attachment = mastodon.media() //
+                                    .postMedia(input, image.getName(), null);
+                            return attachment.get().getId();
+                        })).collect(Collectors.toList());
+
+                update.setMediaIds(medias.stream().map( //
+                        (e) -> HandlingUtil.runtime(e::get)) //
+                        .collect(Collectors.toList()));
+            }
+
+            // センシティブな内容
+            if (req.getSensitive() != null && req.getSensitive()) {
+                update.setSensitive(true);
+            }
+
+            Response<Status> status = mastodon.statuses().postStatus(update);
+            service.getRateLimit().addInfo(PostComment, status);
+        });
+    }
 
     /**
      * {@inheritDoc}

@@ -2,7 +2,6 @@ package net.socialhub.model.request;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class CommentRequest {
 
@@ -19,8 +18,8 @@ public class CommentRequest {
     /** Images */
     private List<MediaRequest> images;
 
-    /** Image Handlers */
-    private List<Consumer<MediaRequest>> imageHandlers;
+    /** Sensitive */
+    private Boolean isSensitive;
 
     // ============================================================== //
     // Functions
@@ -43,33 +42,34 @@ public class CommentRequest {
     }
 
     /**
-     * Add Image Handler
-     */
-    public CommentRequest addImageHandler(Consumer<MediaRequest> imageHandler) {
-        if (this.imageHandlers == null) {
-            this.imageHandlers = new ArrayList<>();
-        }
-        this.imageHandlers.add(imageHandler);
-        return this;
-    }
-
-    /**
      * Add One Image
      */
-    public CommentRequest addImage(byte[] image) {
+    public CommentRequest addImage(byte[] image, String name) {
         if (this.images == null) {
             this.images = new ArrayList<>();
         }
 
-        MediaRequest media = new MediaRequest();
-        media.setData(image);
+        MediaRequest req = new MediaRequest();
+        req.setData(image);
+        req.setName(name);
+        this.images.add(req);
 
-        if (imageHandlers != null) {
-            imageHandlers.forEach((handler) -> //
-                    handler.accept(media));
-        }
+        return this;
+    }
 
-        this.images.add(media);
+    /**
+     * Remove One Image
+     */
+    public CommentRequest removeImage(int index) {
+        this.images.remove(index);
+        return this;
+    }
+
+    /**
+     * Set Sensitive
+     */
+    public CommentRequest sensitive(boolean isSensitive) {
+        this.isSensitive = isSensitive;
         return this;
     }
 
@@ -90,8 +90,8 @@ public class CommentRequest {
         return images;
     }
 
-    public List<Consumer<MediaRequest>> getImageHandlers() {
-        return imageHandlers;
+    public Boolean getSensitive() {
+        return isSensitive;
     }
     //endregion
 }

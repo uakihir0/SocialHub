@@ -1,21 +1,35 @@
 package net.socialhub.model.request;
 
-import java.util.Map;
-import java.util.concurrent.Future;
 
 public class MediaRequest {
 
+    // ============================================================== //
+    // Fields
+    // ============================================================== //
+
+    /** Media Data */
     private byte[] data;
 
-    private Map<String, Future<Object>> uploadingAsyncTask;
+    /** Media File Name */
+    private String name;
 
-    //region // Getter&Setter
     public byte[] getData() {
         return data;
     }
 
+    // ============================================================== //
+    // Getters
+    // ============================================================== //
+
     public void setData(byte[] data) {
         this.data = data;
     }
-    //region
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }

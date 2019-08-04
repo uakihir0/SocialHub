@@ -3,7 +3,6 @@ package net.socialhub.service.twitter;
 import net.socialhub.define.MediaType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
-import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.request.CommentRequest;
 import net.socialhub.model.service.Paging;
@@ -16,10 +15,13 @@ import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.SnowflakeUtil;
 import twitter4j.*;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -269,7 +271,6 @@ public class TwitterAction extends AccountActionImpl {
         });
     }
 
-
     // ============================================================== //
     // TimeLine
     // ============================================================== //
@@ -452,19 +453,36 @@ public class TwitterAction extends AccountActionImpl {
     public void postComment(CommentRequest req) {
         proceed(() -> {
             Twitter twitter = auth.getAccessor();
-
+            ExecutorService pool = Executors.newCachedThreadPool();
             StatusUpdate update = new StatusUpdate(req.getMessage());
 
+            // 返信の処理
             if (req.getReplyId() != null) {
                 update.setInReplyToStatusId((Long) req.getReplyId());
             }
 
-            //List<Future<Object>> idFutures = req.getImages().stream().map()
+            // 画像の処理
+            if (req.getImages() != null && !req.getImages().isEmpty()) {
+
+                // 画像を並列でアップロードする
+                List<Future<Long>> medias = req.getImages() //
+                        .stream().map(image -> pool.submit(() -> {
+                            InputStream input = new ByteArrayInputStream(image.getData());
+                            return twitter.uploadMedia(image.getName(), input).getMediaId();
+                        })).collect(Collectors.toList());
+
+                update.setMediaIds(medias.stream().mapToLong( //
+                        (e) -> HandlingUtil.runtime(e::get)).toArray());
+            }
+
+            // センシティブな内容
+            if (req.getSensitive() != null && req.getSensitive()) {
+                update.setPossiblySensitive(true);
+            }
 
             Status status = twitter.updateStatus(update);
             Service service = getAccount().getService();
             service.getRateLimit().addInfo(GetComment, status);
-
         });
     }
 
@@ -632,6 +650,8 @@ public class TwitterAction extends AccountActionImpl {
             }
 
             // 後の会話情報を取得
+            // TODO: ツイートの URLで検索して引用 RT を取得
+            // TODO: 全期間の検索結果もマージするともっといい？
             descendants = pool.submit(() -> {
                 return proceed(() -> {
 

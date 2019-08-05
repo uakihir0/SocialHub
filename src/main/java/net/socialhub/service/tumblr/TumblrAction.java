@@ -1,20 +1,15 @@
 package net.socialhub.service.tumblr;
 
 import com.tumblr.jumblr.JumblrClient;
-import com.tumblr.jumblr.types.Blog;
-import com.tumblr.jumblr.types.Post;
-import com.tumblr.jumblr.types.Trail;
+import com.tumblr.jumblr.types.*;
 import net.socialhub.define.service.tumblr.TumblrIconSize;
 import net.socialhub.define.service.tumblr.TumblrReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Relationship;
-import net.socialhub.model.service.Service;
+import net.socialhub.model.request.CommentRequest;
+import net.socialhub.model.request.MediaRequest;
 import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.tumblr.TumblrComment;
 import net.socialhub.model.service.addition.tumblr.TumblrPaging;
 import net.socialhub.model.service.addition.tumblr.TumblrUser;
@@ -35,6 +30,9 @@ import static java.util.Collections.singletonList;
 public class TumblrAction extends AccountActionImpl {
 
     private ServiceAuth<JumblrClient> auth;
+
+    /** My Account */
+    private User me;
 
     // ============================================================== //
     // Account
@@ -74,7 +72,7 @@ public class TumblrAction extends AccountActionImpl {
                     TumblrMapper.margeUser(result, cover);
                 }
             }
-
+            me = result;
             return result;
         });
     }
@@ -269,6 +267,47 @@ public class TumblrAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
+    public void postComment(CommentRequest req) {
+        proceed(() -> {
+            User me = getUserMeWithCache();
+            Post post;
+
+            if (req.getImages() != null && !req.getImages().isEmpty()) {
+
+                // PhotoPost
+                PhotoPost photoPost = auth.getAccessor() //
+                        .newPost((String) me.getId(), PhotoPost.class);
+
+                for (MediaRequest media : req.getImages()) {
+                    Photo.ByteFile file = new Photo.ByteFile();
+                    file.setBytes(media.getData());
+                    file.setName(media.getName());
+                    Photo photo = new Photo(file);
+                    photoPost.addPhoto(photo);
+                }
+
+                photoPost.setCaption(req.getMessage());
+                post = photoPost;
+
+            } else {
+
+                // TextPost
+                TextPost textPost = auth.getAccessor() //
+                        .newPost((String) me.getId(), TextPost.class);
+
+                textPost.setBody(req.getMessage());
+                post = textPost;
+            }
+
+            // Save
+            post.save();
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Comment getComment(Identify id) {
         return proceed(() -> {
             if (id instanceof TupleIdentify) {
@@ -446,6 +485,17 @@ public class TumblrAction extends AccountActionImpl {
 
     private void setPagingOptions(Map<String, Object> params) {
         params.put("reblog_info", true);
+    }
+
+    // ============================================================== //
+    // Cache
+    // ============================================================== //
+
+    /**
+     * キャッシュ付きで自分のユーザーを取得
+     */
+    private User getUserMeWithCache() {
+        return (me != null) ? me : getUserMe();
     }
 
     // ============================================================== //

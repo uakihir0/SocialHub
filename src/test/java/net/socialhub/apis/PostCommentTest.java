@@ -41,6 +41,22 @@ public class PostCommentTest extends AbstractApiTest {
         account.action().postComment(req);
     }
 
+
+    @Test
+    @Ignore
+    public void testPostWithMediaTumblr() {
+        // System.setProperty("javax.net.debug","all");
+
+        Account account = SocialAuthUtil.getTumblrAccount();
+        InputStream stream = getClass().getResourceAsStream("/image/icon.png");
+
+        CommentRequest req = new CommentRequest() //
+                .addImage(convertFile(stream), "icon.png") //
+                .message("SocialHub Test");
+
+        account.action().postComment(req);
+    }
+
     /**
      * File to ImageBytes
      */

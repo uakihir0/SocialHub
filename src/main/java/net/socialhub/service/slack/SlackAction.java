@@ -5,7 +5,11 @@ import com.github.seratch.jslack.api.methods.request.channels.ChannelsHistoryReq
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsListRequest;
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsRepliesRequest;
 import com.github.seratch.jslack.api.methods.request.chat.ChatDeleteRequest;
+import com.github.seratch.jslack.api.methods.request.chat.ChatPostMessageRequest;
+import com.github.seratch.jslack.api.methods.request.chat.ChatPostMessageRequest.ChatPostMessageRequestBuilder;
 import com.github.seratch.jslack.api.methods.request.emoji.EmojiListRequest;
+import com.github.seratch.jslack.api.methods.request.files.FilesUploadRequest;
+import com.github.seratch.jslack.api.methods.request.files.FilesUploadRequest.FilesUploadRequestBuilder;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsAddRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsRemoveRequest;
 import com.github.seratch.jslack.api.methods.request.team.TeamInfoRequest;
@@ -25,6 +29,8 @@ import com.github.seratch.jslack.api.model.Message;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.SocialHubException;
+import net.socialhub.model.request.CommentRequest;
+import net.socialhub.model.request.MediaRequest;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.addition.slack.SlackIdentify;
@@ -37,6 +43,7 @@ import net.socialhub.service.slack.SlackAuth.SlackAccessor;
 import net.socialhub.utils.LimitMap;
 import net.socialhub.utils.MapperUtil;
 
+import java.io.ByteArrayInputStream;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -115,6 +122,86 @@ public class SlackAction extends AccountActionImpl {
     // ============================================================== //
     // Comment
     // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void postComment(CommentRequest req) {
+        proceed(() -> {
+            String token = auth.getAccessor().getToken();
+            String channel = (String) req.getParams().get("channel");
+
+            if (req.getImages() != null && !req.getImages().isEmpty()) {
+
+                if (req.getImages().size() > 1) {
+                    for (MediaRequest media : req.getImages()) {
+
+                        // 複数のファイルを先に個々にアップロード
+                        FilesUploadRequestBuilder builder = //
+                                FilesUploadRequest.builder() //
+                                        .channels(Collections.singletonList(channel)) //
+                                        .filestream(new ByteArrayInputStream(media.getData())) //
+                                        .filename(media.getName());
+
+                        if (req.getReplyId() != null) {
+                            builder.threadTs((String) req.getReplyId());
+                        }
+
+                        auth.getAccessor().getSlack().methods() //
+                                .filesUpload(builder.token(token).build());
+                    }
+                    {
+                        // 最後にコメントを投稿
+                        ChatPostMessageRequestBuilder builder = //
+                                ChatPostMessageRequest.builder() //
+                                        .text(req.getMessage()) //
+                                        .channel(channel);
+
+                        if (req.getReplyId() != null) {
+                            builder.threadTs((String) req.getReplyId());
+                        }
+
+                        auth.getAccessor().getSlack().methods() //
+                                .chatPostMessage(builder.token(token).build());
+                    }
+
+                } else {
+
+                    // メディアは一つだけの場合はそれだけを投稿
+                    MediaRequest media = req.getImages().get(0);
+                    FilesUploadRequestBuilder builder = //
+                            FilesUploadRequest.builder() //
+                                    .initialComment(req.getMessage()) //
+                                    .channels(Collections.singletonList(channel)) //
+                                    .filestream(new ByteArrayInputStream(media.getData())) //
+                                    .filename(media.getName());
+
+                    if (req.getReplyId() != null) {
+                        builder.threadTs((String) req.getReplyId());
+                    }
+
+                    auth.getAccessor().getSlack().methods() //
+                            .filesUpload(builder.token(token).build());
+                }
+
+            } else {
+
+                // コメントだけの場合
+                ChatPostMessageRequestBuilder builder = //
+                        ChatPostMessageRequest.builder() //
+                                .text(req.getMessage()) //
+                                .channel(channel);
+
+                if (req.getReplyId() != null) {
+                    builder.threadTs((String) req.getReplyId());
+                }
+
+                auth.getAccessor().getSlack().methods() //
+                        .chatPostMessage(builder.token(token).build());
+            }
+        });
+    }
 
     /**
      * {@inheritDoc}

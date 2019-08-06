@@ -1,7 +1,9 @@
 package net.socialhub.model.request;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CommentRequest {
 
@@ -20,6 +22,9 @@ public class CommentRequest {
 
     /** Sensitive */
     private Boolean isSensitive;
+
+    /** Other params */
+    private Map<String, Object> params;
 
     // ============================================================== //
     // Functions
@@ -73,6 +78,17 @@ public class CommentRequest {
         return this;
     }
 
+    /**
+     * Set addition params
+     */
+    public CommentRequest param(String key, Object value) {
+        if (this.params == null) {
+            this.params = new HashMap<>();
+        }
+        this.params.put(key, value);
+        return this;
+    }
+
     // ============================================================== //
     // Getters
     // ============================================================== //
@@ -92,6 +108,10 @@ public class CommentRequest {
 
     public Boolean getSensitive() {
         return isSensitive;
+    }
+
+    public Map<String, Object> getParams() {
+        return params;
     }
     //endregion
 }

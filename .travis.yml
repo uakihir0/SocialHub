@@ -23,7 +23,7 @@ before_script:
   - echo "j2objc.home=./j2objc-2.3.1/" > local.properties
 
 script:
-    - ./gradlew -b j2objc.gradle clean :j2objcAssemble${RUN_TARGET} -x test
+    - travis_wait 30 ./gradlew -b j2objc.gradle clean :j2objcAssemble${RUN_TARGET} -x test
 
 after_success:
   - git config --global user.email "a.urusihara@gmail.com"

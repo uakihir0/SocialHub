@@ -1,20 +1,20 @@
 buildscript {
     repositories {
         mavenCentral()
-        maven { url "https://plugins.gradle.org/m2/" }
-    }
-    dependencies {
-        classpath "gradle.plugin.com.github.j2objccontrib.j2objcgradle:j2objc-gradle:0.6.0-alpha"
     }
 }
 
+plugins {
+    id 'java'
+    id 'idea'
+    id 'maven'
+    id 'net.socialhub.j2objccontrib.j2objcgradle' version '0.7.1'
+}
+
+apply plugin: 'net.socialhub.j2objccontrib.j2objcgradle'
+
 group 'SocialHub'
 version '1.0-SNAPSHOT'
-
-apply plugin: 'java'
-apply plugin: 'idea'
-apply plugin: 'maven'
-apply plugin: 'com.github.j2objccontrib.j2objcgradle'
 
 sourceCompatibility = 1.8
 
@@ -25,9 +25,8 @@ idea {
     }
 }
 
-// j2objcgradle restriction!!
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.8'
+    gradleVersion = '4.8.1'
 }
 
 allprojects {
@@ -36,7 +35,6 @@ allprojects {
         mavenCentral()
     }
 }
-
 
 dependencies {
 
@@ -67,12 +65,16 @@ dependencies {
 j2objcConfig {
     autoConfigureDeps true
     skipJ2objcVerification true
-    extraLinkerArgs "-liconv"
+
+    // Only support 64bits
+    // TODO: 'ios_arm64e' should be support
+    supportedArchs = ['ios_arm64', 'ios_x86_64']
 
     translateArgs '--build-closure'
     translateArgs '--swift-friendly'
     translateArgs '--prefixes', 'prefixes.properties'
     extraObjcCompilerArgs '-fembed-bitcode'
+    extraLinkerArgs "-liconv"
 
     finalConfigure()
 }
@@ -89,15 +91,15 @@ j2objcPodspec.doLast {
 
         String text = it.text
                 .replace(
-                "Pod::Spec.new do |spec|",
-                '''Pod::Spec.new do |spec|
+                        "Pod::Spec.new do |spec|",
+                        '''Pod::Spec.new do |spec|
   spec.authors = 'Akihiro Urushihara'
   spec.license = 'MIT'
   spec.homepage = 'https://twitter.com/U_Akihir0'
   spec.source = { :git => 'git@bitbucket.org:your/repo.git' }''')
                 .replace(
-                "icucore",
-                "icucore', 'iconv")
+                        "icucore",
+                        "icucore', 'iconv")
 
         it.write(text)
     }

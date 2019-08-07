@@ -70,7 +70,7 @@ public class PostCommentTest extends AbstractApiTest {
 
         account.action().postComment(req);
     }
-
+    
     /**
      * File to ImageBytes
      */

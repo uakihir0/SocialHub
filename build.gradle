@@ -5,12 +5,14 @@ buildscript {
     }
 }
 
+plugins {
+    id 'java'
+    id 'idea'
+    id 'maven'
+}
+
 group 'SocialHub'
 version '1.0-SNAPSHOT'
-
-apply plugin: 'java'
-apply plugin: 'idea'
-apply plugin: 'maven'
 
 sourceCompatibility = 1.8
 
@@ -22,7 +24,7 @@ idea {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.8'
+    gradleVersion = '4.8.1'
 }
 
 allprojects {
@@ -31,7 +33,6 @@ allprojects {
         mavenCentral()
     }
 }
-
 
 dependencies {
 

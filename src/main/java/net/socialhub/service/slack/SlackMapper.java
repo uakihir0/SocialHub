@@ -96,13 +96,13 @@ public final class SlackMapper {
             model.setIconImageUrl(profile.getImage48());
         }
 
-        model.setEmail(new AttributedString(profile.getEmail()));
-        model.setPhone(new AttributedString(profile.getPhone()));
+        model.setEmail(AttributedString.plain(profile.getEmail()));
+        model.setPhone(AttributedString.plain(profile.getPhone()));
 
         if ((profile.getTitle() != null) && //
                 !profile.getTitle().isEmpty()) {
 
-            model.setDescription(new AttributedString(profile.getTitle()));
+            model.setDescription(AttributedString.plain((profile.getTitle())));
             model.setTitle(profile.getTitle());
         }
 

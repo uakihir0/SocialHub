@@ -66,7 +66,7 @@ public class TumblrMapper {
 
         model.setName(blog.getName());
         model.setBlogTitle(blog.getTitle());
-        model.setDescription(new AttributedString(blog.getDescription()));
+        model.setDescription(AttributedString.xhtml(blog.getDescription()));
 
         String host = getBlogIdentify(blog);
         model.setIconImageUrl(getAvatarUrl(host, S512));
@@ -202,7 +202,7 @@ public class TumblrMapper {
             TumblrComment model, //
             com.tumblr.jumblr.types.Post post) {
 
-        model.setText(new AttributedString(post.getSummary()));
+        model.setText(AttributedString.xhtml(post.getSummary()));
         model.setMedias(new ArrayList<>());
 
         if (post instanceof PhotoPost) {

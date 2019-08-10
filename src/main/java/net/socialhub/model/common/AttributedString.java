@@ -2,6 +2,7 @@ package net.socialhub.model.common;
 
 import net.socialhub.define.AttributedTypes;
 import net.socialhub.utils.StringUtil;
+import net.socialhub.utils.XmlParseUtil;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -26,12 +27,44 @@ public class AttributedString {
 
     private List<AttributedElement> displayAttribute;
 
+
+    /**
+     * Make Attributed String from plain text.
+     * 装飾無しテキストから属性付き文字列を作成
+     */
+    public static AttributedString plain(String string) {
+        return new AttributedString(string);
+
+    }
+
+    /**
+     * Make Attributed String from XHTML text.
+     * XHTML テキストから属性付き文字列を作成
+     */
+    public static AttributedString xhtml(String string) {
+        return XmlParseUtil.xhtml(string).toAttributedString();
+    }
+
     /**
      * Attributed String
      * (属性文字列に変換)
      */
     public AttributedString(String text) {
         this(text, AttributedTypes.simple());
+    }
+
+    /**
+     * Attributes String
+     * 完成形の提出
+     */
+    public AttributedString(String text, List<AttributedElement> attribute, boolean isDisplay) {
+        this.attribute = attribute;
+        this.text = text;
+
+        if (isDisplay) {
+            this.displayAttribute = attribute;
+            this.displayText = text;
+        }
     }
 
     /**
@@ -62,7 +95,6 @@ public class AttributedString {
 
         // 初期化
         attribute = new ArrayList<>();
-
         for (AttributedType kind : kinds) {
             scanElements(kind);
         }
@@ -187,15 +219,6 @@ public class AttributedString {
     public void setText(String text) {
         markedElementChanged();
         this.text = text;
-    }
-
-    public List<AttributedType> getKinds() {
-        return kinds;
-    }
-
-    public void setKinds(List<AttributedType> kinds) {
-        this.markedElementChanged();
-        this.kinds = kinds;
     }
     //endregion
 }

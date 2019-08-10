@@ -50,5 +50,6 @@ public class MastodonUser extends MiniBlogUser {
         this.fields = fields;
     }
     //endregion
+
 }
 

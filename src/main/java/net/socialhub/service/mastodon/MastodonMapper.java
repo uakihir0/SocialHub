@@ -16,7 +16,6 @@ import net.socialhub.model.service.addition.mastodon.MastodonComment;
 import net.socialhub.model.service.addition.mastodon.MastodonUser;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.utils.MapperUtil;
-import net.socialhub.utils.StringUtil;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -55,6 +54,7 @@ public class MastodonMapper {
         model.setIconImageUrl(account.getAvatarStatic());
         model.setCoverImageUrl(account.getHeaderStatic());
 
+        model.setDescription(AttributedString.xhtml(account.getNote()));
         model.setFollowersCount(account.getFollowersCount());
         model.setFollowingsCount(account.getFollowingCount());
         model.setStatusesCount(account.getStatusesCount());
@@ -65,8 +65,6 @@ public class MastodonMapper {
         AttributedString profile = new AttributedString(account.getUrl());
         model.setProfileUrl(profile);
 
-        String note = removeHtmlElement(account.getNote());
-        model.setDescription(new AttributedString(note));
 
         if ((account.getFields() != null) &&  //
                 (account.getFields().length > 0)) {
@@ -75,8 +73,7 @@ public class MastodonMapper {
             for (Field field : account.getFields()) {
                 AttributedFiled f = new AttributedFiled();
 
-                String value = removeHtmlElement(field.getValue());
-                f.setValue(new AttributedString(value));
+                f.setValue(AttributedString.xhtml(field.getValue()));
                 f.setName(field.getName());
                 model.getFields().add(f);
             }
@@ -130,8 +127,7 @@ public class MastodonMapper {
 
             } else {
                 model.setSpoilerText(new AttributedString(status.getSpoilerText()));
-                String text = removeHtmlElement(status.getContent());
-                model.setText(new AttributedString(text));
+                model.setText(AttributedString.xhtml(status.getContent()));
 
                 model.setMedias(medias(status.getMediaAttachments()));
             }
@@ -264,13 +260,5 @@ public class MastodonMapper {
 
         model.setPaging(MapperUtil.mappingBorderPaging(paging, Mastodon));
         return model;
-    }
-
-    private static String removeHtmlElement(String str) {
-        String replaced = str //
-                .replaceAll("<br>", "\n") //
-                .replaceAll("<br />", "\n") //
-                .replaceAll("</p><p>", "\n\n");
-        return StringUtil.decodeUrl(StringUtil.removeXmlTags(replaced));
     }
 }

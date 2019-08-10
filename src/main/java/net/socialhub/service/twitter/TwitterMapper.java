@@ -63,7 +63,7 @@ public class TwitterMapper {
 
         // URL の情報を設定
         if (user.getURL() != null && !user.getURL().isEmpty()) {
-            AttributedString url = new AttributedString(user.getURL());
+            AttributedString url = AttributedString.plain(user.getURL());
             model.setUrl(url);
 
             URLEntity entity = user.getURLEntity();
@@ -77,10 +77,10 @@ public class TwitterMapper {
 
         // プロフィールページの設定
         String profile = HOST + user.getScreenName();
-        model.setProfileUrl(new AttributedString(profile));
+        model.setProfileUrl(AttributedString.plain(profile));
 
         // 説明文の情報を設定
-        AttributedString desc = new AttributedString(user.getDescription());
+        AttributedString desc = AttributedString.plain(user.getDescription());
         model.setDescription(desc);
 
         // URL の DisplayURL ExpandedURL を設定

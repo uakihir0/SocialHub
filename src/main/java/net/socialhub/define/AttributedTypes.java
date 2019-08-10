@@ -13,12 +13,8 @@ import static net.socialhub.model.common.AttributedKind.*;
 public class AttributedTypes {
 
     // Commons
-    public static AttributedType fullLink =
+    public static AttributedType link =
             new CommonAttributedType(Link, FULL_URL_REGEX, //
-                    (m) -> StringUtil.getDisplayUrl(m.group()), null);
-
-    public static AttributedType shortLink =
-            new CommonAttributedType(Link, SHORT_URL_REGEX, //
                     (m) -> StringUtil.getDisplayUrl(m.group()), null);
 
     public static AttributedType email =
@@ -36,7 +32,7 @@ public class AttributedTypes {
 
     public static List<AttributedType> simple() {
         return Arrays.asList( //
-                AttributedTypes.fullLink, //
+                AttributedTypes.link, //
                 AttributedTypes.email, //
                 AttributedTypes.phone, //
                 AttributedTypes.hashTag, //
@@ -49,9 +45,6 @@ public class AttributedTypes {
 
         /** URL の正規表現 */
         public static final String FULL_URL_REGEX = "(https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*))";
-
-        /** URL の正規表現 */
-        public static final String SHORT_URL_REGEX = "([-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*))";
 
         /** EMail の簡易的な正規表現 */
         public static final String SIMPLE_EMAIL_REGEX = "([a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)+)";

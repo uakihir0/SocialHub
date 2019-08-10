@@ -1,6 +1,5 @@
 package net.socialhub.model.common;
 
-
 import java.util.regex.Matcher;
 
 /**
@@ -8,6 +7,11 @@ import java.util.regex.Matcher;
  * 文字列レンジ情報
  */
 public class AttributedRange {
+
+    public AttributedRange() {
+        this.start = 0;
+        this.end = 0;
+    }
 
     public AttributedRange(Matcher m) {
         this.start = m.start();

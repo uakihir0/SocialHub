@@ -1,5 +1,7 @@
 package net.socialhub.model.common;
 
+import net.socialhub.utils.StringUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +26,8 @@ public class XmlDocument {
         StringBuilder text = new StringBuilder();
         root.setAttribute(elements, text);
 
-        return new AttributedString(text.toString(), elements, true);
+        String string = StringUtil.trimLast(text.toString());
+        return new AttributedString(string, elements, true);
     }
 
     //region // Getter&Setter

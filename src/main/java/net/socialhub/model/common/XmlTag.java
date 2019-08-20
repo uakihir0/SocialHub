@@ -99,6 +99,13 @@ public class XmlTag implements XmlElement {
             return;
         }
 
+        // p タグの後は段落
+        if (name.equalsIgnoreCase("p")) {
+            expandAttribute(elems, builder);
+            builder.append("\n\n");
+            return;
+        }
+
         // その他の場合は無視して続行
         // (テキスト装飾系は扱わない)
         expandAttribute(elems, builder);

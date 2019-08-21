@@ -1,5 +1,6 @@
 package net.socialhub.utils;
 
+import net.socialhub.define.SpecialCharType;
 import net.socialhub.model.common.XmlDocument;
 import net.socialhub.model.common.XmlString;
 import net.socialhub.model.common.XmlTag;
@@ -33,10 +34,15 @@ public class XmlParseUtil {
         string = string.replaceAll("\r", "");
 
         // Regex like: <(br|BR)([^/]*?)>
-        String[] tags = {"br", "img"};
+        String[] tags = { "br", "img" };
         for (String tag : tags) {
             string = replace(string, "<(" + tag + "|" + //
                     tag.toUpperCase() + ")([^/]*?)>", "<$1$2/>");
+        }
+
+        // Replace &nbsp; to &#160; (library issue)
+        for (SpecialCharType sp : SpecialCharType.values()) {
+            string = string.replaceAll(sp.getEntityRepl(), sp.getNumberRepl());
         }
 
         try {
@@ -78,9 +84,10 @@ public class XmlParseUtil {
         }
 
         @Override
-        public void characters(char[] ch,
-                               int start,
-                               int length) {
+        public void characters(
+                char[] ch,
+                int start,
+                int length) {
 
             XmlString string = new XmlString();
             string.setString(new String(Arrays.copyOfRange(ch, start, start + length)));
@@ -88,10 +95,11 @@ public class XmlParseUtil {
         }
 
         @Override
-        public void startElement(String uri,
-                                 String localName,
-                                 String qName,
-                                 Attributes attributes) {
+        public void startElement(
+                String uri,
+                String localName,
+                String qName,
+                Attributes attributes) {
 
             XmlTag tag = new XmlTag();
             tag.setName(qName);
@@ -115,9 +123,10 @@ public class XmlParseUtil {
         }
 
         @Override
-        public void endElement(String uri,
-                               String localName,
-                               String qName) {
+        public void endElement(
+                String uri,
+                String localName,
+                String qName) {
 
             // スタックから削除
             tags.pop();

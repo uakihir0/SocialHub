@@ -1,20 +1,37 @@
 package net.socialhub.service.tumblr;
 
-import com.tumblr.jumblr.types.*;
+import com.tumblr.jumblr.types.Blog;
+import com.tumblr.jumblr.types.Photo;
+import com.tumblr.jumblr.types.PhotoPost;
+import com.tumblr.jumblr.types.TextPost;
+import com.tumblr.jumblr.types.Theme;
+import com.tumblr.jumblr.types.Trail;
+import com.tumblr.jumblr.types.VideoPost;
 import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.MediaType;
 import net.socialhub.define.service.tumblr.TumblrIconSize;
 import net.socialhub.define.service.tumblr.TumblrReactionType;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Media;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.tumblr.TumblrComment;
 import net.socialhub.model.service.addition.tumblr.TumblrUser;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.utils.MapperUtil;
 
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static net.socialhub.define.service.tumblr.TumblrIconSize.S512;
@@ -66,7 +83,17 @@ public class TumblrMapper {
 
         model.setName(blog.getName());
         model.setBlogTitle(blog.getTitle());
-        model.setDescription(AttributedString.xhtml(blog.getDescription()));
+
+        if (blog.getDescription() != null) {
+
+            // p タグから開始されていた場合は HTML と解釈
+            if (blog.getDescription().startsWith("<p>")) {
+                model.setDescription(AttributedString.xhtml(blog.getDescription()));
+            } else {
+                // それ以外の場合は与えられた文字列から要素を正規表現で抜き出して解釈
+                model.setDescription(AttributedString.plain(blog.getDescription()));
+            }
+        }
 
         String host = getBlogIdentify(blog);
         model.setIconImageUrl(getAvatarUrl(host, S512));
@@ -190,7 +217,6 @@ public class TumblrMapper {
         model.setUser(reblogUser(post, trails, service));
         setMedia(model, post);
 
-
         return model;
     }
 
@@ -202,19 +228,40 @@ public class TumblrMapper {
             TumblrComment model, //
             com.tumblr.jumblr.types.Post post) {
 
-        model.setText(AttributedString.xhtml(post.getSummary()));
+        // Trail から優先的に取得
+        if (post.getTrail().size() > 0) {
+            post.getTrail().stream()
+                    .filter(Trail::isCurrentItem)
+                    .findFirst().ifPresent((trail) ->
+                    model.setText(AttributedString.xhtml(trail.getContent())));
+        }
+
         model.setMedias(new ArrayList<>());
 
         if (post instanceof PhotoPost) {
             PhotoPost photo = (PhotoPost) post;
             model.getMedias().addAll(photos(photo.getPhotos()));
-        }
 
+            if (model.getText() == null) {
+                model.setText(AttributedString.xhtml(photo.getCaption()));
+            }
+        }
+        if (post instanceof TextPost) {
+            TextPost text = (TextPost) post;
+
+            if (model.getText() == null) {
+                model.setText(AttributedString.xhtml(text.getBody()));
+            }
+        }
         if (post instanceof VideoPost) {
-            model.getMedias().add(video((VideoPost) post));
+            VideoPost video = (VideoPost) post;
+            model.getMedias().add(video(video));
+
+            if (model.getText() == null) {
+                model.setText(AttributedString.xhtml(video.getCaption()));
+            }
         }
     }
-
 
     /**
      * 画像マッピング
@@ -273,7 +320,6 @@ public class TumblrMapper {
         return candidates;
     }
 
-
     // ============================================================== //
     // Timelines
     // ============================================================== //
@@ -319,7 +365,6 @@ public class TumblrMapper {
         return model;
     }
 
-
     /**
      * ユーザーマッピング
      */
@@ -327,7 +372,6 @@ public class TumblrMapper {
             List<com.tumblr.jumblr.types.Blog> blogs, //
             Service service, //
             Paging paging) {
-
 
         Pageable<User> model = new Pageable<>();
         model.setEntities(blogs.stream() //

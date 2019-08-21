@@ -212,7 +212,6 @@ public class AttributedString {
      */
     public void markedElementChanged() {
         this.displayAttribute = null;
-        this.attribute = null;
         this.displayText = null;
     }
 

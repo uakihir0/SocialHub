@@ -41,7 +41,11 @@ public class XmlTag implements XmlElement {
     }
 
     @Override
-    public void setAttribute(List<AttributedElement> elems, StringBuilder builder) {
+    public void setAttribute(
+            List<AttributedElement> elems,
+            StringBuilder builder,
+            XmlConvertRule rule) {
+
         // 主に Mastodon 向けの処理が記載
 
         // 見えない要素の場合は特に処理として何もしない
@@ -53,7 +57,7 @@ public class XmlTag implements XmlElement {
 
         // 改行の場合は素直に改行
         if (name.equalsIgnoreCase("br")) {
-            builder.append("\n");
+            builder.append(rule.getBr());
             return;
         }
 
@@ -61,9 +65,8 @@ public class XmlTag implements XmlElement {
         if (name.equalsIgnoreCase("a")) {
             AttributedRange range = new AttributedRange();
             range.setStart(builder.length());
-            expandAttribute(elems, builder);
+            expandAttribute(elems, builder, rule);
             range.setEnd(builder.length());
-
 
             if (attributes.containsKey("class")) {
 
@@ -101,19 +104,23 @@ public class XmlTag implements XmlElement {
 
         // p タグの後は段落
         if (name.equalsIgnoreCase("p")) {
-            expandAttribute(elems, builder);
-            builder.append("\n\n");
+            expandAttribute(elems, builder, rule);
+            builder.append(rule.getP());
             return;
         }
 
         // その他の場合は無視して続行
         // (テキスト装飾系は扱わない)
-        expandAttribute(elems, builder);
+        expandAttribute(elems, builder, rule);
     }
 
-    private void expandAttribute(List<AttributedElement> elems, StringBuilder builder) {
+    private void expandAttribute(
+            List<AttributedElement> elems,
+            StringBuilder builder,
+            XmlConvertRule rule) {
+
         for (XmlElement element : elements) {
-            element.setAttribute(elems, builder);
+            element.setAttribute(elems, builder, rule);
         }
     }
 
@@ -124,7 +131,6 @@ public class XmlTag implements XmlElement {
             throw new SocialHubException(e);
         }
     }
-
 
     //region // Getter&Setter
     public String getName() {

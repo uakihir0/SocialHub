@@ -9,5 +9,8 @@ import java.util.List;
  */
 public interface XmlElement {
 
-    void setAttribute(List<AttributedElement> elements, StringBuilder builder);
+    void setAttribute(
+            List<AttributedElement> elements,
+            StringBuilder builder,
+            XmlConvertRule rule);
 }

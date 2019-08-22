@@ -21,10 +21,10 @@ public class XmlDocument {
      * Make XMLDocument to AttributedString
      * XML ドキュメントから属性文字列に変換
      */
-    public AttributedString toAttributedString() {
+    public AttributedString toAttributedString(XmlConvertRule rule) {
         List<AttributedElement> elements = new ArrayList<>();
         StringBuilder text = new StringBuilder();
-        root.setAttribute(elements, text);
+        root.setAttribute(elements, text, rule);
 
         String string = StringUtil.trimLast(text.toString());
         return new AttributedString(string, elements, true);

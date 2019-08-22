@@ -10,7 +10,10 @@ public class XmlString implements XmlElement {
     private String string;
 
     @Override
-    public void setAttribute(List<AttributedElement> elements, StringBuilder builder) {
+    public void setAttribute(
+            List<AttributedElement> elements,
+            StringBuilder builder,
+            XmlConvertRule rule) {
         builder.append(string);
     }
 

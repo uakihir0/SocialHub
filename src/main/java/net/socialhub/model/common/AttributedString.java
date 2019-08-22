@@ -27,7 +27,6 @@ public class AttributedString {
 
     private List<AttributedElement> displayAttribute;
 
-
     /**
      * Make Attributed String from plain text.
      * 装飾無しテキストから属性付き文字列を作成
@@ -38,11 +37,19 @@ public class AttributedString {
     }
 
     /**
+     * Make Attributed String from XHTML text with rule.
+     * XHTML テキストから属性付き文字列を作成 (ルールを指定)
+     */
+    public static AttributedString xhtml(String string, XmlConvertRule rule) {
+        return XmlParseUtil.xhtml(string).toAttributedString(rule);
+    }
+
+    /**
      * Make Attributed String from XHTML text.
      * XHTML テキストから属性付き文字列を作成
      */
     public static AttributedString xhtml(String string) {
-        return XmlParseUtil.xhtml(string).toAttributedString();
+        return AttributedString.xhtml(string, new XmlConvertRule());
     }
 
     /**

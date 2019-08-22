@@ -11,6 +11,7 @@ import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.common.XmlConvertRule;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.mastodon.MastodonComment;
 import net.socialhub.model.service.addition.mastodon.MastodonUser;
@@ -30,6 +31,8 @@ public class MastodonMapper {
     private static Logger logger = Logger.getLogger(MastodonMapper.class);
 
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+
+    private static final XmlConvertRule XML_RULE = xmlConvertRule();
 
     /** J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
     private final static List<Class<?>> ClassLoader = Arrays.asList( //
@@ -54,17 +57,15 @@ public class MastodonMapper {
         model.setIconImageUrl(account.getAvatarStatic());
         model.setCoverImageUrl(account.getHeaderStatic());
 
-        model.setDescription(AttributedString.xhtml(account.getNote()));
+        model.setDescription(AttributedString.xhtml(account.getNote(), XML_RULE));
         model.setFollowersCount(account.getFollowersCount());
         model.setFollowingsCount(account.getFollowingCount());
         model.setStatusesCount(account.getStatusesCount());
         model.setProtected(account.isLocked());
 
-
         // プロフィールページの設定
         AttributedString profile = new AttributedString(account.getUrl());
         model.setProfileUrl(profile);
-
 
         if ((account.getFields() != null) &&  //
                 (account.getFields().length > 0)) {
@@ -73,7 +74,7 @@ public class MastodonMapper {
             for (Field field : account.getFields()) {
                 AttributedFiled f = new AttributedFiled();
 
-                f.setValue(AttributedString.xhtml(field.getValue()));
+                f.setValue(AttributedString.xhtml(field.getValue(), XML_RULE));
                 f.setName(field.getName());
                 model.getFields().add(f);
             }
@@ -127,7 +128,7 @@ public class MastodonMapper {
 
             } else {
                 model.setSpoilerText(new AttributedString(status.getSpoilerText()));
-                model.setText(AttributedString.xhtml(status.getContent()));
+                model.setText(AttributedString.xhtml(status.getContent(), XML_RULE));
 
                 model.setMedias(medias(status.getMediaAttachments()));
             }
@@ -165,14 +166,14 @@ public class MastodonMapper {
         Media media = new Media();
         switch (MastodonMediaType.of(attachment.getType())) {
 
-            case Image: {
-                media.setType(MediaType.Image);
-                break;
-            }
-            case Video: {
-                media.setType(MediaType.Movie);
-                break;
-            }
+        case Image: {
+            media.setType(MediaType.Image);
+            break;
+        }
+        case Video: {
+            media.setType(MediaType.Movie);
+            break;
+        }
         }
         media.setSourceUrl(attachment.getUrl());
         media.setPreviewUrl(attachment.getPreviewUrl());
@@ -260,5 +261,14 @@ public class MastodonMapper {
 
         model.setPaging(MapperUtil.mappingBorderPaging(paging, Mastodon));
         return model;
+    }
+
+    /**
+     * XHtml 変換規則
+     */
+    public static XmlConvertRule xmlConvertRule() {
+        XmlConvertRule rule = new XmlConvertRule();
+        rule.setP("\n\n");
+        return rule;
     }
 }

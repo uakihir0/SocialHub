@@ -9,6 +9,7 @@ package net.socialhub.define;
 public enum SpecialCharType {
 
     nbsp("&nbsp;", "&#160;"), //
+    acute("&acute;", "&#180;"), //
     mdash("&mdash;", "&#8212;"), //
     lsquo("&lsquo;", "&#8216;"), //
     squo("&rsquo;", "&#8217;"), //

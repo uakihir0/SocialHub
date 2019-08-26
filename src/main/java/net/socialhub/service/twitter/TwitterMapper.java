@@ -7,11 +7,16 @@ import net.socialhub.define.service.twitter.TwitterMediaType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.service.Application;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Media;
+import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.*;
-import net.socialhub.model.service.addition.MiniBlogComment;
+import net.socialhub.model.service.addition.twitter.TwitterComment;
 import net.socialhub.model.service.addition.twitter.TwitterMedia;
 import net.socialhub.model.service.addition.twitter.TwitterUser;
 import net.socialhub.model.service.paging.BorderPaging;
@@ -19,7 +24,13 @@ import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.utils.MapperUtil;
-import twitter4j.*;
+import twitter4j.Friendship;
+import twitter4j.MediaEntity;
+import twitter4j.PagableResponseList;
+import twitter4j.QueryResult;
+import twitter4j.ResponseList;
+import twitter4j.Status;
+import twitter4j.URLEntity;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -41,7 +52,7 @@ public class TwitterMapper {
      * ユーザーマッピング
      */
     public static User user(
-            twitter4j.User user, //
+            twitter4j.User user,
             Service service) {
 
         TwitterUser model = new TwitterUser(service);
@@ -100,10 +111,10 @@ public class TwitterMapper {
      * コメントマッピング
      */
     public static Comment comment(
-            Status status,  //
+            Status status,
             Service service) {
 
-        MiniBlogComment model = new MiniBlogComment(service);
+        TwitterComment model = new TwitterComment(service);
 
         model.setId(status.getId());
         model.setCreateAt(status.getCreatedAt());
@@ -177,44 +188,44 @@ public class TwitterMapper {
 
         switch (TwitterMediaType.of(entity.getType())) {
 
-            case Photo: {
-                TwitterMedia media = new TwitterMedia();
-                media.setType(MediaType.Image);
+        case Photo: {
+            TwitterMedia media = new TwitterMedia();
+            media.setType(MediaType.Image);
 
-                media.setSourceUrl(entity.getMediaURLHttps());
-                media.setPreviewUrl(entity.getMediaURLHttps());
-                return media;
-            }
+            media.setSourceUrl(entity.getMediaURLHttps());
+            media.setPreviewUrl(entity.getMediaURLHttps());
+            return media;
+        }
 
-            case Video: {
-                TwitterMedia media = new TwitterMedia();
-                media.setType(MediaType.Movie);
+        case Video: {
+            TwitterMedia media = new TwitterMedia();
+            media.setType(MediaType.Movie);
 
-                media.setPreviewUrl(entity.getMediaURLHttps());
-                for (MediaEntity.Variant variant : entity.getVideoVariants()) {
+            media.setPreviewUrl(entity.getMediaURLHttps());
+            for (MediaEntity.Variant variant : entity.getVideoVariants()) {
 
-                    // ストリーム向けの動画タイプが存在する場合はそれを利用
-                    if (variant.getContentType().equals("application/x-mpegURL")) {
-                        media.setStreamVideoUrl(variant.getUrl());
-                        media.setSourceUrl(variant.getUrl());
-                    }
+                // ストリーム向けの動画タイプが存在する場合はそれを利用
+                if (variant.getContentType().equals("application/x-mpegURL")) {
+                    media.setStreamVideoUrl(variant.getUrl());
+                    media.setSourceUrl(variant.getUrl());
                 }
-
-                // それ意外の場合一番高画質のものを選択
-                Stream.of(entity.getVideoVariants()) //
-                        .filter((e) -> e.getContentType().startsWith("video")) //
-                        .max(Comparator.comparingInt(MediaEntity.Variant::getBitrate)) //
-                        .ifPresent((variant) -> {
-                            String url = variant.getUrl();
-                            media.setMp4VideoUrl(url);
-
-                            if (media.getSourceUrl() == null) {
-                                media.setSourceUrl(url);
-                            }
-                        });
-
-                return media;
             }
+
+            // それ意外の場合一番高画質のものを選択
+            Stream.of(entity.getVideoVariants()) //
+                    .filter((e) -> e.getContentType().startsWith("video")) //
+                    .max(Comparator.comparingInt(MediaEntity.Variant::getBitrate)) //
+                    .ifPresent((variant) -> {
+                        String url = variant.getUrl();
+                        media.setMp4VideoUrl(url);
+
+                        if (media.getSourceUrl() == null) {
+                            media.setSourceUrl(url);
+                        }
+                    });
+
+            return media;
+        }
         }
         return null;
     }

@@ -5,11 +5,15 @@ import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.request.CommentRequest;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.*;
-import net.socialhub.model.service.addition.MiniBlogComment;
+import net.socialhub.model.service.addition.twitter.TwitterComment;
 import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
@@ -18,20 +22,48 @@ import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.SnowflakeUtil;
-import twitter4j.*;
+import twitter4j.PagableResponseList;
+import twitter4j.Query;
+import twitter4j.QueryResult;
+import twitter4j.ResponseList;
+import twitter4j.Status;
+import twitter4j.StatusUpdate;
+import twitter4j.Twitter;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import static net.socialhub.define.action.OtherActionType.*;
-import static net.socialhub.define.action.TimeLineActionType.*;
-import static net.socialhub.define.action.UsersActionType.*;
+import static net.socialhub.define.action.OtherActionType.BlockUser;
+import static net.socialhub.define.action.OtherActionType.DeleteComment;
+import static net.socialhub.define.action.OtherActionType.FollowUser;
+import static net.socialhub.define.action.OtherActionType.GetComment;
+import static net.socialhub.define.action.OtherActionType.GetRelationship;
+import static net.socialhub.define.action.OtherActionType.GetUser;
+import static net.socialhub.define.action.OtherActionType.GetUserMe;
+import static net.socialhub.define.action.OtherActionType.LikeComment;
+import static net.socialhub.define.action.OtherActionType.MuteUser;
+import static net.socialhub.define.action.OtherActionType.ShareComment;
+import static net.socialhub.define.action.OtherActionType.UnblockUser;
+import static net.socialhub.define.action.OtherActionType.UnfollowUser;
+import static net.socialhub.define.action.OtherActionType.UnlikeComment;
+import static net.socialhub.define.action.OtherActionType.UnmuteUser;
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.SearchTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
+import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
+import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
+import static net.socialhub.define.action.UsersActionType.SearchUsers;
 
 /**
  * Twitter Actions
@@ -620,13 +652,18 @@ public class TwitterAction extends AccountActionImpl {
             Service service = getAccount().getService();
             ExecutorService pool = Executors.newCachedThreadPool();
 
-            MiniBlogComment originComment = toMiniBlogComment(id);
-            MiniBlogComment comment = toMiniBlogComment(originComment.getDisplayComment());
+            TwitterComment originComment = toTwitterComment(id);
+            TwitterComment comment = toTwitterComment(originComment.getDisplayComment());
 
             Future<List<Comment>> ancestors = null;
-            Future<List<Comment>> descendants;
+            Future<List<Status>> afterRecent;
+            Future<List<Status>> afterWhole;
+            Future<List<Status>> afterQuote;
 
+            // ------------------------------------------------ //
             // 前の会話内容を取得
+            // ------------------------------------------------ //
+
             if (comment.getReplyTo() != null) {
                 ancestors = pool.submit(() -> {
                     return proceed(() -> {
@@ -649,48 +686,103 @@ public class TwitterAction extends AccountActionImpl {
                 });
             }
 
+            // ------------------------------------------------ //
             // 後の会話情報を取得
-            // TODO: ツイートの URLで検索して引用 RT を取得
-            // TODO: 全期間の検索結果もマージするともっといい？
-            descendants = pool.submit(() -> {
-                return proceed(() -> {
+            // ------------------------------------------------ //
+            List<Comment> descendants;
 
-                    // クエリを組み上げる処理
-                    User user = comment.getUser();
-                    String mention = "@" + user.getScreenName();
+            {
+                // クエリを組み上げる処理
+                User user = comment.getUser();
+                String mention = user.getScreenName();
+                Long sinceId = (Long) comment.getId();
+                Long maxId = SnowflakeUtil.ofTwitter().addHoursToID(sinceId, 2L);
 
-                    // ツイート後の二時間を対象に取得
-                    Long sinceId = (Long) comment.getId();
-                    Long maxId = SnowflakeUtil.ofTwitter().addHoursToID(sinceId, 2L);
+                // ツイート後の二時間を対象に取得
+                afterRecent = pool.submit(() -> {
+                    return proceed(() -> {
+                        Query query = new Query();
+                        query.setSinceId(sinceId);
+                        query.setMaxId(maxId);
+                        query.setQuery(mention + " -RT");
+                        query.setCount(200);
 
-                    Query query = new Query();
-                    query.setSinceId(sinceId);
-                    query.setMaxId(maxId);
-                    query.setQuery(mention + " -RT");
-                    query.setCount(200);
-
-                    QueryResult result = twitter.search(query);
-                    return result.getTweets().stream() //
-                            .filter((c) -> c.getInReplyToStatusId() == sinceId) //
-                            .map((c) -> TwitterMapper.comment(c, service)) //
-                            .collect(Collectors.toList());
+                        return twitter.search(query).getTweets();
+                    });
                 });
-            });
+
+                // 検索可能な全期間を検索
+                afterWhole = pool.submit(() -> {
+                    return proceed(() -> {
+                        Query query = new Query();
+                        query.setSinceId(sinceId);
+                        query.setQuery(mention + " -RT");
+                        query.setCount(200);
+
+                        return twitter.search(query).getTweets();
+                    });
+                });
+
+                // 引用 RT のアカウントを取得
+                afterQuote = pool.submit(() -> {
+                    return proceed(() -> {
+                        Query query = new Query();
+                        query.setQuery(comment.getUrl() + " -RT");
+                        query.setCount(200);
+
+                        return twitter.search(query).getTweets();
+                    });
+                });
+
+                // 結果を統合
+                List<Status> statuses = new ArrayList<>();
+                statuses.addAll(afterRecent.get());
+                statuses.addAll(afterWhole.get());
+                statuses = statuses.stream().distinct().collect(Collectors.toList());
+
+                // 結果として扱うステータス一覧
+                List<Status> results = new ArrayList<>(afterQuote.get());
+
+                // 返信リストを取得
+                List<Long> idList = new ArrayList<>();
+                idList.add(sinceId);
+
+                while (true) {
+                    List<Status> inserts = new ArrayList<>();
+
+                    for (Status status : statuses) {
+                        if (idList.contains(status.getInReplyToStatusId())) {
+                            if (!results.contains(status)) {
+                                inserts.add(status);
+                            }
+                        }
+                    }
+
+                    // 既に全て加えてあれば終了
+                    if (inserts.isEmpty()) {
+                        break;
+                    }
+
+                    // 返信関連の ID を一覧に加える
+                    idList.addAll(inserts.stream().map(Status::getId).collect(Collectors.toList()));
+                    idList = idList.stream().distinct().collect(Collectors.toList());
+
+                    statuses.removeAll(inserts);
+                    results.addAll(inserts);
+                    inserts.clear();
+                }
+
+                descendants = results.stream()
+                        .map((c) -> TwitterMapper.comment(c, service))
+                        .collect(Collectors.toList());
+            }
 
             Context context = new Context();
-            context.setDescendants(descendants.get());
+            context.setDescendants(descendants);
             context.setAncestors((ancestors != null) ? ancestors.get() : new ArrayList<>());
             MapperUtil.sortContext(context);
             return context;
         });
-    }
-
-    // ============================================================== //
-    // Only Twitter Action
-    // ============================================================== //
-
-    public void uploadImage(byte[] image) {
-
     }
 
     // ============================================================== //
@@ -700,15 +792,15 @@ public class TwitterAction extends AccountActionImpl {
     /**
      * ID を MiniBlogComment に変換
      */
-    private MiniBlogComment toMiniBlogComment(Identify id) {
+    private TwitterComment toTwitterComment(Identify id) {
 
         // コメント情報を取得
-        if (id instanceof MiniBlogComment) {
-            return (MiniBlogComment) id;
+        if (id instanceof TwitterComment) {
+            return (TwitterComment) id;
         } else {
             Comment c = getComment(id);
-            if (c instanceof MiniBlogComment) {
-                return (MiniBlogComment) c;
+            if (c instanceof TwitterComment) {
+                return (TwitterComment) c;
             }
         }
 

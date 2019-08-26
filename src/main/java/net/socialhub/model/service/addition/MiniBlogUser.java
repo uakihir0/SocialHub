@@ -8,7 +8,7 @@ import net.socialhub.model.service.User;
  * MiniBlog User Model
  * MiniBlog のユーザー要素
  */
-public class MiniBlogUser extends User {
+public abstract class MiniBlogUser extends User {
 
     public MiniBlogUser(Service service) {
         super(service);
@@ -28,7 +28,6 @@ public class MiniBlogUser extends User {
 
     /** Profile url */
     private AttributedString profileUrl;
-
 
     //region // Getter&Setter
     public Long getFollowingsCount() {

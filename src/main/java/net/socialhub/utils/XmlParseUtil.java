@@ -34,7 +34,7 @@ public class XmlParseUtil {
         string = string.replaceAll("\r", "");
 
         // Regex like: <(br|BR)([^/]*?)>
-        String[] tags = { "br", "img" };
+        String[] tags = {"br", "img", "hr"};
         for (String tag : tags) {
             string = replace(string, "<(" + tag + "|" + //
                     tag.toUpperCase() + ")([^/]*?)>", "<$1$2/>");

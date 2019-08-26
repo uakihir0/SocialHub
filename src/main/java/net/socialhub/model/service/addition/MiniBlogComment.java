@@ -11,7 +11,7 @@ import java.util.List;
  * MiniBlog Comment Model
  * MiniBlog のコメントモデル
  */
-public class MiniBlogComment extends Comment {
+public abstract class MiniBlogComment extends Comment {
 
     /** Like count (Alias with Favorite) */
     private Long likeCount;
@@ -31,6 +31,11 @@ public class MiniBlogComment extends Comment {
     public MiniBlogComment(Service service) {
         super(service);
     }
+
+    /**
+     * Url を取得
+     */
+    abstract public String getUrl();
 
     @Override
     public Comment getDisplayComment() {

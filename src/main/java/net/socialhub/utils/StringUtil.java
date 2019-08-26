@@ -5,14 +5,7 @@ import java.net.URL;
 public final class StringUtil {
 
     private static final int MAX_DISPLAY_LENGTH = 26;
-
-    /**
-     * XML 内のタグを除去
-     */
-    public static String removeXmlTags(String xml) {
-        return xml.replaceAll("<.*?>", "");
-    }
-
+    
     /**
      * URL デコード処理
      */

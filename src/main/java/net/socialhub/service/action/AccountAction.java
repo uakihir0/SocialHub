@@ -4,6 +4,7 @@ import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.request.CommentRequest;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.support.ReactionCandidate;
+import net.socialhub.service.action.callback.EventCallback;
 
 import java.util.List;
 
@@ -277,6 +278,18 @@ public interface AccountAction {
      * 自分の閲覧可能なチャンネルを取得する
      */
     default Pageable<Channel> getChannels() {
+        throw new NotImplimentedException();
+    }
+
+    // ============================================================== //
+    // Stream
+    // ============================================================== //
+
+    /**
+     * Set Home TimeLine Stream
+     * ホームタイムラインのストリームイベントを設定
+     */
+    default Stream setHomeTimeLineStream(EventCallback callback) {
         throw new NotImplimentedException();
     }
 

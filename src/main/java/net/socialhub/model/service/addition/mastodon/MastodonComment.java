@@ -29,6 +29,22 @@ public class MastodonComment extends MiniBlogComment {
     }
 
     @Override
+    public String getUrl() {
+        MastodonUser user = (MastodonUser) getUser();
+        String host = user.getAccountIdentify().split("@")[2];
+        String identify = user.getAccountIdentify().split("@")[1];
+        return "https://" + host + "/@" + identify + "/" + getId().toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof MastodonComment) {
+            return getId().equals(((MastodonComment) obj).getId());
+        }
+        return false;
+    }
+
+    @Override
     public List<Reaction> getReactions() {
         List<Reaction> reactions = new ArrayList<>();
 

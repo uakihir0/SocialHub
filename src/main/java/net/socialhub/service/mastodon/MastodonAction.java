@@ -9,18 +9,36 @@ import mastodon4j.entity.Results;
 import mastodon4j.entity.Status;
 import mastodon4j.entity.request.StatusUpdate;
 import mastodon4j.entity.share.Response;
+import mastodon4j.streaming.PublicStream;
+import mastodon4j.streaming.PublicStreamListener;
+import mastodon4j.streaming.UserStream;
+import mastodon4j.streaming.UserStreamListener;
+import net.socialhub.define.action.service.MastodonActionType;
 import net.socialhub.define.service.mastodon.MastodonNotificationType;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.request.CommentRequest;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
+import net.socialhub.model.service.addition.mastodon.MastodonStream;
+import net.socialhub.model.service.event.DeleteCommentEvent;
+import net.socialhub.model.service.event.UpdateCommentEvent;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.paging.OffsetPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+import net.socialhub.service.action.callback.DeleteCommentCallback;
+import net.socialhub.service.action.callback.EventCallback;
+import net.socialhub.service.action.callback.UpdateCommentCallback;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 
@@ -34,9 +52,31 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static net.socialhub.define.action.OtherActionType.*;
-import static net.socialhub.define.action.TimeLineActionType.*;
-import static net.socialhub.define.action.UsersActionType.*;
+import static net.socialhub.define.action.OtherActionType.BlockUser;
+import static net.socialhub.define.action.OtherActionType.DeleteComment;
+import static net.socialhub.define.action.OtherActionType.FollowUser;
+import static net.socialhub.define.action.OtherActionType.GetComment;
+import static net.socialhub.define.action.OtherActionType.GetContext;
+import static net.socialhub.define.action.OtherActionType.GetRelationship;
+import static net.socialhub.define.action.OtherActionType.GetUser;
+import static net.socialhub.define.action.OtherActionType.GetUserMe;
+import static net.socialhub.define.action.OtherActionType.LikeComment;
+import static net.socialhub.define.action.OtherActionType.MuteUser;
+import static net.socialhub.define.action.OtherActionType.PostComment;
+import static net.socialhub.define.action.OtherActionType.ShareComment;
+import static net.socialhub.define.action.OtherActionType.UnShareComment;
+import static net.socialhub.define.action.OtherActionType.UnblockUser;
+import static net.socialhub.define.action.OtherActionType.UnfollowUser;
+import static net.socialhub.define.action.OtherActionType.UnlikeComment;
+import static net.socialhub.define.action.OtherActionType.UnmuteUser;
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserMediaTimeLine;
+import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
+import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
+import static net.socialhub.define.action.UsersActionType.SearchUsers;
 
 public class MastodonAction extends AccountActionImpl {
 
@@ -588,6 +628,95 @@ public class MastodonAction extends AccountActionImpl {
             return context;
         });
     }
+
+    // ============================================================== //
+    // Stream
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public net.socialhub.model.service.Stream
+    setHomeTimeLineStream(EventCallback callback) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            UserStream stream = mastodon.streaming().userStream()
+                    .register(new MastodonCommentsListener(callback, service));
+            return new MastodonStream(stream);
+        });
+    }
+
+    // ============================================================== //
+    // Only Mastodon
+    // ============================================================== //
+
+    /**
+     * Return Local Timeline
+     * サーバーのローカルタイムライン
+     */
+    public Pageable<Comment> getLocalTimeLine(Paging paging) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Range range = getRange(paging);
+
+            Response<Status[]> status = mastodon.getPublicTimeline(true, false, range);
+            service.getRateLimit().addInfo(MastodonActionType.LocalTimeLine, status);
+            return MastodonMapper.timeLine(status.get(), service, paging);
+        });
+    }
+
+    /**
+     * Return Federation TimeLine
+     * 連合タイムラインを返却
+     */
+    public Pageable<Comment> getFederationTimeLine(Paging paging) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Range range = getRange(paging);
+
+            Response<Status[]> status = mastodon.getPublicTimeline(false, false, range);
+            service.getRateLimit().addInfo(MastodonActionType.FederationTimeLine, status);
+            return MastodonMapper.timeLine(status.get(), service, paging);
+        });
+    }
+
+    /**
+     * Set Local Timeline Stream
+     * ローカルタイムラインのイベントを取得
+     */
+    public net.socialhub.model.service.Stream
+    setLocalLineStream(EventCallback callback) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            PublicStream stream = mastodon.streaming().publicStream(true)
+                    .register(new MastodonCommentsListener(callback, service));
+            return new MastodonStream(stream);
+        });
+    }
+
+    /**
+     * Set Federation Timeline Stream
+     * 連合タイムラインのイベントを取得
+     */
+    public net.socialhub.model.service.Stream
+    setFederationLineStream(EventCallback callback) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            PublicStream stream = mastodon.streaming().publicStream(false)
+                    .register(new MastodonCommentsListener(callback, service));
+            return new MastodonStream(stream);
+        });
+    }
+
     // ============================================================== //
     // Paging
     // ============================================================== //
@@ -596,7 +725,6 @@ public class MastodonAction extends AccountActionImpl {
         if (paging == null) {
             return null;
         }
-
         Range range = new Range();
         range.setLimit(paging.getCount());
 
@@ -610,7 +738,6 @@ public class MastodonAction extends AccountActionImpl {
                     range.setSinceId(border.getSinceId());
                 }
             }
-
             if (border.getMaxId() != null) {
                 range.setMaxId(border.getMaxId());
             }
@@ -622,7 +749,6 @@ public class MastodonAction extends AccountActionImpl {
         if (paging == null) {
             return null;
         }
-
         Page pg = new Page();
         pg.setLimit(paging.getCount());
 
@@ -646,6 +772,42 @@ public class MastodonAction extends AccountActionImpl {
      */
     private Identify getMyAccountId() {
         return (myAccountId != null) ? myAccountId : getUserMe();
+    }
+
+    // ============================================================== //
+    // Classes
+    // ============================================================== //
+
+    static class MastodonCommentsListener implements
+            UserStreamListener,
+            PublicStreamListener {
+
+        private EventCallback listener;
+        private Service service;
+
+        MastodonCommentsListener(
+                EventCallback listener,
+                Service service) {
+            this.listener = listener;
+            this.service = service;
+        }
+
+        @Override
+        public void onUpdate(Status status) {
+            if (listener instanceof UpdateCommentCallback) {
+                Comment comment = MastodonMapper.comment(status, service);
+                UpdateCommentEvent event = new UpdateCommentEvent(comment);
+                ((UpdateCommentCallback) listener).onUpdate(event);
+            }
+        }
+
+        @Override
+        public void onDelete(long id) {
+            if (listener instanceof DeleteCommentCallback) {
+                DeleteCommentEvent event = new DeleteCommentEvent(id);
+                ((DeleteCommentCallback) listener).onDelete(event);
+            }
+        }
     }
 
     // ============================================================== //

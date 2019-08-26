@@ -1,4 +1,4 @@
-package net.socialhub.define;
+package net.socialhub.define.action.group;
 
 /**
  * SNS グループアクション一覧

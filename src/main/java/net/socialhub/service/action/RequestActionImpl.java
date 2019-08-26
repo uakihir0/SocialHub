@@ -1,8 +1,11 @@
 package net.socialhub.service.action;
 
 import net.socialhub.define.action.ActionType;
+import net.socialhub.define.action.service.MastodonActionType;
 import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.service.*;
+import net.socialhub.service.action.callback.EventCallback;
+import net.socialhub.service.mastodon.MastodonAction;
 
 import static net.socialhub.define.action.TimeLineActionType.*;
 import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
@@ -57,7 +60,16 @@ public class RequestActionImpl implements RequestAction {
                     (args[0] instanceof String)) {
                 return action.getSearchTimeLine((String) args[0], paging);
             }
+        }
 
+        // Mastodon Actions
+        if (action instanceof MastodonAction) {
+            if (type == MastodonActionType.LocalTimeLine) {
+                return ((MastodonAction) action).getLocalTimeLine(paging);
+            }
+            if (type == MastodonActionType.FederationTimeLine) {
+                return ((MastodonAction) action).getFederationTimeLine(paging);
+            }
         }
 
         throw new NotImplimentedException();
@@ -75,11 +87,32 @@ public class RequestActionImpl implements RequestAction {
                 return action.getFollowingUsers((Identify) args[0], paging);
             }
         }
-
         if (type == GetFollowerUsers) {
             if ((args.length == 1) && //
                     (args[0] instanceof Identify)) {
                 return action.getFollowerUsers((Identify) args[0], paging);
+            }
+        }
+
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Stream setCommentsStream(EventCallback callback) {
+
+        // Mastodon Actions
+        if (action instanceof MastodonAction) {
+            if (type == HomeTimeLine) {
+                return action.setHomeTimeLineStream(callback);
+            }
+            if (type == MastodonActionType.LocalTimeLine) {
+                return ((MastodonAction) action).setLocalLineStream(callback);
+            }
+            if (type == MastodonActionType.FederationTimeLine) {
+                return ((MastodonAction) action).setFederationLineStream(callback);
             }
         }
 

@@ -1,11 +1,7 @@
 package net.socialhub.service.action;
 
 import net.socialhub.define.action.ActionType;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Stream;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.service.action.callback.EventCallback;
 
 public interface RequestAction {
@@ -28,6 +24,14 @@ public interface RequestAction {
      */
     Stream setCommentsStream(EventCallback callback);
 
+    /**
+     * Get Action Type
+     */
+    ActionType getActionType();
+
+    /**
+     * Make Request Action Instance
+     */
     static RequestAction of(AccountAction action, ActionType type, Object... args) {
         return new RequestActionImpl(action, type, args);
     }

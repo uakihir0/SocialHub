@@ -119,6 +119,14 @@ public class RequestActionImpl implements RequestAction {
         throw new NotImplimentedException();
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ActionType getActionType() {
+        return type;
+    }
+
     //region // Getter&Setter
     public AccountAction getAction() {
         return action;
@@ -126,6 +134,22 @@ public class RequestActionImpl implements RequestAction {
 
     public void setAction(AccountAction action) {
         this.action = action;
+    }
+
+    public ActionType getType() {
+        return type;
+    }
+
+    public void setType(ActionType type) {
+        this.type = type;
+    }
+
+    public Object[] getArgs() {
+        return args;
+    }
+
+    public void setArgs(Object[] args) {
+        this.args = args;
     }
     //endregion
 }

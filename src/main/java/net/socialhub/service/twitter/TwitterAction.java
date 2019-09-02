@@ -14,29 +14,36 @@ import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.twitter.TwitterComment;
+import net.socialhub.model.service.event.DeleteCommentEvent;
+import net.socialhub.model.service.event.UpdateCommentEvent;
 import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+import net.socialhub.service.action.callback.DeleteCommentCallback;
+import net.socialhub.service.action.callback.EventCallback;
+import net.socialhub.service.action.callback.UpdateCommentCallback;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.SnowflakeUtil;
+import twitter4j.FilterQuery;
+import twitter4j.IDs;
 import twitter4j.PagableResponseList;
 import twitter4j.Query;
 import twitter4j.QueryResult;
 import twitter4j.ResponseList;
 import twitter4j.Status;
+import twitter4j.StatusAdapter;
+import twitter4j.StatusDeletionNotice;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
+import twitter4j.TwitterStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -786,6 +793,55 @@ public class TwitterAction extends AccountActionImpl {
     }
 
     // ============================================================== //
+    // Stream
+    // ============================================================== //
+
+    /**
+     * Set Home Timeline Stream
+     * ホームタイムラインのイベントを取得
+     * (5000 人までフォローしているユーザー専用
+     * filter ストリームで誤魔化して使用)
+     */
+    public net.socialhub.model.service.Stream
+    setHomeTimeLineStream(EventCallback callback) {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            long id = (Long) getUserMeWithCache().getId();
+            IDs ids = twitter.getFriendsIDs(id, -1L, 5000);
+
+            TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
+            stream.addListener(new TwitterCommentsListener(callback, service));
+
+            return new net.socialhub.model.service.addition
+                    .twitter.TwitterStream(stream, (s) -> {
+                FilterQuery q = new FilterQuery(ids.getIDs());
+                stream.filter(q);
+            });
+        });
+    }
+
+    /**
+     * Set Search Timeline Stream
+     * 検索タイムラインのイベントを取得
+     */
+    public net.socialhub.model.service.Stream
+    setSearchTimeLineStream(EventCallback callback, String query) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
+            stream.addListener(new TwitterCommentsListener(callback, service));
+
+            return new net.socialhub.model.service.addition
+                    .twitter.TwitterStream(stream, (s) -> {
+                FilterQuery q = new FilterQuery(query);
+                stream.filter(q);
+            });
+        });
+    }
+
+    // ============================================================== //
     // Support
     // ============================================================== //
 
@@ -816,6 +872,42 @@ public class TwitterAction extends AccountActionImpl {
      */
     private User getUserMeWithCache() {
         return (me != null) ? me : getUserMe();
+    }
+
+    // ============================================================== //
+    // Classes
+    // ============================================================== //
+
+    static class TwitterCommentsListener extends StatusAdapter {
+
+        private EventCallback listener;
+        private Service service;
+
+        TwitterCommentsListener(
+                EventCallback listener,
+                Service service) {
+            this.listener = listener;
+            this.service = service;
+        }
+
+        @Override
+        public void onStatus(Status status) {
+            if (listener instanceof UpdateCommentCallback) {
+                Comment comment = TwitterMapper.comment(status, service);
+                UpdateCommentEvent event = new UpdateCommentEvent(comment);
+                ((UpdateCommentCallback) listener).onUpdate(event);
+            }
+        }
+
+        @Override
+        public void onDeletionNotice(StatusDeletionNotice delete) {
+            if (listener instanceof DeleteCommentCallback) {
+                if (delete.getStatusId() > 0L) {
+                    DeleteCommentEvent event = new DeleteCommentEvent(delete.getStatusId());
+                    ((DeleteCommentCallback) listener).onDelete(event);
+                }
+            }
+        }
     }
 
     // ============================================================== //

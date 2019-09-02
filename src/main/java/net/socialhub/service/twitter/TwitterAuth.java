@@ -8,6 +8,8 @@ import net.socialhub.service.ServiceAuth;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.TwitterStream;
+import twitter4j.TwitterStreamFactory;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 import twitter4j.conf.ConfigurationBuilder;
@@ -46,6 +48,19 @@ public class TwitterAuth implements ServiceAuth<Twitter> {
         twitter.setOAuthConsumer(consumerKey, consumerSecret);
         twitter.setOAuthAccessToken(token);
         return twitter;
+    }
+
+    /**
+     * Get Twitter Stream Accessor
+     */
+    public TwitterStream getStreamAccessor() {
+
+        ConfigurationBuilder builder = new ConfigurationBuilder();
+        builder.setTweetModeExtended(true);
+        builder.setOAuthConsumerKey(consumerKey);
+        builder.setOAuthConsumerSecret(consumerSecret);
+        AccessToken token = new AccessToken(accessToken, accessSecret);
+        return new TwitterStreamFactory(builder.build()).getInstance(token);
     }
 
     /**

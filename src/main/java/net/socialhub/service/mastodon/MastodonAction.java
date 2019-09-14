@@ -19,15 +19,8 @@ import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.request.CommentRequest;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Context;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Relationship;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.request.CommentForm;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.mastodon.MastodonStream;
 import net.socialhub.model.service.event.DeleteCommentEvent;
 import net.socialhub.model.service.event.UpdateCommentEvent;
@@ -36,6 +29,7 @@ import net.socialhub.model.service.paging.OffsetPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+import net.socialhub.service.action.RequestAction;
 import net.socialhub.service.action.callback.DeleteCommentCallback;
 import net.socialhub.service.action.callback.EventCallback;
 import net.socialhub.service.action.callback.UpdateCommentCallback;
@@ -52,31 +46,9 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static net.socialhub.define.action.OtherActionType.BlockUser;
-import static net.socialhub.define.action.OtherActionType.DeleteComment;
-import static net.socialhub.define.action.OtherActionType.FollowUser;
-import static net.socialhub.define.action.OtherActionType.GetComment;
-import static net.socialhub.define.action.OtherActionType.GetContext;
-import static net.socialhub.define.action.OtherActionType.GetRelationship;
-import static net.socialhub.define.action.OtherActionType.GetUser;
-import static net.socialhub.define.action.OtherActionType.GetUserMe;
-import static net.socialhub.define.action.OtherActionType.LikeComment;
-import static net.socialhub.define.action.OtherActionType.MuteUser;
-import static net.socialhub.define.action.OtherActionType.PostComment;
-import static net.socialhub.define.action.OtherActionType.ShareComment;
-import static net.socialhub.define.action.OtherActionType.UnShareComment;
-import static net.socialhub.define.action.OtherActionType.UnblockUser;
-import static net.socialhub.define.action.OtherActionType.UnfollowUser;
-import static net.socialhub.define.action.OtherActionType.UnlikeComment;
-import static net.socialhub.define.action.OtherActionType.UnmuteUser;
-import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserMediaTimeLine;
-import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
-import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
-import static net.socialhub.define.action.UsersActionType.SearchUsers;
+import static net.socialhub.define.action.OtherActionType.*;
+import static net.socialhub.define.action.TimeLineActionType.*;
+import static net.socialhub.define.action.UsersActionType.*;
 
 public class MastodonAction extends AccountActionImpl {
 
@@ -426,7 +398,7 @@ public class MastodonAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void postComment(CommentRequest req) {
+    public void postComment(CommentForm req) {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             ExecutorService pool = Executors.newCachedThreadPool();
@@ -647,6 +619,18 @@ public class MastodonAction extends AccountActionImpl {
                     .register(new MastodonCommentsListener(callback, service));
             return new MastodonStream(stream);
         });
+    }
+
+    // ============================================================== //
+    // Request
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RequestAction request() {
+        return new MastodonRequest(getAccount());
     }
 
     // ============================================================== //

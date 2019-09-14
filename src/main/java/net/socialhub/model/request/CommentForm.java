@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CommentRequest {
+public class CommentForm {
 
     // ============================================================== //
     // Fields
@@ -18,7 +18,7 @@ public class CommentRequest {
     private Object replyId;
 
     /** Images */
-    private List<MediaRequest> images;
+    private List<MediaForm> images;
 
     /** Sensitive */
     private Boolean isSensitive;
@@ -33,7 +33,7 @@ public class CommentRequest {
     /**
      * Set Messages
      */
-    public CommentRequest message(String message) {
+    public CommentForm message(String message) {
         this.message = message;
         return this;
     }
@@ -41,7 +41,7 @@ public class CommentRequest {
     /**
      * Set Reply ID
      */
-    public CommentRequest replyId(Object replyId) {
+    public CommentForm replyId(Object replyId) {
         this.replyId = replyId;
         return this;
     }
@@ -49,12 +49,12 @@ public class CommentRequest {
     /**
      * Add One Image
      */
-    public CommentRequest addImage(byte[] image, String name) {
+    public CommentForm addImage(byte[] image, String name) {
         if (this.images == null) {
             this.images = new ArrayList<>();
         }
 
-        MediaRequest req = new MediaRequest();
+        MediaForm req = new MediaForm();
         req.setData(image);
         req.setName(name);
         this.images.add(req);
@@ -65,7 +65,7 @@ public class CommentRequest {
     /**
      * Remove One Image
      */
-    public CommentRequest removeImage(int index) {
+    public CommentForm removeImage(int index) {
         this.images.remove(index);
         return this;
     }
@@ -73,7 +73,7 @@ public class CommentRequest {
     /**
      * Set Sensitive
      */
-    public CommentRequest sensitive(boolean isSensitive) {
+    public CommentForm sensitive(boolean isSensitive) {
         this.isSensitive = isSensitive;
         return this;
     }
@@ -81,7 +81,7 @@ public class CommentRequest {
     /**
      * Set addition params
      */
-    public CommentRequest param(String key, Object value) {
+    public CommentForm param(String key, Object value) {
         if (this.params == null) {
             this.params = new HashMap<>();
         }
@@ -102,7 +102,7 @@ public class CommentRequest {
         return replyId;
     }
 
-    public List<MediaRequest> getImages() {
+    public List<MediaForm> getImages() {
         return images;
     }
 

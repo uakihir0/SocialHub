@@ -28,6 +28,13 @@ public class Paging implements Serializable {
         this.count = count;
     }
 
+    public Paging copy() {
+        Paging pg = new Paging();
+        pg.setCount(count);
+        pg.setHasMore(hasMore);
+        return pg;
+    }
+
     /**
      * Get page for get newer entities
      * 新しい情報を取得するページを取得

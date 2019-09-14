@@ -29,8 +29,8 @@ import com.github.seratch.jslack.api.model.Message;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.SocialHubException;
-import net.socialhub.model.request.CommentRequest;
-import net.socialhub.model.request.MediaRequest;
+import net.socialhub.model.request.CommentForm;
+import net.socialhub.model.request.MediaForm;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.addition.slack.SlackIdentify;
@@ -127,7 +127,7 @@ public class SlackAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void postComment(CommentRequest req) {
+    public void postComment(CommentForm req) {
         proceed(() -> {
             String token = auth.getAccessor().getToken();
             String channel = (String) req.getParams().get("channel");
@@ -135,7 +135,7 @@ public class SlackAction extends AccountActionImpl {
             if (req.getImages() != null && !req.getImages().isEmpty()) {
 
                 if (req.getImages().size() > 1) {
-                    for (MediaRequest media : req.getImages()) {
+                    for (MediaForm media : req.getImages()) {
 
                         // 複数のファイルを先に個々にアップロード
                         FilesUploadRequestBuilder builder = //
@@ -169,7 +169,7 @@ public class SlackAction extends AccountActionImpl {
                 } else {
 
                     // メディアは一つだけの場合はそれだけを投稿
-                    MediaRequest media = req.getImages().get(0);
+                    MediaForm media = req.getImages().get(0);
                     FilesUploadRequestBuilder builder = //
                             FilesUploadRequest.builder() //
                                     .initialComment(req.getMessage()) //

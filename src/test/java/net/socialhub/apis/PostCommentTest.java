@@ -3,7 +3,7 @@ package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
 import net.socialhub.model.Account;
-import net.socialhub.model.request.CommentRequest;
+import net.socialhub.model.request.CommentForm;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -19,7 +19,7 @@ public class PostCommentTest extends AbstractApiTest {
         Account account = SocialAuthUtil.getTwitterAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
-        CommentRequest req = new CommentRequest() //
+        CommentForm req = new CommentForm() //
                 .addImage(convertFile(stream), "icon.png") //
                 .message("SocialHub Test");
 
@@ -34,7 +34,7 @@ public class PostCommentTest extends AbstractApiTest {
         Account account = SocialAuthUtil.getMastodonAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
-        CommentRequest req = new CommentRequest() //
+        CommentForm req = new CommentForm() //
                 .addImage(convertFile(stream), "icon.png") //
                 .message("SocialHub Test");
 
@@ -50,7 +50,7 @@ public class PostCommentTest extends AbstractApiTest {
         Account account = SocialAuthUtil.getTumblrAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
-        CommentRequest req = new CommentRequest() //
+        CommentForm req = new CommentForm() //
                 .addImage(convertFile(stream), "icon.png") //
                 .message("SocialHub Test");
 
@@ -63,7 +63,7 @@ public class PostCommentTest extends AbstractApiTest {
         Account account = SocialAuthUtil.getSlackAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
-        CommentRequest req = new CommentRequest() //
+        CommentForm req = new CommentForm() //
                 .addImage(convertFile(stream), "icon.png") //
                 .param("channel", "CHANNEL_ID") //
                 .message("SocialHub Test");

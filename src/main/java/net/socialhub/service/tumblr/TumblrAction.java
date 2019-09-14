@@ -6,8 +6,8 @@ import net.socialhub.define.service.tumblr.TumblrIconSize;
 import net.socialhub.define.service.tumblr.TumblrReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.request.CommentRequest;
-import net.socialhub.model.request.MediaRequest;
+import net.socialhub.model.request.CommentForm;
+import net.socialhub.model.request.MediaForm;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.tumblr.TumblrComment;
@@ -267,7 +267,7 @@ public class TumblrAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void postComment(CommentRequest req) {
+    public void postComment(CommentForm req) {
         proceed(() -> {
             User me = getUserMeWithCache();
             Post post;
@@ -278,7 +278,7 @@ public class TumblrAction extends AccountActionImpl {
                 PhotoPost photoPost = auth.getAccessor() //
                         .newPost((String) me.getId(), PhotoPost.class);
 
-                for (MediaRequest media : req.getImages()) {
+                for (MediaForm media : req.getImages()) {
                     Photo.ByteFile file = new Photo.ByteFile();
                     file.setBytes(media.getData());
                     file.setName(media.getName());

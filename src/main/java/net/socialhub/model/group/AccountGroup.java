@@ -11,8 +11,8 @@ import java.util.List;
  */
 public interface AccountGroup {
 
-    static AccountGroup of() {
-        return new AccountGroupImpl();
+    static AccountGroup of(Account... accounts) {
+        return new AccountGroupImpl(accounts);
     }
 
     /**
@@ -27,5 +27,9 @@ public interface AccountGroup {
      */
     void addAccount(Account account);
 
+    /**
+     * Get Account Actions
+     * アクションの取得
+     */
     AccountGroupAction action();
 }

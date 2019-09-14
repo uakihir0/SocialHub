@@ -1,7 +1,7 @@
 package net.socialhub.model.request;
 
 
-public class MediaRequest {
+public class MediaForm {
 
     // ============================================================== //
     // Fields

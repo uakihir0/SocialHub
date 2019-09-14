@@ -33,6 +33,9 @@ public class XmlParseUtil {
         string = string.replaceAll("\n", "");
         string = string.replaceAll("\r", "");
 
+        // Remove Script Async
+        string = string.replaceAll("<script async", "<script");
+
         // Regex like: <(br|BR)([^/]*?)>
         String[] tags = {"br", "img", "hr"};
         for (String tag : tags) {

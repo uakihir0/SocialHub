@@ -1,155 +1,159 @@
 package net.socialhub.service.action;
 
 import net.socialhub.define.action.ActionType;
-import net.socialhub.define.action.service.MastodonActionType;
-import net.socialhub.model.error.NotImplimentedException;
-import net.socialhub.model.service.*;
-import net.socialhub.service.action.callback.EventCallback;
-import net.socialhub.service.mastodon.MastodonAction;
+import net.socialhub.model.Account;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.User;
+import net.socialhub.service.action.request.CommentsRequest;
+import net.socialhub.service.action.request.CommentsRequestImpl;
+import net.socialhub.service.action.request.UsersRequest;
+import net.socialhub.service.action.request.UsersRequestImpl;
 
-import static net.socialhub.define.action.TimeLineActionType.*;
+import java.util.function.Function;
+
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.SearchTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserMediaTimeLine;
 import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
 import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
+import static net.socialhub.define.action.UsersActionType.SearchUsers;
 
 public class RequestActionImpl implements RequestAction {
 
-    private AccountAction action;
+    protected Account account;
 
-    private ActionType type;
+    public RequestActionImpl(Account account) {
+        this.account = account;
+    }
 
-    private Object[] args;
+    // ============================================================== //
+    // User API
+    // ============================================================== //
 
-    public RequestActionImpl(AccountAction action, ActionType type, Object... args) {
-        this.action = action;
-        this.type = type;
-        this.args = args;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public UsersRequest getFollowingUsers(Identify id) {
+        return getUsersRequest(GetFollowingUsers, (paging) ->
+                account.action().getFollowingUsers(id, paging));
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Pageable<Comment> getComments(Paging paging) {
-
-        if (type == HomeTimeLine) {
-            return action.getHomeTimeLine(paging);
-        }
-        if (type == MentionTimeLine) {
-            return action.getMentionTimeLine(paging);
-        }
-        if (type == UserCommentTimeLine) {
-            if ((args.length == 1) && //
-                    (args[0] instanceof Identify)) {
-                return action.getUserCommentTimeLine((Identify) args[0], paging);
-            }
-        }
-        if (type == UserLikeTimeLine) {
-            if ((args.length == 1) && //
-                    (args[0] instanceof Identify)) {
-                return action.getUserLikeTimeLine((Identify) args[0], paging);
-            }
-        }
-        if (type == UserMediaTimeLine) {
-            if ((args.length == 1) && //
-                    (args[0] instanceof Identify)) {
-                return action.getUserMediaTimeLine((Identify) args[0], paging);
-            }
-        }
-        if (type == SearchTimeLine) {
-            if ((args.length == 1) && //
-                    (args[0] instanceof String)) {
-                return action.getSearchTimeLine((String) args[0], paging);
-            }
-        }
-
-        // Mastodon Actions
-        if (action instanceof MastodonAction) {
-            if (type == MastodonActionType.LocalTimeLine) {
-                return ((MastodonAction) action).getLocalTimeLine(paging);
-            }
-            if (type == MastodonActionType.FederationTimeLine) {
-                return ((MastodonAction) action).getFederationTimeLine(paging);
-            }
-        }
-
-        throw new NotImplimentedException();
+    public UsersRequest getFollowerUsers(Identify id) {
+        return getUsersRequest(GetFollowerUsers, (paging) ->
+                account.action().getFollowerUsers(id, paging));
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Pageable<User> getUsers(Paging paging) {
+    public UsersRequest searchUsers(String query) {
+        return getUsersRequest(SearchUsers, (paging) ->
+                account.action().searchUsers(query, paging));
+    }
 
-        if (type == GetFollowingUsers) {
-            if ((args.length == 1) && //
-                    (args[0] instanceof Identify)) {
-                return action.getFollowingUsers((Identify) args[0], paging);
-            }
-        }
-        if (type == GetFollowerUsers) {
-            if ((args.length == 1) && //
-                    (args[0] instanceof Identify)) {
-                return action.getFollowerUsers((Identify) args[0], paging);
-            }
-        }
+    // ============================================================== //
+    // TimeLine API
+    // ============================================================== //
 
-        throw new NotImplimentedException();
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CommentsRequest getHomeTimeLine() {
+        return getCommentsRequest(HomeTimeLine, (paging) ->
+                account.action().getHomeTimeLine(paging));
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Stream setCommentsStream(EventCallback callback) {
-
-        // Mastodon Actions
-        if (action instanceof MastodonAction) {
-            if (type == HomeTimeLine) {
-                return action.setHomeTimeLineStream(callback);
-            }
-            if (type == MastodonActionType.LocalTimeLine) {
-                return ((MastodonAction) action).setLocalLineStream(callback);
-            }
-            if (type == MastodonActionType.FederationTimeLine) {
-                return ((MastodonAction) action).setFederationLineStream(callback);
-            }
-        }
-
-        throw new NotImplimentedException();
+    public CommentsRequest getMentionTimeLine() {
+        return getCommentsRequest(MentionTimeLine, (paging) ->
+                account.action().getMentionTimeLine(paging));
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public ActionType getActionType() {
-        return type;
+    public CommentsRequest getUserCommentTimeLine(Identify id) {
+        return getCommentsRequest(UserCommentTimeLine, (paging) ->
+                account.action().getUserCommentTimeLine(id, paging));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CommentsRequest getUserLikeTimeLine(Identify id) {
+        return getCommentsRequest(UserLikeTimeLine, (paging) ->
+                account.action().getUserLikeTimeLine(id, paging));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CommentsRequest getUserMediaTimeLine(Identify id) {
+        return getCommentsRequest(UserMediaTimeLine, (paging) ->
+                account.action().getUserMediaTimeLine(id, paging));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CommentsRequest getSearchTimeLine(String query) {
+        return getCommentsRequest(SearchTimeLine, (paging) ->
+                account.action().getSearchTimeLine(query, paging));
+    }
+
+    // ============================================================== //
+    // Support
+    // ============================================================== //
+
+    // User
+    protected UsersRequestImpl getUsersRequest(
+            ActionType type, Function<Paging, Pageable<User>> usersFunction) {
+
+        UsersRequestImpl request = new UsersRequestImpl();
+        request.setUsersFunction(usersFunction);
+        request.setActionType(type);
+        request.setAccount(account);
+        return request;
+    }
+
+    // Comments
+    protected CommentsRequestImpl getCommentsRequest(
+            ActionType type, Function<Paging, Pageable<Comment>> commentsFunction) {
+
+        CommentsRequestImpl request = new CommentsRequestImpl();
+        request.setCommentsFunction(commentsFunction);
+        request.setActionType(type);
+        request.setAccount(account);
+        return request;
     }
 
     //region // Getter&Setter
-    public AccountAction getAction() {
-        return action;
+    public Account getAccount() {
+        return account;
     }
 
-    public void setAction(AccountAction action) {
-        this.action = action;
-    }
-
-    public ActionType getType() {
-        return type;
-    }
-
-    public void setType(ActionType type) {
-        this.type = type;
-    }
-
-    public Object[] getArgs() {
-        return args;
-    }
-
-    public void setArgs(Object[] args) {
-        this.args = args;
+    public void setAccount(Account account) {
+        this.account = account;
     }
     //endregion
 }

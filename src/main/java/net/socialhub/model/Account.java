@@ -2,6 +2,8 @@ package net.socialhub.model;
 
 import net.socialhub.model.service.Service;
 import net.socialhub.service.action.AccountAction;
+import net.socialhub.service.action.RequestAction;
+import net.socialhub.service.action.RequestActionImpl;
 
 import java.io.Serializable;
 
@@ -22,6 +24,10 @@ public class Account implements Serializable {
 
     public AccountAction action() {
         return action;
+    }
+
+    public RequestAction request() {
+        return action.request();
     }
 
     //region // Getter&Setter

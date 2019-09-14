@@ -1,6 +1,7 @@
 package net.socialhub.service.action;
 
 import net.socialhub.model.Account;
+import net.socialhub.model.error.NotImplimentedException;
 
 public abstract class AccountActionImpl implements AccountAction {
 
@@ -18,6 +19,14 @@ public abstract class AccountActionImpl implements AccountAction {
 
     public interface ActionRunner<E extends Throwable> {
         void proceed() throws E;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RequestAction request() {
+        return new RequestActionImpl(account);
     }
 
     //region // Getter&Setter

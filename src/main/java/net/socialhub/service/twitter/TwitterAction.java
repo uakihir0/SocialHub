@@ -4,15 +4,11 @@ import net.socialhub.define.MediaType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
-import net.socialhub.model.request.CommentRequest;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Context;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
+import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
-import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.twitter.TwitterComment;
 import net.socialhub.model.service.event.DeleteCommentEvent;
 import net.socialhub.model.service.event.UpdateCommentEvent;
@@ -21,24 +17,14 @@ import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+import net.socialhub.service.action.RequestAction;
 import net.socialhub.service.action.callback.DeleteCommentCallback;
 import net.socialhub.service.action.callback.EventCallback;
 import net.socialhub.service.action.callback.UpdateCommentCallback;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.SnowflakeUtil;
-import twitter4j.FilterQuery;
-import twitter4j.IDs;
-import twitter4j.PagableResponseList;
-import twitter4j.Query;
-import twitter4j.QueryResult;
-import twitter4j.ResponseList;
-import twitter4j.Status;
-import twitter4j.StatusAdapter;
-import twitter4j.StatusDeletionNotice;
-import twitter4j.StatusUpdate;
-import twitter4j.Twitter;
-import twitter4j.TwitterStream;
+import twitter4j.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -49,28 +35,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import static net.socialhub.define.action.OtherActionType.BlockUser;
-import static net.socialhub.define.action.OtherActionType.DeleteComment;
-import static net.socialhub.define.action.OtherActionType.FollowUser;
-import static net.socialhub.define.action.OtherActionType.GetComment;
-import static net.socialhub.define.action.OtherActionType.GetRelationship;
-import static net.socialhub.define.action.OtherActionType.GetUser;
-import static net.socialhub.define.action.OtherActionType.GetUserMe;
-import static net.socialhub.define.action.OtherActionType.LikeComment;
-import static net.socialhub.define.action.OtherActionType.MuteUser;
-import static net.socialhub.define.action.OtherActionType.ShareComment;
-import static net.socialhub.define.action.OtherActionType.UnblockUser;
-import static net.socialhub.define.action.OtherActionType.UnfollowUser;
-import static net.socialhub.define.action.OtherActionType.UnlikeComment;
-import static net.socialhub.define.action.OtherActionType.UnmuteUser;
-import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.SearchTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
-import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
-import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
-import static net.socialhub.define.action.UsersActionType.SearchUsers;
+import static net.socialhub.define.action.OtherActionType.*;
+import static net.socialhub.define.action.TimeLineActionType.*;
+import static net.socialhub.define.action.UsersActionType.*;
 
 /**
  * Twitter Actions
@@ -489,7 +456,7 @@ public class TwitterAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public void postComment(CommentRequest req) {
+    public void postComment(CommentForm req) {
         proceed(() -> {
             Twitter twitter = auth.getAccessor();
             ExecutorService pool = Executors.newCachedThreadPool();
@@ -839,6 +806,19 @@ public class TwitterAction extends AccountActionImpl {
                 stream.filter(q);
             });
         });
+    }
+
+
+    // ============================================================== //
+    // Request
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RequestAction request() {
+        return new TwitterRequest(getAccount());
     }
 
     // ============================================================== //

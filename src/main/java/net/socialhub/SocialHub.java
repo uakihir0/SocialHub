@@ -3,6 +3,7 @@ package net.socialhub;
 import net.socialhub.j2objc.J2ObjcExtension;
 import net.socialhub.j2objc.J2ObjcExtensions;
 import net.socialhub.service.Supports;
+import net.socialhub.service.Utils;
 import net.socialhub.service.facebook.FacebookAuth;
 import net.socialhub.service.mastodon.MastodonAuth;
 import net.socialhub.service.slack.SlackAuth;
@@ -14,7 +15,7 @@ import net.socialhub.service.twitter.TwitterAuth;
  * アプリのトップオブジェクト
  * (基本的にこのクラスからアクセスできるように設計)
  */
-public class SocialHub {
+public final class SocialHub {
     private SocialHub() {
     }
 
@@ -59,10 +60,19 @@ public class SocialHub {
     }
 
     /**
+     * Get Support Services
      * サポートサービスを取得
      */
     public static Supports getSupportServices() {
         return new Supports();
+    }
+
+    /**
+     * Get Util Services
+     * ユーティリティを取得
+     */
+    public static Utils getUtilServices() {
+        return new Utils();
     }
 
     public static void init() {

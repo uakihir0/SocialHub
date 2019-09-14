@@ -1,18 +1,13 @@
 package net.socialhub.model.group;
 
-import net.socialhub.model.Account;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
-import net.socialhub.service.action.RequestAction;
 import net.socialhub.service.action.group.CommentGroupAction;
 import net.socialhub.service.action.group.CommentGroupActionImpl;
+import net.socialhub.service.action.request.CommentsRequest;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,18 +16,17 @@ import java.util.stream.Stream;
  */
 public class CommentGroupImpl implements CommentGroup {
 
-    /** Entity of Accounts Comment */
-    private Map<Account, Pageable<Comment>> entities;
+    /** Comments Request Group */
+    private CommentsRequestGroup requestGroup;
 
-    /** Entity of Accounts Actions */
-    private Map<Account, RequestAction> actions;
+    /** Entity of Comments related to Request */
+    private Map<CommentsRequest, Pageable<Comment>> entities;
 
     /** Max Date (include) **/
     private Date maxDate;
 
     /** Since Date (not include) */
     private Date sinceDate;
-
 
     /**
      * {@inheritDoc}
@@ -152,21 +146,21 @@ public class CommentGroupImpl implements CommentGroup {
 
     //region // Getter&Setter
     @Override
-    public Map<Account, Pageable<Comment>> getEntities() {
-        return entities;
+    public CommentsRequestGroup getRequestGroup() {
+        return requestGroup;
     }
 
-    public void setEntities(Map<Account, Pageable<Comment>> entities) {
-        this.entities = entities;
+    public void setRequestGroup(CommentsRequestGroup requestGroup) {
+        this.requestGroup = requestGroup;
     }
 
     @Override
-    public Map<Account, RequestAction> getActions() {
-        return actions;
+    public Map<CommentsRequest, Pageable<Comment>> getEntities() {
+        return entities;
     }
 
-    public void setActions(Map<Account, RequestAction> actions) {
-        this.actions = actions;
+    public void setEntities(Map<CommentsRequest, Pageable<Comment>> entities) {
+        this.entities = entities;
     }
 
     @Override

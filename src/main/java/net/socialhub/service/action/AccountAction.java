@@ -1,8 +1,16 @@
 package net.socialhub.service.action;
 
 import net.socialhub.model.error.NotImplimentedException;
-import net.socialhub.model.request.CommentRequest;
-import net.socialhub.model.service.*;
+import net.socialhub.model.request.CommentForm;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Stream;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.action.callback.EventCallback;
 
@@ -182,7 +190,7 @@ public interface AccountAction {
      * Post Comment
      * コメントを作成
      */
-    default void postComment(CommentRequest req) {
+    default void postComment(CommentForm req) {
         throw new NotImplimentedException();
     }
 
@@ -290,6 +298,18 @@ public interface AccountAction {
      * ホームタイムラインのストリームイベントを設定
      */
     default Stream setHomeTimeLineStream(EventCallback callback) {
+        throw new NotImplimentedException();
+    }
+
+    // ============================================================== //
+    // Request
+    // ============================================================== //
+
+    /**
+     * Get Request Objects
+     * リクエストアクションを取得
+     */
+    default RequestAction request() {
         throw new NotImplimentedException();
     }
 

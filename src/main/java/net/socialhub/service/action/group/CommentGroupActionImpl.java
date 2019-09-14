@@ -1,15 +1,13 @@
 package net.socialhub.service.action.group;
 
-import net.socialhub.model.Account;
 import net.socialhub.model.group.CommentGroup;
 import net.socialhub.model.group.CommentGroupImpl;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
-import net.socialhub.service.action.RequestAction;
+import net.socialhub.service.action.request.CommentsRequest;
 import net.socialhub.utils.HandlingUtil;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,22 +34,22 @@ public class CommentGroupActionImpl implements CommentGroupAction {
         CommentGroupImpl model = new CommentGroupImpl();
         ExecutorService pool = Executors.newCachedThreadPool();
 
-        Map<Account, Future<Pageable<Comment>>> futures = commentGroup.getEntities() //
-                .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, //
-                        (entry) -> pool.submit(() -> {
-                            Paging paging = entry.getValue().newPage();
-                            RequestAction action = commentGroup.getActions().get(entry.getKey());
-                            return action.getComments(paging);
-                        })));
+        Map<CommentsRequest, Future<Pageable<Comment>>> futures =
+                commentGroup.getEntities().entrySet().stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey,
+                                (entry) -> pool.submit(() -> {
+                                    Paging paging = entry.getValue().newPage();
+                                    return entry.getKey().getComments(paging);
+                                })));
 
-        Map<Account, Pageable<Comment>> entities = futures //
-                .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, //
+        Map<CommentsRequest, Pageable<Comment>> entities = futures
+                .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
                         (entry) -> HandlingUtil.runtime(() -> entry.getValue().get())));
 
         model.setEntities(entities);
         model.setMaxDateFromEntities();
         model.margeWhenNewPageRequest(commentGroup);
-        model.setActions(new HashMap<>(commentGroup.getActions()));
+        model.setRequestGroup(commentGroup.getRequestGroup());
         return model;
     }
 
@@ -63,22 +61,22 @@ public class CommentGroupActionImpl implements CommentGroupAction {
         CommentGroupImpl model = new CommentGroupImpl();
         ExecutorService pool = Executors.newCachedThreadPool();
 
-        Map<Account, Future<Pageable<Comment>>> futures = commentGroup.getEntities() //
-                .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, //
-                        (entry) -> pool.submit(() -> {
-                            Paging paging = entry.getValue().pastPage();
-                            RequestAction action = commentGroup.getActions().get(entry.getKey());
-                            return action.getComments(paging);
-                        })));
+        Map<CommentsRequest, Future<Pageable<Comment>>> futures =
+                commentGroup.getEntities().entrySet().stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey,
+                                (entry) -> pool.submit(() -> {
+                                    Paging paging = entry.getValue().pastPage();
+                                    return entry.getKey().getComments(paging);
+                                })));
 
-        Map<Account, Pageable<Comment>> entities = futures //
-                .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, //
+        Map<CommentsRequest, Pageable<Comment>> entities = futures
+                .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
                         (entry) -> HandlingUtil.runtime(() -> entry.getValue().get())));
 
         model.setEntities(entities);
         model.setSinceDateFromEntities();
         model.margeWhenPastPageRequest(commentGroup);
-        model.setActions(new HashMap<>(commentGroup.getActions()));
+        model.setRequestGroup(commentGroup.getRequestGroup());
         return model;
     }
 

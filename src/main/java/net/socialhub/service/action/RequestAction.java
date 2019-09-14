@@ -1,38 +1,73 @@
 package net.socialhub.service.action;
 
-import net.socialhub.define.action.ActionType;
-import net.socialhub.model.service.*;
-import net.socialhub.service.action.callback.EventCallback;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Paging;
+import net.socialhub.service.action.request.CommentsRequest;
+import net.socialhub.service.action.request.UsersRequest;
 
 public interface RequestAction {
 
-    /**
-     * Get Comments
-     * コメントを取得
-     */
-    Pageable<Comment> getComments(Paging paging);
+    // ============================================================== //
+    // User API
+    // ユーザー関連 API
+    // ============================================================== //
 
     /**
-     * Get Users
-     * ユーザーを取得
+     * Get Following Account
+     * フォローしているユーザー情報を取得
      */
-    Pageable<User> getUsers(Paging paging);
+    UsersRequest getFollowingUsers(Identify id);
 
     /**
-     * Set Comment Stream Event Callback
-     * コメント関連のコールバックを設定
+     * Get Follower Account
+     * フォローされているユーザー情報を取得
      */
-    Stream setCommentsStream(EventCallback callback);
+    UsersRequest getFollowerUsers(Identify id);
 
     /**
-     * Get Action Type
+     * Search User Account
+     * ユーザーアカウントを検索
      */
-    ActionType getActionType();
+    UsersRequest searchUsers(String query);
+
+    // ============================================================== //
+    // TimeLine API
+    // タイムライン関連 API
+    // ============================================================== //
 
     /**
-     * Make Request Action Instance
+     * Get Home TimeLine
+     * ホームタイムラインを取得
      */
-    static RequestAction of(AccountAction action, ActionType type, Object... args) {
-        return new RequestActionImpl(action, type, args);
-    }
+    CommentsRequest getHomeTimeLine();
+
+    /**
+     * Get Mention TimeLine
+     * メンションタイムラインを取得
+     */
+    CommentsRequest getMentionTimeLine();
+
+    /**
+     * Get User Comment TimeLine
+     * ユーザーの投稿したコメントのタイムラインを取得
+     */
+    CommentsRequest getUserCommentTimeLine(Identify id);
+
+    /**
+     * Get User Like TimeLine
+     * ユーザーのイイネしたコメントのタイムラインを取得
+     */
+    CommentsRequest getUserLikeTimeLine(Identify id);
+
+    /**
+     * Get User Media TimeLine
+     * ユーザーのメディア一覧を取得
+     */
+    CommentsRequest getUserMediaTimeLine(Identify id);
+
+    /**
+     * Get Search TimeLine
+     * 検索タイムラインを取得
+     */
+    CommentsRequest getSearchTimeLine(String query);
 }

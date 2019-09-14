@@ -23,6 +23,14 @@ public class Identify implements Serializable {
         this.id = id;
     }
 
+    /**
+     * Is Same Identify?
+     * 同じ識別子か？
+     */
+    public boolean isSameIdentify(Identify id) {
+        return (this.getService().getType() == id.getService().getType())
+                && this.getId().equals(id.getId());
+    }
 
     //region // Getter&Setter
     public void setId(Object id) {

@@ -7,6 +7,10 @@ import java.util.List;
 
 public interface CommentsRequestGroup {
 
+    static CommentsRequestGroup of() {
+        return new CommentsRequestGroupImpl();
+    }
+
     static CommentsRequestGroup of(CommentsRequest... requests) {
         return new CommentsRequestGroupImpl(requests);
     }

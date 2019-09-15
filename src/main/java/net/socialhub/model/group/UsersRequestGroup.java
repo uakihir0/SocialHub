@@ -7,6 +7,10 @@ import java.util.List;
 
 public interface UsersRequestGroup {
 
+    static UsersRequestGroup of() {
+        return new UsersRequestGroupImpl();
+    }
+
     static UsersRequestGroup of(UsersRequest... requests) {
         return new UsersRequestGroupImpl(requests);
     }

@@ -16,7 +16,12 @@ public interface CommentsRequestGroup {
     }
 
     /**
-     * Add Comments Requests (Array)
+     * Add Comments Request
+     */
+    void addCommentsRequests(CommentsRequest request);
+
+    /**
+     * Add Comments Requests
      */
     void addCommentsRequests(CommentsRequest... requests);
 

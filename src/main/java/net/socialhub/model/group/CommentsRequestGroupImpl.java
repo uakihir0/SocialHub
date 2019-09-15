@@ -21,6 +21,16 @@ public class CommentsRequestGroupImpl implements CommentsRequestGroup {
      * {@inheritDoc}
      */
     @Override
+    public void addCommentsRequests(CommentsRequest request) {
+        if (request != null) {
+            this.requests.add(request);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void addCommentsRequests(CommentsRequest... requests) {
         if (requests != null && requests.length > 0) {
             this.requests.addAll(Arrays.asList(requests));

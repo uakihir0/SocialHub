@@ -21,6 +21,16 @@ public class UsersRequestGroupImpl implements UsersRequestGroup {
      * {@inheritDoc}
      */
     @Override
+    public void addUsersRequests(UsersRequest request) {
+        if (request != null) {
+            this.requests.add(request);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void addUsersRequests(UsersRequest... requests) {
         if (requests != null && requests.length > 0) {
             this.requests.addAll(Arrays.asList(requests));

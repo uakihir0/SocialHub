@@ -16,6 +16,11 @@ public interface UsersRequestGroup {
     }
 
     /**
+     * Add Users Request
+     */
+    void addUsersRequests(UsersRequest request);
+
+    /**
      * Add Users Requests
      */
     void addUsersRequests(UsersRequest... requests);

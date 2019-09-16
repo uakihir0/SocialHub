@@ -3,6 +3,7 @@ package net.socialhub.model.group;
 import net.socialhub.service.action.group.UsersRequestGroupAction;
 import net.socialhub.service.action.request.UsersRequest;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 public interface UsersRequestGroup {
@@ -28,11 +29,12 @@ public interface UsersRequestGroup {
     /**
      * Get List of Users Request
      */
+    @Nonnull
     List<UsersRequest> getRequests();
-
-
+    
     /**
      * Get Action
      */
+    @Nonnull
     UsersRequestGroupAction action();
 }

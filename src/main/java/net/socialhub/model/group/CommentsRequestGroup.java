@@ -3,6 +3,7 @@ package net.socialhub.model.group;
 import net.socialhub.service.action.group.CommentsRequestGroupAction;
 import net.socialhub.service.action.request.CommentsRequest;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 public interface CommentsRequestGroup {
@@ -28,10 +29,12 @@ public interface CommentsRequestGroup {
     /**
      * Get List of Comments Request
      */
+    @Nonnull
     List<CommentsRequest> getRequests();
 
     /**
      * Get Action
      */
+    @Nonnull
     CommentsRequestGroupAction action();
 }

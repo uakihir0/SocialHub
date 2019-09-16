@@ -5,6 +5,7 @@ import net.socialhub.service.action.AccountAction;
 import net.socialhub.service.action.CommentAction;
 import net.socialhub.service.action.CommentActionImpl;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -61,6 +62,10 @@ public class Comment extends Identify {
         super(service);
     }
 
+    /**
+     * Get Action
+     */
+    @Nonnull
     public CommentAction action() {
         AccountAction action = getService().getAccount().action();
         return new CommentActionImpl(action).comment(this);

@@ -283,9 +283,25 @@ public interface AccountAction {
 
     /**
      * Get Channels (or Owned Lists)
-     * 自分の閲覧可能なチャンネルを取得する
+     * 自分の閲覧可能なチャンネルを取得
      */
     default Pageable<Channel> getChannels() {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Get Channels Comments
+     * チャンネルでの発言を取得
+     */
+    default Pageable<Comment> getChannelTimeLine(Identify id, Paging paging) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Get Channels Users
+     * チャンネルのユーザーを取得
+     */
+    default Pageable<User> getChannelUsers(Identify id, Paging paging) {
         throw new NotImplimentedException();
     }
 

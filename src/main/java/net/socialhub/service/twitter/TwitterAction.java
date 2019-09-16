@@ -774,16 +774,25 @@ public class TwitterAction extends AccountActionImpl {
         return proceed(() -> {
             Twitter twitter = auth.getAccessor();
             Service service = getAccount().getService();
+            List<Long> idList = new ArrayList<>();
 
-            long id = (Long) getUserMeWithCache().getId();
-            IDs ids = twitter.getFriendsIDs(id, -1L, 5000);
+            // 自分自身を取得
+            long me = (Long) getUserMeWithCache().getId();
+            idList.add(me);
+
+            // 友人の情報を取得
+            IDs ids = twitter.getFriendsIDs(me, -1L, 4999);
+            for (Long id : ids.getIDs()) {
+                idList.add(id);
+            }
 
             TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
             stream.addListener(new TwitterCommentsListener(callback, service));
 
             return new net.socialhub.model.service.addition
                     .twitter.TwitterStream(stream, (s) -> {
-                FilterQuery q = new FilterQuery(ids.getIDs());
+                FilterQuery q = new FilterQuery(idList.stream()
+                        .mapToLong(e -> e).toArray());
                 stream.filter(q);
             });
         });

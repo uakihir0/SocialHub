@@ -456,7 +456,7 @@ public class SlackAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public Pageable<Channel> getChannels() {
+    public Pageable<Channel> getChannels(Identify id, Paging paging) {
         return proceed(() -> {
             Service service = getAccount().getService();
             ChannelsListResponse response = auth.getAccessor().getSlack() //
@@ -509,7 +509,7 @@ public class SlackAction extends AccountActionImpl {
 
         // 不明な場合はチャンネル一覧を先に取得
         if (generalChannel == null) {
-            getChannels();
+            getChannels(null, null);
         }
         return generalChannel;
     }

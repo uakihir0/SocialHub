@@ -5,10 +5,15 @@ import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.request.CommentForm;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.twitter.TwitterComment;
 import net.socialhub.model.service.event.DeleteCommentEvent;
 import net.socialhub.model.service.event.UpdateCommentEvent;
@@ -24,7 +29,19 @@ import net.socialhub.service.action.callback.UpdateCommentCallback;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.SnowflakeUtil;
-import twitter4j.*;
+import twitter4j.FilterQuery;
+import twitter4j.IDs;
+import twitter4j.PagableResponseList;
+import twitter4j.Query;
+import twitter4j.QueryResult;
+import twitter4j.ResponseList;
+import twitter4j.Status;
+import twitter4j.StatusAdapter;
+import twitter4j.StatusDeletionNotice;
+import twitter4j.StatusUpdate;
+import twitter4j.Twitter;
+import twitter4j.TwitterStream;
+import twitter4j.UserList;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -35,9 +52,32 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import static net.socialhub.define.action.OtherActionType.*;
-import static net.socialhub.define.action.TimeLineActionType.*;
-import static net.socialhub.define.action.UsersActionType.*;
+import static net.socialhub.define.action.OtherActionType.BlockUser;
+import static net.socialhub.define.action.OtherActionType.DeleteComment;
+import static net.socialhub.define.action.OtherActionType.FollowUser;
+import static net.socialhub.define.action.OtherActionType.GetChannels;
+import static net.socialhub.define.action.OtherActionType.GetComment;
+import static net.socialhub.define.action.OtherActionType.GetRelationship;
+import static net.socialhub.define.action.OtherActionType.GetUser;
+import static net.socialhub.define.action.OtherActionType.GetUserMe;
+import static net.socialhub.define.action.OtherActionType.LikeComment;
+import static net.socialhub.define.action.OtherActionType.MuteUser;
+import static net.socialhub.define.action.OtherActionType.ShareComment;
+import static net.socialhub.define.action.OtherActionType.UnShareComment;
+import static net.socialhub.define.action.OtherActionType.UnblockUser;
+import static net.socialhub.define.action.OtherActionType.UnfollowUser;
+import static net.socialhub.define.action.OtherActionType.UnlikeComment;
+import static net.socialhub.define.action.OtherActionType.UnmuteUser;
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.ListTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.SearchTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
+import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
+import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
+import static net.socialhub.define.action.UsersActionType.ListUsers;
+import static net.socialhub.define.action.UsersActionType.SearchUsers;
 
 /**
  * Twitter Actions
@@ -194,22 +234,10 @@ public class TwitterAction extends AccountActionImpl {
     @Override
     public Pageable<User> getFollowingUsers(Identify id, Paging paging) {
         return proceed(() -> {
+            int count = getCountFromPage(paging, 20);
+            long cursor = getCursorFromPage(paging, -1L);
+
             Service service = getAccount().getService();
-
-            long cursor = -1;
-            int count = 20;
-            if (paging != null) {
-                if (paging.getCount() != null) {
-                    count = paging.getCount().intValue();
-                }
-                if (paging instanceof CursorPaging) {
-                    CursorPaging cpg = (CursorPaging) paging;
-                    if (cpg.getCurrentCursor() instanceof Long) {
-                        cursor = (long) cpg.getCurrentCursor();
-                    }
-                }
-            }
-
             PagableResponseList<twitter4j.User> users = auth.getAccessor() //
                     .getFriendsList((Long) id.getId(), cursor, count);
 
@@ -224,22 +252,10 @@ public class TwitterAction extends AccountActionImpl {
     @Override
     public Pageable<User> getFollowerUsers(Identify id, Paging paging) {
         return proceed(() -> {
+            int count = getCountFromPage(paging, 20);
+            long cursor = getCursorFromPage(paging, -1L);
+
             Service service = getAccount().getService();
-
-            long cursor = -1;
-            int count = 20;
-            if (paging != null) {
-                if (paging.getCount() != null) {
-                    count = paging.getCount().intValue();
-                }
-                if (paging instanceof CursorPaging) {
-                    CursorPaging cpg = (CursorPaging) paging;
-                    if (cpg.getCurrentCursor() instanceof Long) {
-                        cursor = (long) cpg.getCurrentCursor();
-                    }
-                }
-            }
-
             PagableResponseList<twitter4j.User> users = auth.getAccessor() //
                     .getFollowersList((Long) id.getId(), cursor, count);
 
@@ -555,7 +571,13 @@ public class TwitterAction extends AccountActionImpl {
      */
     @Override
     public void unshareComment(Identify id) {
-        throw new NotSupportedException();
+        proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Status status = twitter.tweets().unRetweetStatus((Long) id.getId());
+
+            Service service = getAccount().getService();
+            service.getRateLimit().addInfo(UnShareComment, status);
+        });
     }
 
     /**
@@ -588,6 +610,10 @@ public class TwitterAction extends AccountActionImpl {
 
             if (TwitterReactionType.Favorite.getCode().contains(type)) {
                 unlikeComment(id);
+                return;
+            }
+            if (TwitterReactionType.Retweet.getCode().contains(type)) {
+                unshareComment(id);
                 return;
             }
         }
@@ -760,6 +786,65 @@ public class TwitterAction extends AccountActionImpl {
     }
 
     // ============================================================== //
+    // Channel (List) API
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Channel> getChannels(Identify id, Paging paging) {
+        return proceed(() -> {
+            int count = getCountFromPage(paging, 20);
+            long cursor = getCursorFromPage(paging, -1L);
+
+            Twitter twitter = auth.getAccessor();
+            PagableResponseList<UserList> lists = twitter.list()
+                    .getUserListsOwnerships((Long) id.getId(), count, cursor);
+
+            Service service = getAccount().getService();
+            service.getRateLimit().addInfo(GetChannels, lists);
+            return TwitterMapper.channels(lists, service, paging);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getChannelTimeLine(Identify id, Paging paging) {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Service service = getAccount().getService();
+            ResponseList<Status> statues = twitter.list().getUserListStatuses(
+                    (Long) id.getId(), TwitterMapper.fromPaging(paging));
+
+            service.getRateLimit().addInfo(ListTimeLine, statues);
+            return TwitterMapper.timeLine(statues, service, paging);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<User> getChannelUsers(Identify id, Paging paging) {
+        return proceed(() -> {
+            int count = getCountFromPage(paging, 20);
+            long cursor = getCursorFromPage(paging, -1L);
+
+            Twitter twitter = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            ResponseList<twitter4j.User> users = twitter.list()
+                    .getUserListMembers((Long) id.getId(), count, cursor);
+
+            service.getRateLimit().addInfo(ListUsers, users);
+            return TwitterMapper.users(users, service, paging);
+        });
+    }
+
+    // ============================================================== //
     // Stream
     // ============================================================== //
 
@@ -816,7 +901,6 @@ public class TwitterAction extends AccountActionImpl {
             });
         });
     }
-
 
     // ============================================================== //
     // Request
@@ -897,6 +981,31 @@ public class TwitterAction extends AccountActionImpl {
                 }
             }
         }
+    }
+
+    // ============================================================== //
+    // Paging
+    // ============================================================== //
+
+    private int getCountFromPage(Paging paging, int defValue) {
+        if (paging != null) {
+            if (paging.getCount() != null) {
+                return paging.getCount().intValue();
+            }
+        }
+        return defValue;
+    }
+
+    private long getCursorFromPage(Paging paging, long defValue) {
+        if (paging != null) {
+            if (paging instanceof CursorPaging) {
+                CursorPaging pg = ((CursorPaging) paging);
+                if (pg.getCurrentCursor() instanceof Long) {
+                    return (Long) pg.getCurrentCursor();
+                }
+            }
+        }
+        return defValue;
     }
 
     // ============================================================== //

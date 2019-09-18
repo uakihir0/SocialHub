@@ -285,7 +285,7 @@ public interface AccountAction {
      * Get Channels (or Owned Lists)
      * 自分の閲覧可能なチャンネルを取得
      */
-    default Pageable<Channel> getChannels() {
+    default Pageable<Channel> getChannels(Identify id, Paging paging) {
         throw new NotImplimentedException();
     }
 
@@ -359,7 +359,7 @@ public interface AccountAction {
     /**
      * Channel <-> List
      */
-    default Pageable<Channel> getLists() {
-        return getChannels();
+    default Pageable<Channel> getLists(Identify id, Paging paging) {
+        return getChannels(id, paging);
     }
 }

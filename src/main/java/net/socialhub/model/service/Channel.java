@@ -18,6 +18,8 @@ public class Channel extends Identify {
 
     private Date createAt;
 
+    private Boolean isPublic;
+
     //region // Getter&Setter
     public String getName() {
         return name;
@@ -41,6 +43,14 @@ public class Channel extends Identify {
 
     public void setCreateAt(Date createAt) {
         this.createAt = createAt;
+    }
+
+    public Boolean getPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(Boolean isPublic) {
+        this.isPublic = isPublic;
     }
     //endregion
 }

@@ -8,6 +8,7 @@ import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Application;
+import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Media;
@@ -16,6 +17,7 @@ import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
+import net.socialhub.model.service.addition.twitter.TwitterChannel;
 import net.socialhub.model.service.addition.twitter.TwitterComment;
 import net.socialhub.model.service.addition.twitter.TwitterMedia;
 import net.socialhub.model.service.addition.twitter.TwitterUser;
@@ -31,6 +33,7 @@ import twitter4j.QueryResult;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.URLEntity;
+import twitter4j.UserList;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -279,6 +282,24 @@ public class TwitterMapper {
     }
 
     /**
+     * チャンネルマッピング
+     */
+    public static Channel channel(
+            UserList list,
+            Service service) {
+
+        TwitterChannel channel = new TwitterChannel(service);
+
+        channel.setId(list.getId());
+        channel.setName(list.getName());
+        channel.setCreateAt(list.getCreatedAt());
+        channel.setDescription(list.getDescription());
+        channel.setPublic(list.isPublic());
+
+        return channel;
+    }
+
+    /**
      * リアクション候補マッピング
      */
     public static List<ReactionCandidate> reactionCandidates() {
@@ -437,6 +458,25 @@ public class TwitterMapper {
                 .collect(Collectors.toList()));
 
         IndexPaging pg = MapperUtil.mappingIndexPaging(paging);
+        model.setPaging(pg);
+        return model;
+    }
+
+    /**
+     * チャンネルマッピング
+     */
+    public static Pageable<Channel> channels(
+            PagableResponseList<UserList> lists, //
+            Service service, //
+            Paging paging) {
+
+        Pageable<Channel> model = new Pageable<>();
+        model.setEntities(lists.stream().map(e -> channel(e, service)) //
+                .collect(Collectors.toList()));
+
+        CursorPaging<Long> pg = MapperUtil.mappingCursorPaging(paging);
+        pg.setPrevCursor(lists.getPreviousCursor());
+        pg.setNextCursor(lists.getNextCursor());
         model.setPaging(pg);
         return model;
     }

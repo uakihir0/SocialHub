@@ -28,7 +28,7 @@ public class MapperUtil {
         context.getDescendants().sort(Comparator.comparing(Comment::getCreateAt).reversed());
         context.getAncestors().sort(Comparator.comparing(Comment::getCreateAt).reversed());
     }
-    
+
     // ============================================================== //
     // Paging
     // ============================================================== //
@@ -113,8 +113,13 @@ public class MapperUtil {
 
     /**
      * CursorPaging の作成
+     * 型の確認はスキップする
      */
+    @SuppressWarnings("unchecked")
     public static <T> CursorPaging<T> mappingCursorPaging(Paging paging) {
+        if (paging instanceof CursorPaging) {
+            return ((CursorPaging) paging).copy();
+        }
 
         // Count の取得
         CursorPaging<T> pg = new CursorPaging<>();

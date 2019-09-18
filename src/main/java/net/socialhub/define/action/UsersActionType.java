@@ -6,5 +6,6 @@ public enum UsersActionType implements ActionType {
     GetFollowingUsers,
     GetFollowerUsers,
     SearchUsers,
+    ListUsers,
     ;
 }

@@ -9,5 +9,6 @@ public enum TimeLineActionType implements ActionType {
     UserLikeTimeLine,
     UserMediaTimeLine,
     SearchTimeLine,
+    ListTimeLine,
     ;
 }

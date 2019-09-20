@@ -5,15 +5,10 @@ import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.request.CommentForm;
-import net.socialhub.model.service.Channel;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Context;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
-import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.twitter.TwitterComment;
 import net.socialhub.model.service.event.DeleteCommentEvent;
 import net.socialhub.model.service.event.UpdateCommentEvent;
@@ -29,19 +24,7 @@ import net.socialhub.service.action.callback.UpdateCommentCallback;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.SnowflakeUtil;
-import twitter4j.FilterQuery;
-import twitter4j.IDs;
-import twitter4j.PagableResponseList;
-import twitter4j.Query;
-import twitter4j.QueryResult;
-import twitter4j.ResponseList;
-import twitter4j.Status;
-import twitter4j.StatusAdapter;
-import twitter4j.StatusDeletionNotice;
-import twitter4j.StatusUpdate;
-import twitter4j.Twitter;
-import twitter4j.TwitterStream;
-import twitter4j.UserList;
+import twitter4j.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -52,32 +35,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import static net.socialhub.define.action.OtherActionType.BlockUser;
-import static net.socialhub.define.action.OtherActionType.DeleteComment;
-import static net.socialhub.define.action.OtherActionType.FollowUser;
-import static net.socialhub.define.action.OtherActionType.GetChannels;
-import static net.socialhub.define.action.OtherActionType.GetComment;
-import static net.socialhub.define.action.OtherActionType.GetRelationship;
-import static net.socialhub.define.action.OtherActionType.GetUser;
-import static net.socialhub.define.action.OtherActionType.GetUserMe;
-import static net.socialhub.define.action.OtherActionType.LikeComment;
-import static net.socialhub.define.action.OtherActionType.MuteUser;
-import static net.socialhub.define.action.OtherActionType.ShareComment;
-import static net.socialhub.define.action.OtherActionType.UnShareComment;
-import static net.socialhub.define.action.OtherActionType.UnblockUser;
-import static net.socialhub.define.action.OtherActionType.UnfollowUser;
-import static net.socialhub.define.action.OtherActionType.UnlikeComment;
-import static net.socialhub.define.action.OtherActionType.UnmuteUser;
-import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.ListTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.SearchTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
-import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
-import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
-import static net.socialhub.define.action.UsersActionType.ListUsers;
-import static net.socialhub.define.action.UsersActionType.SearchUsers;
+import static net.socialhub.define.action.OtherActionType.*;
+import static net.socialhub.define.action.TimeLineActionType.*;
+import static net.socialhub.define.action.UsersActionType.*;
 
 /**
  * Twitter Actions
@@ -852,7 +812,8 @@ public class TwitterAction extends AccountActionImpl {
      * Set Home Timeline Stream
      * ホームタイムラインのイベントを取得
      * (5000 人までフォローしているユーザー専用
-     * filter ストリームで誤魔化して使用)
+     * filter ストリームで誤魔化して使用
+     * 鍵アカウントの情報は取得不可)
      */
     public net.socialhub.model.service.Stream
     setHomeTimeLineStream(EventCallback callback) {
@@ -872,7 +833,7 @@ public class TwitterAction extends AccountActionImpl {
             }
 
             TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
-            stream.addListener(new TwitterCommentsListener(callback, service));
+            stream.addListener(new TwitterCommentsListener(callback, idList, service));
 
             return new net.socialhub.model.service.addition
                     .twitter.TwitterStream(stream, (s) -> {
@@ -892,7 +853,7 @@ public class TwitterAction extends AccountActionImpl {
         return proceed(() -> {
             Service service = getAccount().getService();
             TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
-            stream.addListener(new TwitterCommentsListener(callback, service));
+            stream.addListener(new TwitterCommentsListener(callback, null, service));
 
             return new net.socialhub.model.service.addition
                     .twitter.TwitterStream(stream, (s) -> {
@@ -954,18 +915,28 @@ public class TwitterAction extends AccountActionImpl {
     static class TwitterCommentsListener extends StatusAdapter {
 
         private EventCallback listener;
+        private List<Long> idList;
         private Service service;
 
         TwitterCommentsListener(
                 EventCallback listener,
+                List<Long> idList,
                 Service service) {
             this.listener = listener;
             this.service = service;
+            this.idList = idList;
         }
 
         @Override
         public void onStatus(Status status) {
             if (listener instanceof UpdateCommentCallback) {
+
+                // 関連 ID 意外のコメントは除外
+                if (idList != null && !idList.isEmpty()) {
+                    if (!idList.contains(status.getId())) {
+                        return;
+                    }
+                }
                 Comment comment = TwitterMapper.comment(status, service);
                 UpdateCommentEvent event = new UpdateCommentEvent(comment);
                 ((UpdateCommentCallback) listener).onUpdate(event);

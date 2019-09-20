@@ -18,6 +18,7 @@ public class CommentsRequestImpl implements CommentsRequest {
     private Function<Paging, Pageable<Comment>> commentsFunction;
     private Function<EventCallback, Stream> streamFunction;
     private Supplier<CommentForm> commentFormSupplier;
+    private boolean streamRecommended = true;
     private ActionType actionType;
     private Account account;
 
@@ -48,7 +49,7 @@ public class CommentsRequestImpl implements CommentsRequest {
      */
     @Override
     public boolean canUseCommentsStream() {
-        return (streamFunction != null);
+        return streamRecommended && (streamFunction != null);
     }
 
     /**
@@ -97,6 +98,10 @@ public class CommentsRequestImpl implements CommentsRequest {
 
     public void setCommentFormSupplier(Supplier<CommentForm> commentFormSupplier) {
         this.commentFormSupplier = commentFormSupplier;
+    }
+
+    public void setStreamRecommended(boolean streamRecommended) {
+        this.streamRecommended = streamRecommended;
     }
     //endregion
 }

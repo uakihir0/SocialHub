@@ -28,6 +28,7 @@ public class TwitterRequest extends RequestActionImpl {
                 super.getHomeTimeLine();
 
         request.setStreamFunction(action::setHomeTimeLineStream);
+        request.setStreamRecommended(false);
         return request;
     }
 

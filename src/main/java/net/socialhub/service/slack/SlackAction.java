@@ -63,9 +63,6 @@ public class SlackAction extends AccountActionImpl {
     /** Cached team info */
     private SlackTeam team;
 
-    /** Cached my account */
-    private User me;
-
     /** Cached General Channel Id */
     private String generalChannel;
 
@@ -533,13 +530,6 @@ public class SlackAction extends AccountActionImpl {
 
         String message = "No Channel Info. Identify must be SlackIdentify or SlackComment.";
         throw new SocialHubException(message);
-    }
-
-    /**
-     * キャッシュ付きで自分のユーザーを取得
-     */
-    private User getUserMeWithCache() {
-        return (me != null) ? me : getUserMe();
     }
 
     /**

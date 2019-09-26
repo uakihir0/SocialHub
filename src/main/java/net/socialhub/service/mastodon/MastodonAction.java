@@ -56,9 +56,6 @@ public class MastodonAction extends AccountActionImpl {
 
     private ServiceAuth<Mastodon> auth;
 
-    // 自分のアカウント ID を記録
-    private Identify myAccountId;
-
     // ============================================================== //
     // Account
     // ============================================================== //
@@ -74,8 +71,7 @@ public class MastodonAction extends AccountActionImpl {
             Response<mastodon4j.entity.Account> account = mastodon.verifyCredentials();
 
             service.getRateLimit().addInfo(GetUserMe, account);
-            User me = MastodonMapper.user(account.get(), service);
-            myAccountId = me;
+            me = MastodonMapper.user(account.get(), service);
             return me;
         });
     }
@@ -325,7 +321,7 @@ public class MastodonAction extends AccountActionImpl {
             if (id != null) {
 
                 // 自分の分しか取得できないので id が自分でない場合は例外
-                if (id.getId().equals(getMyAccountId().getId())) {
+                if (id.getId().equals(getUserMeWithCache().getId())) {
 
                     Mastodon mastodon = auth.getAccessor();
                     Service service = getAccount().getService();
@@ -602,6 +598,51 @@ public class MastodonAction extends AccountActionImpl {
     }
 
     // ============================================================== //
+    // Channel (List) API
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Channel> getChannels(Identify id, Paging paging) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            User me = getUserMeWithCache();
+            if (!me.getId().equals(id.getId())) {
+                throw new NotSupportedException(
+                        "Sorry, authenticated user only.");
+            }
+
+            Response<mastodon4j.entity.List[]> lists =
+                    mastodon.list().getLists((Long) id.getId());
+
+            service.getRateLimit().addInfo(GetChannels, lists);
+            return MastodonMapper.channels(lists.get(), service);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getChannelTimeLine(Identify id, Paging paging) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Range range = getRange(paging);
+
+            Response<Status[]> status = mastodon.timelines()
+                    .getListTimeline((String) id.getId(), range);
+
+            service.getRateLimit().addInfo(ChannelTimeLine, status);
+            return MastodonMapper.timeLine(status.get(), service, paging);
+        });
+    }
+
+    // ============================================================== //
     // Stream
     // ============================================================== //
 
@@ -744,18 +785,6 @@ public class MastodonAction extends AccountActionImpl {
             }
         }
         return pg;
-    }
-
-    // ============================================================== //
-    // Cache
-    // ============================================================== //
-
-    /**
-     * Get My AccountID (with Cache)
-     * 自分のアカウント ID を取得
-     */
-    private Identify getMyAccountId() {
-        return (myAccountId != null) ? myAccountId : getUserMe();
     }
 
     // ============================================================== //

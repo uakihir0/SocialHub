@@ -31,9 +31,6 @@ public class TumblrAction extends AccountActionImpl {
 
     private ServiceAuth<JumblrClient> auth;
 
-    /** My Account */
-    private User me;
-
     // ============================================================== //
     // Account
     // ============================================================== //
@@ -485,17 +482,6 @@ public class TumblrAction extends AccountActionImpl {
 
     private void setPagingOptions(Map<String, Object> params) {
         params.put("reblog_info", true);
-    }
-
-    // ============================================================== //
-    // Cache
-    // ============================================================== //
-
-    /**
-     * キャッシュ付きで自分のユーザーを取得
-     */
-    private User getUserMeWithCache() {
-        return (me != null) ? me : getUserMe();
     }
 
     // ============================================================== //

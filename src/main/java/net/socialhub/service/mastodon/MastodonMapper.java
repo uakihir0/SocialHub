@@ -166,14 +166,14 @@ public class MastodonMapper {
         Media media = new Media();
         switch (MastodonMediaType.of(attachment.getType())) {
 
-        case Image: {
-            media.setType(MediaType.Image);
-            break;
-        }
-        case Video: {
-            media.setType(MediaType.Movie);
-            break;
-        }
+            case Image: {
+                media.setType(MediaType.Image);
+                break;
+            }
+            case Video: {
+                media.setType(MediaType.Movie);
+                break;
+            }
         }
         media.setSourceUrl(attachment.getUrl());
         media.setPreviewUrl(attachment.getPreviewUrl());
@@ -193,6 +193,21 @@ public class MastodonMapper {
         app.setName(application.getName());
         app.setWebsite(application.getWebsite());
         return app;
+    }
+
+    /**
+     * チャンネルマッピング
+     */
+    public static Channel channel(
+            mastodon4j.entity.List list,
+            Service service) {
+
+        Channel channel = new Channel(service);
+
+        channel.setId(list.getId());
+        channel.setName(list.getTitle());
+        channel.setPublic(false);
+        return channel;
     }
 
     /**
@@ -260,6 +275,19 @@ public class MastodonMapper {
                 .collect(Collectors.toList()));
 
         model.setPaging(MapperUtil.mappingBorderPaging(paging, Mastodon));
+        return model;
+    }
+
+    /**
+     * チャンネルマッピング
+     */
+    public static Pageable<Channel> channels(
+            mastodon4j.entity.List[] lists, //
+            Service service) {
+
+        Pageable<Channel> model = new Pageable<>();
+        model.setEntities(Stream.of(lists).map(e -> channel(e, service)) //
+                .collect(Collectors.toList()));
         return model;
     }
 

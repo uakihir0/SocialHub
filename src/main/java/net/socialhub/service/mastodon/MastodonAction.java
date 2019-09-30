@@ -642,6 +642,24 @@ public class MastodonAction extends AccountActionImpl {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<User> getChannelUsers(Identify id, Paging paging) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Long limit = (paging != null) ? paging.getCount() : null;
+
+            Response<mastodon4j.entity.Account[]> status = mastodon
+                    .list().getListAccounts((String) id.getId(), limit);
+
+            service.getRateLimit().addInfo(ChannelTimeLine, status);
+            return MastodonMapper.users(status.get(), service, paging);
+        });
+    }
+
     // ============================================================== //
     // Stream
     // ============================================================== //

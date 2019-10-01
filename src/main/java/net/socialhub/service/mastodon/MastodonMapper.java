@@ -113,6 +113,7 @@ public class MastodonMapper {
             model.setUser(user(status.getAccount(), service));
             model.setCreateAt(format.parse(status.getCreatedAt()));
             model.setApplication(application(status.getApplication()));
+            model.setPossiblySensitive(status.isSensitive());
             model.setVisibility(status.getVisibility());
 
             model.setLikeCount(status.getFavouritesCount());

@@ -70,7 +70,17 @@ public class PostCommentTest extends AbstractApiTest {
 
         account.action().postComment(req);
     }
-    
+
+    @Test
+    @Ignore
+    public void testPostHomeSlackFromRequest() {
+        Account account = SocialAuthUtil.getSlackAccount();
+        CommentForm req = account.request().getHomeTimeLine()
+                .getCommentRequest().message("SocialHub Test");
+
+        account.action().postComment(req);
+    }
+
     /**
      * File to ImageBytes
      */

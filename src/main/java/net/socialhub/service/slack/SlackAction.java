@@ -39,6 +39,7 @@ import net.socialhub.model.service.paging.DatePaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+import net.socialhub.service.action.RequestAction;
 import net.socialhub.service.slack.SlackAuth.SlackAccessor;
 import net.socialhub.utils.LimitMap;
 import net.socialhub.utils.MapperUtil;
@@ -468,6 +469,18 @@ public class SlackAction extends AccountActionImpl {
 
             return SlackMapper.channel(response, service);
         });
+    }
+
+    // ============================================================== //
+    // Request
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RequestAction request() {
+        return new SlackRequest(getAccount());
     }
 
     // ============================================================== //

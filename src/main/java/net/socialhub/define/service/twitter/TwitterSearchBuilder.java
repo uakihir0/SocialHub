@@ -8,17 +8,11 @@ import java.util.List;
  */
 public class TwitterSearchBuilder {
 
-    // 検索自由文字列
-    private String freeword;
-
-    // ハッシュタグ検索
-    private String hashTag;
+    // 検索クエリ
+    private TwitterSearchQuery query;
 
     // 特定のユーザーを検索
     private String screenName;
-
-    // 除外文字列
-    private String exclusive;
 
     // 検索投稿ソース
     private String source;
@@ -39,21 +33,14 @@ public class TwitterSearchBuilder {
     // 対象言語の絞り込み
     private List<TwitterLanguageType> language;
 
-
     /**
      * クエリ作成
      */
     public String buildQuery() {
         List<String> parts = new ArrayList<>();
 
-        if (freeword != null) {
-            parts.add(freeword);
-        }
-        if (exclusive != null) {
-            parts.add("-" + exclusive);
-        }
-        if (hashTag != null) {
-            parts.add("#" + hashTag);
+        if (query != null) {
+            parts.add(query.buildQuery());
         }
         if (screenName != null) {
             parts.add("from:" + screenName);
@@ -90,20 +77,8 @@ public class TwitterSearchBuilder {
 
         return String.join(" ", parts);
     }
-
-
-    public TwitterSearchBuilder freeword(String freeword) {
-        this.freeword = freeword;
-        return this;
-    }
-
-    public TwitterSearchBuilder hashTag(String hashTag) {
-        this.hashTag = hashTag;
-        return this;
-    }
-
-    public TwitterSearchBuilder exclusive(String exclusive) {
-        this.exclusive = exclusive;
+    public TwitterSearchBuilder query(TwitterSearchQuery query) {
+        this.query = query;
         return this;
     }
 

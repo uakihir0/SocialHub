@@ -28,7 +28,10 @@ import twitter4j.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -861,6 +864,38 @@ public class TwitterAction extends AccountActionImpl {
     }
 
     // ============================================================== //
+    // Others
+    // ============================================================== //
+
+    /**
+     * Get Saved Search Query
+     * 保存した検索を取得
+     */
+    public List<String> getSavedSearch() {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            ResponseList<SavedSearch> list = twitter.getSavedSearches();
+            return list.stream().map(SavedSearch::getQuery).collect(Collectors.toList());
+        });
+    }
+
+    /**
+     * Get Trends
+     * トレンドを取得
+     */
+    public List<String> getTrends(Integer id) {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Trends trends = twitter.getPlaceTrends(id);
+
+            return Arrays.stream(trends.getTrends())
+                    .map(Trend::getQuery)
+                    .map(this::decodeUrlEncode)
+                    .collect(Collectors.toList());
+        });
+    }
+
+    // ============================================================== //
     // Request
     // ============================================================== //
 
@@ -989,6 +1024,14 @@ public class TwitterAction extends AccountActionImpl {
 
     private static void handleTwitterException(Exception e) {
         System.out.println(e.getMessage());
+    }
+
+    private String decodeUrlEncode(String str) {
+        try {
+            return URLDecoder.decode(str, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     //region // Getter&Setter

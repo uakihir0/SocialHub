@@ -28,6 +28,9 @@ public enum SpecialCharType {
     dArr("&dArr;", "&#8659;"), //
     lArr("&lArr;", "&#8656;"), //
     hArr("&hArr;", "&#8660;"), //
+
+    times("&times;", "&#215;"), //
+    divide("&divide;", "&#247;"), //
     ;
 
     private String entityRepl;

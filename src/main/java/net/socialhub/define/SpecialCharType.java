@@ -16,10 +16,18 @@ public enum SpecialCharType {
     ldquo("&ldquo;", "&#8220;"), //
     rdquo("&rdquo;", "&#8221;"), //
     hellip("&hellip;", "&#8230;"), //
+
     uarr("&uarr;", "&#8593;"), //
     rarr("&rarr;", "&#8594;"), //
     darr("&darr;", "&#8595;"), //
     larr("&larr;", "&#8592;"), //
+    harr("&harr;", "&#8596;"), //
+
+    uArr("&uArr;", "&#8657;"), //
+    rArr("&rArr;", "&#8658;"), //
+    dArr("&dArr;", "&#8659;"), //
+    lArr("&lArr;", "&#8656;"), //
+    hArr("&hArr;", "&#8660;"), //
     ;
 
     private String entityRepl;

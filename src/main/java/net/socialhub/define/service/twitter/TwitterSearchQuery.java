@@ -81,13 +81,19 @@ public class TwitterSearchQuery {
 
         if (and != null) {
             for (TwitterSearchQuery q : and) {
-                query.append(" AND ").append(q.buildQuery());
+                if (!query.toString().isEmpty()) {
+                    query.append(" AND ");
+                }
+                query.append(q.buildQuery());
             }
         }
 
         if (or != null) {
             for (TwitterSearchQuery q : or) {
-                query.append(" OR ").append(q.buildQuery());
+                if (!query.toString().isEmpty()) {
+                    query.append(" OR ");
+                }
+                query.append(q.buildQuery());
             }
         }
 

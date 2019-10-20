@@ -2,6 +2,10 @@ package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
 import net.socialhub.model.Account;
+import net.socialhub.model.service.Trend;
+import net.socialhub.model.service.support.TrendComment;
+import net.socialhub.model.service.support.TrendCountry;
+import net.socialhub.model.service.support.TrendCountry.TrendLocation;
 import net.socialhub.service.twitter.TwitterAction;
 import org.junit.Test;
 
@@ -12,8 +16,38 @@ public class TwitterActionTest extends AbstractTimelineTest {
         Account account = SocialAuthUtil.getTwitterAccount();
         TwitterAction action = (TwitterAction) account.action();
 
-        for (String trend : action.getTrends(1)) {
-            System.out.println(trend);
+        for (Trend trend : action.getTrends(1)) {
+            System.out.println(trend.getName());
+        }
+    }
+
+    @Test
+    public void getTrendLocations() {
+        Account account = SocialAuthUtil.getTwitterAccount();
+        TwitterAction action = (TwitterAction) account.action();
+
+        for (TrendCountry trend : action.getTrendLocations()) {
+            System.out.println("==============================");
+            System.out.println(trend.getId() + " : " + trend.getName());
+
+            for (TrendLocation location : trend.getLocations()) {
+                System.out.println("> " + location.getId() + " : " + location.getName());
+            }
+        }
+    }
+
+    @Test
+    public void getTrendsComment() {
+        Account account = SocialAuthUtil.getTwitterAccount();
+        TwitterAction action = (TwitterAction) account.action();
+
+        // 23424856: Japan
+        for (TrendComment trend : action.getTrendsComment(23424856)) {
+            System.out.println("==============================");
+            System.out.println(">> " + trend.getTrend().getName());
+            if (trend.getComment() != null) {
+                System.out.println(trend.getComment().getDisplayComment().getText().getDisplayText());
+            }
         }
     }
 

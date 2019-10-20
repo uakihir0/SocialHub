@@ -2,12 +2,14 @@ package net.socialhub.service.twitter;
 
 import net.socialhub.define.MediaType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
+import net.socialhub.define.service.twitter.TwitterSearchBuilder;
+import net.socialhub.define.service.twitter.TwitterSearchQuery;
 import net.socialhub.model.Account;
-import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.twitter.TwitterComment;
@@ -16,6 +18,9 @@ import net.socialhub.model.service.event.UpdateCommentEvent;
 import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
+import net.socialhub.model.service.support.TrendComment;
+import net.socialhub.model.service.support.TrendCountry;
+import net.socialhub.model.service.support.TrendCountry.TrendLocation;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.service.action.RequestAction;
@@ -33,12 +38,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static net.socialhub.define.action.OtherActionType.*;
 import static net.socialhub.define.action.TimeLineActionType.*;
 import static net.socialhub.define.action.UsersActionType.*;
@@ -452,7 +458,7 @@ public class TwitterAction extends AccountActionImpl {
                         .stream().map(image -> pool.submit(() -> {
                             InputStream input = new ByteArrayInputStream(image.getData());
                             return twitter.uploadMedia(image.getName(), input).getMediaId();
-                        })).collect(Collectors.toList());
+                        })).collect(toList());
 
                 update.setMediaIds(medias.stream().mapToLong( //
                         (e) -> HandlingUtil.runtime(e::get)).toArray());
@@ -699,7 +705,7 @@ public class TwitterAction extends AccountActionImpl {
                 List<Status> statuses = new ArrayList<>();
                 statuses.addAll(afterRecent.get());
                 statuses.addAll(afterWhole.get());
-                statuses = statuses.stream().distinct().collect(Collectors.toList());
+                statuses = statuses.stream().distinct().collect(toList());
 
                 // 結果として扱うステータス一覧
                 List<Status> results = new ArrayList<>(afterQuote.get());
@@ -725,8 +731,8 @@ public class TwitterAction extends AccountActionImpl {
                     }
 
                     // 返信関連の ID を一覧に加える
-                    idList.addAll(inserts.stream().map(Status::getId).collect(Collectors.toList()));
-                    idList = idList.stream().distinct().collect(Collectors.toList());
+                    idList.addAll(inserts.stream().map(Status::getId).collect(toList()));
+                    idList = idList.stream().distinct().collect(toList());
 
                     statuses.removeAll(inserts);
                     results.addAll(inserts);
@@ -735,7 +741,7 @@ public class TwitterAction extends AccountActionImpl {
 
                 descendants = results.stream()
                         .map((c) -> TwitterMapper.comment(c, service))
-                        .collect(Collectors.toList());
+                        .collect(toList());
             }
 
             Context context = new Context();
@@ -892,7 +898,7 @@ public class TwitterAction extends AccountActionImpl {
         return proceed(() -> {
             Twitter twitter = auth.getAccessor();
             ResponseList<SavedSearch> list = twitter.getSavedSearches();
-            return list.stream().map(SavedSearch::getQuery).collect(Collectors.toList());
+            return list.stream().map(SavedSearch::getQuery).collect(toList());
         });
     }
 
@@ -900,15 +906,117 @@ public class TwitterAction extends AccountActionImpl {
      * Get Trends
      * トレンドを取得
      */
-    public List<String> getTrends(Integer id) {
+    public List<Trend> getTrends(Integer id) {
         return proceed(() -> {
             Twitter twitter = auth.getAccessor();
             Trends trends = twitter.getPlaceTrends(id);
 
-            return Arrays.stream(trends.getTrends())
-                    .map(Trend::getQuery)
-                    .map(this::decodeUrlEncode)
-                    .collect(Collectors.toList());
+            return Arrays.stream(trends.getTrends()).map(e -> {
+                Trend model = new Trend();
+                model.setName(e.getName());
+                model.setQuery(decodeUrlEncode(e.getQuery()));
+                return model;
+            }).collect(toList());
+        });
+    }
+
+    /**
+     * Get Trend Locations
+     * トレンドロケーションを取得
+     */
+    public List<TrendCountry> getTrendLocations() {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            ResponseList<Location> locations = twitter.getAvailableTrends();
+            List<TrendCountry> results = new ArrayList<>();
+
+            // 先に国を処理
+            locations.stream()
+                    .filter(e -> e.getPlaceName().equals("Country")
+                            || e.getPlaceName().equals("Supername"))
+                    .forEach(e -> {
+                        TrendCountry model = new TrendCountry();
+                        model.setLocations(new ArrayList<>());
+                        model.setName(e.getName());
+                        model.setId(e.getWoeid());
+                        results.add(model);
+                    });
+
+            // 次にロケーションを処理
+            locations.stream()
+                    .filter(e -> e.getPlaceName().equals("Town"))
+                    .forEach(e -> {
+                        TrendCountry country = results.stream()
+                                .filter(r -> r.getName().equals(e.getCountryName()))
+                                .findFirst().orElse(null);
+
+                        TrendLocation model = new TrendLocation();
+                        model.setName(e.getName());
+                        model.setId(e.getWoeid());
+                        country.getLocations().add(model);
+                    });
+
+            return results;
+        });
+    }
+
+    /**
+     * Get Trends with Top Comments
+     * トレンドとトップコメントを取得
+     */
+    public List<TrendComment> getTrendsComment(Integer id) {
+        ExecutorService pool = Executors.newCachedThreadPool();
+        List<Trend> trends = getTrends(id);
+
+        List<List<Trend>> words = new ArrayList<>();
+        for (int i = 0; i < trends.size(); i++) {
+            if ((i % 13) == 0) words.add(new ArrayList<>());
+            words.get(words.size() - 1).add(trends.get(i));
+        }
+
+        return proceed(() -> {
+            List<Future<List<Comment>>> futures = new ArrayList<>();
+            List<Comment> comments = new ArrayList<>();
+
+            // 分散リクエストを送信
+            for (List<Trend> queries : words) {
+                futures.add(pool.submit(() -> {
+                    TwitterSearchBuilder builder = new TwitterSearchBuilder();
+                    builder.excludeRetweets();
+                    builder.minRetweets(200);
+                    builder.minFaves(200);
+
+                    TwitterSearchQuery query = new TwitterSearchQuery();
+                    builder.query(query);
+
+                    for (Trend q : queries) {
+                        query.or(new TwitterSearchQuery()
+                                .freeword(q.getQuery()));
+                    }
+
+                    Pageable<Comment> results = getSearchTimeLine(
+                            builder.buildQuery(), new Paging(200L));
+                    return results.getEntities();
+                }));
+            }
+
+            for (Future<List<Comment>> future : futures) {
+                comments.addAll(future.get());
+            }
+
+            return trends.stream().map((trend) -> {
+                TrendComment model = new TrendComment();
+                model.setTrend(trend);
+
+                // 一番リアクション数が多いものを取得
+                model.setComment(comments.stream()
+                        .map((e) -> (TwitterComment) e)
+                        .filter((e) -> e.getText().getText().contains(trend.getName()))
+                        .max(Comparator.comparing((a) -> a.getLikeCount() + a.getShareCount()))
+                        .orElse(null));
+
+                return model;
+            }).collect(toList());
         });
     }
 

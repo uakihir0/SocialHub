@@ -2,6 +2,7 @@ package net.socialhub.apis;
 
 
 import net.socialhub.SocialAuthUtil;
+import net.socialhub.define.service.slack.SlackFormKey;
 import net.socialhub.model.Account;
 import net.socialhub.model.request.CommentForm;
 import org.junit.Ignore;
@@ -65,7 +66,7 @@ public class PostCommentTest extends AbstractApiTest {
 
         CommentForm req = new CommentForm() //
                 .addImage(convertFile(stream), "icon.png") //
-                .param("channel", "CHANNEL_ID") //
+                .param(SlackFormKey.CHANNEL_KEY, "CHANNEL_ID") //
                 .message("SocialHub Test");
 
         account.action().postComment(req);

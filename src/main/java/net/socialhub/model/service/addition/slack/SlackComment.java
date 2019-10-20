@@ -1,5 +1,7 @@
 package net.socialhub.model.service.addition.slack;
 
+import net.socialhub.define.service.slack.SlackFormKey;
+import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Reaction;
 import net.socialhub.model.service.Service;
@@ -31,6 +33,14 @@ public class SlackComment extends Comment {
         List<Reaction> reactions = super.getReactions();
         reactions.addAll(this.reactions);
         return reactions;
+    }
+
+    @Override
+    public CommentForm getReplyForm() {
+        CommentForm form = new CommentForm();
+        form.param(SlackFormKey.CHANNEL_KEY, channel);
+        form.replyId(getId());
+        return form;
     }
 
     public void setReactions(List<Reaction> reactions) {

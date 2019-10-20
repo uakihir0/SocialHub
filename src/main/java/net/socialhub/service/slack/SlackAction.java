@@ -26,6 +26,7 @@ import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersIdentityResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
 import com.github.seratch.jslack.api.model.Message;
+import net.socialhub.define.service.slack.SlackFormKey;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.SocialHubException;
@@ -128,7 +129,7 @@ public class SlackAction extends AccountActionImpl {
     public void postComment(CommentForm req) {
         proceed(() -> {
             String token = auth.getAccessor().getToken();
-            String channel = (String) req.getParams().get("channel");
+            String channel = (String) req.getParams().get(SlackFormKey.CHANNEL_KEY);
 
             if (req.getImages() != null && !req.getImages().isEmpty()) {
 

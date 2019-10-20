@@ -3,6 +3,7 @@ package net.socialhub.service.twitter;
 import net.socialhub.define.MediaType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.Account;
+import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Paging;
@@ -801,6 +802,22 @@ public class TwitterAction extends AccountActionImpl {
 
             service.getRateLimit().addInfo(ChannelUsers, users);
             return TwitterMapper.users(users, service, paging);
+        });
+    }
+
+    // ============================================================== //
+    // Message API
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getMessage(Identify id, Paging paging) {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            //twitter.directMessages().showDirectMessage();
+            return null;
         });
     }
 

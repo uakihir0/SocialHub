@@ -1,6 +1,8 @@
 package net.socialhub.model.service;
 
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.error.NotImplimentedException;
+import net.socialhub.model.request.CommentForm;
 import net.socialhub.service.action.AccountAction;
 import net.socialhub.service.action.CommentAction;
 import net.socialhub.service.action.CommentActionImpl;
@@ -77,6 +79,14 @@ public class Comment extends Identify {
      */
     public Comment getDisplayComment() {
         return this;
+    }
+
+    /**
+     * Get Reply Form
+     * 返信用のフォームを取得
+     */
+    public CommentForm getReplyForm() {
+        throw new NotImplimentedException();
     }
 
     //region // Getter&Setter

@@ -1,5 +1,6 @@
 package net.socialhub.model.service.addition;
 
+import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Reaction;
@@ -60,6 +61,13 @@ public abstract class MiniBlogComment extends Comment {
         reactions.add(share);
 
         return reactions;
+    }
+
+    @Override
+    public CommentForm getReplyForm() {
+        CommentForm form = new CommentForm();
+        form.replyId(getId());
+        return form;
     }
 
     //region // Getter&Setter

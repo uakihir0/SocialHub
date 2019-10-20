@@ -1,5 +1,6 @@
 package net.socialhub.service.slack;
 
+import net.socialhub.define.service.slack.SlackFormKey;
 import net.socialhub.model.Account;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.service.action.RequestActionImpl;
@@ -27,7 +28,7 @@ public class SlackRequest extends RequestActionImpl {
 
         request.setCommentFormSupplier(() -> {
             CommentForm form = new CommentForm();
-            form.param("channel", action.getGeneralChannel());
+            form.param(SlackFormKey.CHANNEL_KEY, action.getGeneralChannel());
             return form;
         });
         return request;

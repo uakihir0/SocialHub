@@ -57,7 +57,7 @@ dependencies {
     compile('com.github.uakihir0.jslack:jslack-api-client:1.7.4.4')
     compile('com.github.uakihir0.jslack:jslack-api-model:1.7.4.4')
     compile('com.github.uakihir0:msinstance4j:0.0.3')
-    compile('com.github.uakihir0:mastodon4j:0.2.27')
+    compile('com.github.uakihir0:mastodon4j:0.2.28')
     compile('com.github.uakihir0:jumblr:0.0.13.9')
 
     // Test

@@ -2,7 +2,16 @@ package net.socialhub.service.action;
 
 import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.request.CommentForm;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Stream;
+import net.socialhub.model.service.Thread;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.action.callback.EventCallback;
 
@@ -302,7 +311,11 @@ public interface AccountAction {
     // メッセージ関連 API
     // ============================================================== //
 
-    default Pageable<Comment> getMessage(Identify id, Paging paging) {
+    /**
+     * Get Message Thread
+     * メッセージスレッドを取得
+     */
+    default List<Thread> getMessageThread(Paging paging) {
         throw new NotImplimentedException();
     }
 

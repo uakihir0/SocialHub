@@ -16,6 +16,7 @@ import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.Service;
+import net.socialhub.model.service.Thread;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.twitter.TwitterChannel;
 import net.socialhub.model.service.addition.twitter.TwitterComment;
@@ -26,6 +27,7 @@ import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.utils.MapperUtil;
+import twitter4j.DirectMessage;
 import twitter4j.Friendship;
 import twitter4j.MediaEntity;
 import twitter4j.PagableResponseList;
@@ -37,12 +39,17 @@ import twitter4j.UserList;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.toList;
 import static net.socialhub.define.ServiceType.Twitter;
 
 public class TwitterMapper {
@@ -167,6 +174,38 @@ public class TwitterMapper {
             model.setMedias(medias(status.getMediaEntities()));
         }
 
+        return model;
+    }
+
+    /**
+     * DM マッピング
+     */
+    public static Comment comment(
+            DirectMessage message,
+            Map<Long, User> users,
+            Service service) {
+
+        Comment model = new Comment(service);
+
+        model.setId(message.getId());
+        model.setCreateAt(message.getCreatedAt());
+        model.setUser(users.get(message.getSenderId()));
+
+        AttributedString text = new AttributedString(displayText(message));
+        model.setText(text);
+
+        // URL の DisplayURL ExpandedURL を設定
+        for (URLEntity entity : message.getURLEntities()) {
+            for (AttributedElement elem : text.getAttribute()) {
+                if (elem.getText().equals(entity.getText())) {
+                    elem.setDisplayText(entity.getDisplayURL());
+                    elem.setExpandedText(entity.getExpandedURL());
+                }
+            }
+        }
+
+        // メディア情報を取得時に展開
+        model.setMedias(medias(message.getMediaEntities()));
         return model;
     }
 
@@ -403,7 +442,7 @@ public class TwitterMapper {
         Pageable<Comment> model = new Pageable<>();
         model.setEntities(statuses.stream().map(e -> comment(e, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
-                .collect(Collectors.toList()));
+                .collect(toList()));
 
         model.setPaging(MapperUtil.mappingBorderPaging(paging, Twitter));
         return model;
@@ -420,7 +459,7 @@ public class TwitterMapper {
         Pageable<Comment> model = new Pageable<>();
         model.setEntities(results.getTweets().stream().map(e -> comment(e, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
-                .collect(Collectors.toList()));
+                .collect(toList()));
 
         model.setPaging(MapperUtil.mappingBorderPaging(paging, Twitter));
         return model;
@@ -436,7 +475,7 @@ public class TwitterMapper {
 
         Pageable<User> model = new Pageable<>();
         model.setEntities(users.stream().map(e -> user(e, service)) //
-                .collect(Collectors.toList()));
+                .collect(toList()));
 
         CursorPaging<Long> pg = MapperUtil.mappingCursorPaging(paging);
         pg.setPrevCursor(users.getPreviousCursor());
@@ -455,7 +494,7 @@ public class TwitterMapper {
 
         Pageable<User> model = new Pageable<>();
         model.setEntities(users.stream().map(e -> user(e, service)) //
-                .collect(Collectors.toList()));
+                .collect(toList()));
 
         IndexPaging pg = MapperUtil.mappingIndexPaging(paging);
         model.setPaging(pg);
@@ -472,12 +511,59 @@ public class TwitterMapper {
 
         Pageable<Channel> model = new Pageable<>();
         model.setEntities(lists.stream().map(e -> channel(e, service)) //
-                .collect(Collectors.toList()));
+                .collect(toList()));
 
         CursorPaging<Long> pg = MapperUtil.mappingCursorPaging(paging);
         pg.setPrevCursor(lists.getPreviousCursor());
         pg.setNextCursor(lists.getNextCursor());
         model.setPaging(pg);
+        return model;
+    }
+
+    /**
+     * DM マッピング
+     */
+    public static List<Thread> message(
+            List<DirectMessage> messages, //
+            Map<Long, User> users,
+            Service service) {
+
+        Map<Set<Long>, List<DirectMessage>> threads = new HashMap<>();
+
+        messages.forEach(message -> {
+            Set<Long> set = new HashSet<>();
+            set.add(message.getRecipientId());
+            set.add(message.getSenderId());
+
+            if (!threads.containsKey(set)) {
+                threads.put(set, new ArrayList<>());
+            }
+            // メッセージを追加
+            threads.get(set).add(message);
+        });
+
+        List<Thread> model = new ArrayList<>();
+        threads.forEach((set, ms) -> {
+            Thread thread = new Thread();
+
+            thread.setUsers(set.stream()
+                    .map(users::get)
+                    .collect(toList()));
+
+            thread.setComments(ms.stream()
+                    .map(e -> comment(e, users, service))
+                    .collect(toList()));
+
+            thread.setLastUpdate(thread.getComments()
+                    .stream().map(Comment::getCreateAt)
+                    .max(Date::compareTo).orElse(null));
+
+            model.add(thread);
+        });
+
+        // 一番最近に更新されたスレッド順
+        model.sort(Comparator.comparing(Thread::getLastUpdate).reversed());
+
         return model;
     }
 
@@ -500,6 +586,18 @@ public class TwitterMapper {
     private static String displayText(Status status) {
         String text = status.getText();
         for (MediaEntity media : status.getMediaEntities()) {
+            text = text.replace(media.getURL(), "");
+        }
+        return text.trim();
+    }
+
+    /**
+     * Get rid of media url from status text.
+     * Media の URL をテキストから除外
+     */
+    private static String displayText(DirectMessage message) {
+        String text = message.getText();
+        for (MediaEntity media : message.getMediaEntities()) {
             text = text.replace(media.getURL(), "");
         }
         return text.trim();

@@ -7,11 +7,17 @@ import net.socialhub.define.service.twitter.TwitterSearchQuery;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.request.CommentForm;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.Thread;
 import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.twitter.TwitterComment;
 import net.socialhub.model.service.event.DeleteCommentEvent;
 import net.socialhub.model.service.event.UpdateCommentEvent;
@@ -27,10 +33,28 @@ import net.socialhub.service.action.RequestAction;
 import net.socialhub.service.action.callback.DeleteCommentCallback;
 import net.socialhub.service.action.callback.EventCallback;
 import net.socialhub.service.action.callback.UpdateCommentCallback;
+import net.socialhub.utils.CollectionUtil;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.SnowflakeUtil;
-import twitter4j.*;
+import twitter4j.DirectMessage;
+import twitter4j.DirectMessageList;
+import twitter4j.FilterQuery;
+import twitter4j.IDs;
+import twitter4j.Location;
+import twitter4j.PagableResponseList;
+import twitter4j.Query;
+import twitter4j.QueryResult;
+import twitter4j.ResponseList;
+import twitter4j.SavedSearch;
+import twitter4j.Status;
+import twitter4j.StatusAdapter;
+import twitter4j.StatusDeletionNotice;
+import twitter4j.StatusUpdate;
+import twitter4j.Trends;
+import twitter4j.Twitter;
+import twitter4j.TwitterStream;
+import twitter4j.UserList;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -39,15 +63,41 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import static java.util.stream.Collectors.toList;
-import static net.socialhub.define.action.OtherActionType.*;
-import static net.socialhub.define.action.TimeLineActionType.*;
-import static net.socialhub.define.action.UsersActionType.*;
+import static net.socialhub.define.action.OtherActionType.BlockUser;
+import static net.socialhub.define.action.OtherActionType.DeleteComment;
+import static net.socialhub.define.action.OtherActionType.FollowUser;
+import static net.socialhub.define.action.OtherActionType.GetChannels;
+import static net.socialhub.define.action.OtherActionType.GetComment;
+import static net.socialhub.define.action.OtherActionType.GetRelationship;
+import static net.socialhub.define.action.OtherActionType.GetUser;
+import static net.socialhub.define.action.OtherActionType.GetUserMe;
+import static net.socialhub.define.action.OtherActionType.LikeComment;
+import static net.socialhub.define.action.OtherActionType.MuteUser;
+import static net.socialhub.define.action.OtherActionType.ShareComment;
+import static net.socialhub.define.action.OtherActionType.UnShareComment;
+import static net.socialhub.define.action.OtherActionType.UnblockUser;
+import static net.socialhub.define.action.OtherActionType.UnfollowUser;
+import static net.socialhub.define.action.OtherActionType.UnlikeComment;
+import static net.socialhub.define.action.OtherActionType.UnmuteUser;
+import static net.socialhub.define.action.TimeLineActionType.ChannelTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.SearchTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
+import static net.socialhub.define.action.UsersActionType.ChannelUsers;
+import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
+import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
+import static net.socialhub.define.action.UsersActionType.SearchUsers;
+import static net.socialhub.utils.CollectionUtil.partitionList;
 
 /**
  * Twitter Actions
@@ -819,11 +869,66 @@ public class TwitterAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public Pageable<Comment> getMessage(Identify id, Paging paging) {
+    public List<Thread> getMessageThread(Paging paging) {
         return proceed(() -> {
+            int count = getCountFromPage(paging, 50);
+            String cursor = getCursorFromPage(paging, null);
+
             Twitter twitter = auth.getAccessor();
-            //twitter.directMessages().showDirectMessage();
-            return null;
+            Service service = getAccount().getService();
+
+            Map<Long, User> users = new HashMap<>();
+            List<DirectMessage> messages = new ArrayList<>();
+
+            // 50 個以上も複数リクエストを行い実現
+            while (count > 0) {
+                int req = Math.min(count, 50);
+                DirectMessageList list = (cursor == null) ?
+                        twitter.getDirectMessages(req) :
+                        twitter.getDirectMessages(req, cursor);
+
+                messages.addAll(list);
+                cursor = list.getNextCursor();
+                count -= req;
+
+                if (cursor == null) {
+                    break;
+                }
+            }
+
+            // ユーザー ID のリストを取得
+            List<Long> userIds = new ArrayList<>();
+            userIds.addAll(messages.stream().map(DirectMessage::getSenderId).collect(toList()));
+            userIds.addAll(messages.stream().map(DirectMessage::getRecipientId).collect(toList()));
+            userIds = userIds.stream().distinct().collect(toList());
+
+            // 100 個で分割してリクエスト
+            List<List<Long>> userIdLists = partitionList(userIds, 100);
+
+            // ユーザー情報を並列で取得
+            List<Future<List<User>>> futures = new ArrayList<>();
+            ExecutorService pool = Executors.newCachedThreadPool();
+
+            for (List<Long> userIdList : userIdLists) {
+                futures.add(pool.submit(() -> {
+                    try {
+                        long[] userIdAry = userIdList.stream().mapToLong(i -> i).toArray();
+                        ResponseList<twitter4j.User> l = twitter.users().lookupUsers(userIdAry);
+                        return l.stream().map(u -> TwitterMapper.user(u, service)).collect(toList());
+
+                    } catch (Exception e) {
+                        throw new IllegalStateException(e);
+                    }
+                }));
+            }
+
+            for (Future<List<User>> future : futures) {
+                for (User user : future.get()) {
+                    users.put((Long) user.getId(), user);
+                }
+            }
+
+            return TwitterMapper.message(messages, users, service);
         });
     }
 
@@ -968,11 +1073,8 @@ public class TwitterAction extends AccountActionImpl {
         ExecutorService pool = Executors.newCachedThreadPool();
         List<Trend> trends = getTrends(id);
 
-        List<List<Trend>> words = new ArrayList<>();
-        for (int i = 0; i < trends.size(); i++) {
-            if ((i % 13) == 0) words.add(new ArrayList<>());
-            words.get(words.size() - 1).add(trends.get(i));
-        }
+        // 分割して検索リクエストを送信
+        List<List<Trend>> words = partitionList(trends, 13);
 
         return proceed(() -> {
             List<Future<List<Comment>>> futures = new ArrayList<>();
@@ -1113,13 +1215,12 @@ public class TwitterAction extends AccountActionImpl {
         return defValue;
     }
 
-    private long getCursorFromPage(Paging paging, long defValue) {
+    @SuppressWarnings("unchecked")
+    private <T> T getCursorFromPage(Paging paging, T defValue) {
         if (paging != null) {
             if (paging instanceof CursorPaging) {
                 CursorPaging pg = ((CursorPaging) paging);
-                if (pg.getCurrentCursor() instanceof Long) {
-                    return (Long) pg.getCurrentCursor();
-                }
+                return (T) pg.getCurrentCursor();
             }
         }
         return defValue;

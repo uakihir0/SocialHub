@@ -6,6 +6,8 @@ public class Trend {
 
     private String query;
 
+    private Integer volume;
+
     //region // Getter&Setter
     public String getName() {
         return name;
@@ -21,6 +23,14 @@ public class Trend {
 
     public void setQuery(String query) {
         this.query = query;
+    }
+
+    public Integer getVolume() {
+        return volume;
+    }
+
+    public void setVolume(Integer volume) {
+        this.volume = volume;
     }
     //endregion
 }

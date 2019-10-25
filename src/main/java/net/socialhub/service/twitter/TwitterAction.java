@@ -1020,6 +1020,7 @@ public class TwitterAction extends AccountActionImpl {
                 Trend model = new Trend();
                 model.setName(e.getName());
                 model.setQuery(decodeUrlEncode(e.getQuery()));
+                model.setVolume(e.getTweetVolume());
                 return model;
             }).collect(toList());
         });

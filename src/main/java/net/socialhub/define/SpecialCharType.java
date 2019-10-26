@@ -31,6 +31,10 @@ public enum SpecialCharType {
 
     times("&times;", "&#215;"), //
     divide("&divide;", "&#247;"), //
+
+    reg("&reg;", "&#174;"), //
+    copy("&copy;", "&#169;"), //
+    trade("&trade;", "&#8482;") //
     ;
 
     private String entityRepl;

@@ -32,6 +32,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static net.socialhub.define.service.tumblr.TumblrIconSize.S512;
@@ -243,14 +245,16 @@ public class TumblrMapper {
             model.getMedias().addAll(photos(photo.getPhotos()));
 
             if (model.getText() == null) {
-                model.setText(AttributedString.xhtml(photo.getCaption()));
+                String str = removeSharedBlogLink(photo.getCaption());
+                model.setText(AttributedString.xhtml(str));
             }
         }
         if (post instanceof TextPost) {
             TextPost text = (TextPost) post;
 
             if (model.getText() == null) {
-                model.setText(AttributedString.xhtml(text.getBody()));
+                String str = removeSharedBlogLink(text.getBody());
+                model.setText(AttributedString.xhtml(str));
             }
         }
         if (post instanceof VideoPost) {
@@ -258,7 +262,8 @@ public class TumblrMapper {
             model.getMedias().add(video(video));
 
             if (model.getText() == null) {
-                model.setText(AttributedString.xhtml(video.getCaption()));
+                String str = removeSharedBlogLink(video.getCaption());
+                model.setText(AttributedString.xhtml(str));
             }
         }
     }
@@ -454,4 +459,24 @@ public class TumblrMapper {
         return "https://api.tumblr.com/v2/blog/" + host + "/avatar/" + size.getSize();
     }
 
+    /**
+     * Remove Shared Post Prefix
+     * Share されたポストの定型句を削除
+     */
+    private static String removeSharedBlogLink(String text) {
+        String regex = "^(<p><a(.+?)href=\"(.+?)\"(.+?)>(.+?)</a>:</p>)";
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(text);
+
+        if (m.find()) {
+            String all = m.group(1);
+
+            // ブログへのリンクであることを確認
+            if (m.group(2).contains("class=\"tumblr_blog\"") ||
+                    m.group(4).contains("class=\"tumblr_blog\"")) {
+                return text.substring(all.length());
+            }
+        }
+        return text;
+    }
 }

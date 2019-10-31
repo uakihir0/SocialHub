@@ -40,43 +40,46 @@ public class TwitterSearchBuilder {
         List<String> parts = new ArrayList<>();
 
         if (query != null) {
-            parts.add(query.buildQuery());
+            parts.add("(" + query.buildQuery() + ")");
         }
         if (screenName != null) {
-            parts.add("from:" + screenName);
+            parts.add("AND from:" + screenName);
         }
         if (source != null) {
-            parts.add("source:" + source);
+            parts.add("AND source:" + source);
         }
         if (minRetweets != null) {
-            parts.add("min_retweets:" + minRetweets);
+            parts.add("AND min_retweets:" + minRetweets);
         }
         if (minFaves != null) {
-            parts.add("min_faves:" + minFaves);
+            parts.add("AND min_faves:" + minFaves);
         }
         if (minReplies != null) {
-            parts.add("min_replies:" + minReplies);
+            parts.add("AND min_replies:" + minReplies);
         }
 
         if (includeContents != null) {
             for (TwitterFilterType type : includeContents) {
-                parts.add("filter:" + type.getCode());
+                parts.add("AND filter:" + type.getCode());
             }
         }
         if (excludeContents != null) {
             for (TwitterFilterType type : excludeContents) {
-                parts.add("-filter:" + type.getCode());
+                parts.add("AND -filter:" + type.getCode());
             }
         }
 
         if (language != null) {
             for (TwitterLanguageType lang : language) {
-                parts.add("lang:" + lang.getCode());
+                parts.add("AND lang:" + lang.getCode());
             }
         }
 
-        return String.join(" ", parts);
+        String q =  String.join(" ", parts);
+        System.out.println(q);
+        return q;
     }
+
     public TwitterSearchBuilder query(TwitterSearchQuery query) {
         this.query = query;
         return this;

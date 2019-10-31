@@ -4,6 +4,7 @@ import net.socialhub.define.MediaType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.define.service.twitter.TwitterSearchBuilder;
 import net.socialhub.define.service.twitter.TwitterSearchQuery;
+import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.request.CommentForm;
@@ -53,6 +54,8 @@ import static net.socialhub.utils.CollectionUtil.partitionList;
  * (All Actions)
  */
 public class TwitterAction extends AccountActionImpl {
+
+    private static Logger logger = Logger.getLogger(TwitterAction.class);
 
     private ServiceAuth<Twitter> auth;
 
@@ -1028,7 +1031,7 @@ public class TwitterAction extends AccountActionImpl {
         List<Trend> trends = getTrends(id);
 
         // 分割して検索リクエストを送信
-        List<List<Trend>> words = partitionList(trends, 13);
+        List<List<Trend>> words = partitionList(trends, 10);
 
         return proceed(() -> {
             List<Future<List<Comment>>> futures = new ArrayList<>();
@@ -1039,8 +1042,8 @@ public class TwitterAction extends AccountActionImpl {
                 futures.add(pool.submit(() -> {
                     TwitterSearchBuilder builder = new TwitterSearchBuilder();
                     builder.excludeRetweets();
-                    builder.minRetweets(200);
-                    builder.minFaves(200);
+                    builder.minRetweets(50);
+                    builder.minFaves(50);
 
                     TwitterSearchQuery query = new TwitterSearchQuery();
                     builder.query(query);
@@ -1050,9 +1053,16 @@ public class TwitterAction extends AccountActionImpl {
                                 .freeword(q.getQuery()));
                     }
 
-                    Pageable<Comment> results = getSearchTimeLine(
-                            builder.buildQuery(), new Paging(200L));
-                    return results.getEntities();
+                    try {
+                        Pageable<Comment> results = getSearchTimeLine(
+                                builder.buildQuery(), new Paging(200L));
+                        return results.getEntities();
+
+                    } catch (Exception e) {
+                        logger.warn("ignored error in comment trends.");
+                        logger.warn("query: " + builder.buildQuery());
+                        return new ArrayList<>();
+                    }
                 }));
             }
 

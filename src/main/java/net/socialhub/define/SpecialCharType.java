@@ -34,7 +34,11 @@ public enum SpecialCharType {
 
     reg("&reg;", "&#174;"), //
     copy("&copy;", "&#169;"), //
-    trade("&trade;", "&#8482;") //
+    trade("&trade;", "&#8482;"), //
+
+    uml("&uml;", "&#168;"), //
+    macr("&macr;", "&#175;"), //
+    tilde("&tilde;", "&#732;"), //
     ;
 
     private String entityRepl;

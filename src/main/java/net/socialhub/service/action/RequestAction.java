@@ -70,4 +70,10 @@ public interface RequestAction {
      * 検索タイムラインを取得
      */
     CommentsRequest getSearchTimeLine(String query);
+
+    /**
+     * Get Channel TimeLine
+     * チャンネルのタイムラインを取得
+     */
+    CommentsRequest getChannelTimeLine(Identify id);
 }

@@ -371,6 +371,14 @@ public class SlackAction extends AccountActionImpl {
      */
     @Override
     public Pageable<Comment> getHomeTimeLine(Paging paging) {
+        return this.getTimeLine(getGeneralChannel(), paging);
+    }
+
+    /**
+     * Get Timeline Comments
+     * タイムライン情報を取得
+     */
+    private Pageable<Comment> getTimeLine(String channel, Paging paging) {
         return proceed(() -> {
             ExecutorService pool = Executors.newCachedThreadPool();
 
@@ -380,7 +388,7 @@ public class SlackAction extends AccountActionImpl {
 
             Future<ChannelsHistoryResponse> responseFuture = pool.submit(() -> {
                 ChannelsHistoryRequestBuilder request = ChannelsHistoryRequest.builder() //
-                        .channel(getGeneralChannel()).token(auth.getAccessor().getToken());
+                        .channel(channel).token(auth.getAccessor().getToken());
 
                 if (paging != null) {
                     if (paging.getCount() != null) {
@@ -434,7 +442,7 @@ public class SlackAction extends AccountActionImpl {
                             (id) -> getUserWithCache(new Identify(service, id))));
 
             Pageable<Comment> pageable = SlackMapper.timeLine(response, //
-                    userMap, userMe, candidates, getGeneralChannel(), service, paging);
+                    userMap, userMe, candidates, channel, service, paging);
 
             // スレッド対象外 or スレッド元のみ表示対象
             pageable.setPredicate((comment) -> {
@@ -470,6 +478,14 @@ public class SlackAction extends AccountActionImpl {
 
             return SlackMapper.channel(response, service);
         });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getChannelTimeLine(Identify id, Paging paging) {
+        return this.getTimeLine((String) id.getId(), paging);
     }
 
     // ============================================================== //

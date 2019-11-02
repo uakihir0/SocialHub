@@ -610,15 +610,15 @@ public class MastodonAction extends AccountActionImpl {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
 
-            User me = getUserMeWithCache();
-            if (!me.getId().equals(id.getId())) {
-                throw new NotSupportedException(
-                        "Sorry, authenticated user only.");
+            if (id != null) {
+                User me = getUserMeWithCache();
+                if (!me.getId().equals(id.getId())) {
+                    throw new NotSupportedException(
+                            "Sorry, authenticated user only.");
+                }
             }
 
-            Response<mastodon4j.entity.List[]> lists =
-                    mastodon.list().getLists((Long) id.getId());
-
+            Response<mastodon4j.entity.List[]> lists = mastodon.list().getLists();
             service.getRateLimit().addInfo(GetChannels, lists);
             return MastodonMapper.channels(lists.get(), service);
         });

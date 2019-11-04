@@ -40,13 +40,12 @@ public class SlackRequest extends RequestActionImpl {
      */
     @Override
     public CommentsRequest getChannelTimeLine(Identify id) {
-        SlackAction action = (SlackAction) account.action();
         CommentsRequestImpl request = (CommentsRequestImpl)
                 super.getChannelTimeLine(id);
 
         request.setCommentFormSupplier(() -> {
             CommentForm form = new CommentForm();
-            form.param(SlackFormKey.CHANNEL_KEY, action.getGeneralChannel());
+            form.param(SlackFormKey.CHANNEL_KEY, id.getId());
             return form;
         });
         return request;

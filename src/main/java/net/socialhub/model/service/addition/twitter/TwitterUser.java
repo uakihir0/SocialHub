@@ -38,6 +38,11 @@ public class TwitterUser extends MiniBlogUser {
     }
 
     @Override
+    public String getWebUrl() {
+        return "https://twitter.com/" + getScreenName();
+    }
+
+    @Override
     public List<AttributedFiled> getAdditionalFields() {
         List<AttributedFiled> fields = new ArrayList<>();
         fields.add(new AttributedFiled("Location", getLocation()));

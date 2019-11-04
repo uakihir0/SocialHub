@@ -14,7 +14,7 @@ public class TwitterComment extends MiniBlogComment {
     }
 
     @Override
-    public String getUrl() {
+    public String getWebUrl() {
         return "https://twitter.com/"
                 + getUser().getScreenName()
                 + "/status/" + getId().toString();

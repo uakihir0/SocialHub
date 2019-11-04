@@ -29,6 +29,11 @@ public abstract class MiniBlogUser extends User {
     /** Profile url */
     private AttributedString profileUrl;
 
+    /**
+     * Url を取得
+     */
+    abstract public String getWebUrl();
+
     //region // Getter&Setter
     public Long getFollowingsCount() {
         return followingsCount;

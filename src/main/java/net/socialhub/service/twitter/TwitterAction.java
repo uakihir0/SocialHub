@@ -696,7 +696,7 @@ public class TwitterAction extends AccountActionImpl {
                 afterQuote = pool.submit(() -> {
                     return proceed(() -> {
                         Query query = new Query();
-                        query.setQuery(comment.getUrl() + " -RT");
+                        query.setQuery(comment.getWebUrl() + " -RT");
                         query.setCount(200);
 
                         return twitter.search(query).getTweets();

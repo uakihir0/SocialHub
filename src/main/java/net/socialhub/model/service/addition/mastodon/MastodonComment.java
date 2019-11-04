@@ -29,7 +29,7 @@ public class MastodonComment extends MiniBlogComment {
     }
 
     @Override
-    public String getUrl() {
+    public String getWebUrl() {
         MastodonUser user = (MastodonUser) getUser();
         String host = user.getAccountIdentify().split("@")[2];
         String identify = user.getAccountIdentify().split("@")[1];

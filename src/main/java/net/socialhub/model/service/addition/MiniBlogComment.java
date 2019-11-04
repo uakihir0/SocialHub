@@ -36,7 +36,7 @@ public abstract class MiniBlogComment extends Comment {
     /**
      * Url を取得
      */
-    abstract public String getUrl();
+    abstract public String getWebUrl();
 
     @Override
     public Comment getDisplayComment() {

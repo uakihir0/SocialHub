@@ -37,6 +37,13 @@ public class MastodonUser extends MiniBlogUser {
     }
 
     @Override
+    public String getWebUrl() {
+        String host = getAccountIdentify().split("@")[2];
+        String identify = getAccountIdentify().split("@")[1];
+        return "https://" + host + "/@" + identify;
+    }
+
+    @Override
     public List<AttributedFiled> getAdditionalFields() {
         return getFields();
     }

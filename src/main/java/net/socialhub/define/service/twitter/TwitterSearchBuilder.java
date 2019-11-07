@@ -75,9 +75,7 @@ public class TwitterSearchBuilder {
             }
         }
 
-        String q =  String.join(" ", parts);
-        System.out.println(q);
-        return q;
+        return String.join(" ", parts);
     }
 
     public TwitterSearchBuilder query(TwitterSearchQuery query) {

@@ -10,13 +10,11 @@ public class GetChannelsTest extends AbstractApiTest {
 
     @Test
     public void testSlackListAll() {
-
         Account account = SocialAuthUtil.getSlackAccount();
-
         Pageable<Channel> channels = account.action().getChannels(null, null);
 
         for (Channel channel : channels.getEntities()) {
-            System.out.println(channel.getName());
+            System.out.println(channel.getId() + ":" + channel.getName());
         }
     }
 }

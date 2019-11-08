@@ -1,11 +1,14 @@
 package net.socialhub.service.slack;
 
+import com.github.seratch.jslack.api.methods.response.bots.BotsInfoResponse;
+import com.github.seratch.jslack.api.methods.response.bots.BotsInfoResponse.Bot;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsHistoryResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
 import com.github.seratch.jslack.api.methods.response.emoji.EmojiListResponse;
 import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersIdentityResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
+import com.github.seratch.jslack.api.model.Attachment;
 import com.github.seratch.jslack.api.model.File;
 import com.github.seratch.jslack.api.model.Message;
 import com.github.seratch.jslack.api.model.User.Profile;
@@ -14,9 +17,17 @@ import net.socialhub.define.EmojiType;
 import net.socialhub.define.EmojiVariationType;
 import net.socialhub.define.MediaType;
 import net.socialhub.define.service.slack.SlackAttributedTypes;
+import net.socialhub.define.service.slack.SlackMessageSubType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedString;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Media;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Reaction;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.addition.slack.SlackMedia;
 import net.socialhub.model.service.addition.slack.SlackTeam;
@@ -27,8 +38,18 @@ import net.socialhub.service.action.AccountAction;
 import net.socialhub.utils.MapperUtil;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static net.socialhub.define.service.slack.SlackAttributedTypes.simple;
+import static net.socialhub.define.service.slack.SlackMessageSubType.BotMessage;
 
 public final class SlackMapper {
 
@@ -36,7 +57,6 @@ public final class SlackMapper {
 
     /** J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
     private final static List<Class<?>> ClassLoader = Arrays.asList( //
-            com.github.seratch.jslack.api.model.Attachment.class, //
             com.github.seratch.jslack.api.model.Option.class, //
             com.github.seratch.jslack.api.model.Action.class, //
             com.github.seratch.jslack.api.model.Field.class);
@@ -48,8 +68,9 @@ public final class SlackMapper {
             UsersIdentityResponse response, //
             Service service) {
 
-        User model = new User(service);
+        SlackUser model = new SlackUser(service);
 
+        model.setBot(false);
         model.setId(response.getUser().getId());
         model.setName(response.getUser().getName());
 
@@ -77,6 +98,7 @@ public final class SlackMapper {
 
         SlackUser model = new SlackUser(service);
 
+        model.setBot(false);
         model.setId(user.getUser().getId());
         model.setName(user.getUser().getName());
         model.setScreenName(user.getUser().getName());
@@ -118,6 +140,33 @@ public final class SlackMapper {
     }
 
     /**
+     * ボットマッピング
+     */
+    public static User bots(
+            BotsInfoResponse response, //
+            Service service) {
+
+        Bot bot = response.getBot();
+        SlackUser model = new SlackUser(service);
+
+        model.setBot(true);
+        model.setId(bot.getId());
+        model.setName(bot.getName());
+
+        if (bot.getIcons() != null) {
+            model.setIconImageUrl(bot.getIcons().getImage72());
+            if (StringUtils.isEmpty(model.getIconImageUrl())) {
+                model.setIconImageUrl(bot.getIcons().getImage48());
+            }
+            if (StringUtils.isEmpty(model.getIconImageUrl())) {
+                model.setIconImageUrl(bot.getIcons().getImage36());
+            }
+        }
+
+        return model;
+    }
+
+    /**
      * コメントマッピング
      */
     public static Comment comment(
@@ -132,10 +181,36 @@ public final class SlackMapper {
 
         model.setId(message.getTs());
         model.setThreadId(message.getThreadTs());
-
-        model.setText(new AttributedString(message.getText(), SlackAttributedTypes.simple()));
         model.setCreateAt(getDateFromTimeStamp(message.getTs()));
         model.setUser(user);
+
+        // BOT のメッセージである場合
+        if (SlackMessageSubType.BotMessage.getCode().equals(message.getSubtype())) {
+
+            for (Attachment attachment : message.getAttachments()) {
+                StringBuilder builder = new StringBuilder();
+
+                // プレテキストを設定
+                String pretext = attachment.getPretext();
+                if ((pretext != null) && !pretext.isEmpty()) {
+                    builder.append(pretext);
+                    builder.append("\n");
+                }
+
+                // テキストの設定
+                String text = attachment.getText();
+                if ((text != null) && !text.isEmpty()) {
+                    builder.append(text);
+                }
+
+                model.setText(new AttributedString(builder.toString(), simple()));
+            }
+
+        } else {
+
+            // 通常のメッセージの場合
+            model.setText(new AttributedString(message.getText(), simple()));
+        }
 
         // チャンネルはモデルが正
         model.setChannel(channel);
@@ -143,20 +218,20 @@ public final class SlackMapper {
             model.setChannel(message.getChannel());
         }
 
-        // Action
+        // リアクションを追加で格納
+        model.setReactions(reactions(message, userMe, candidates));
+
+        // Action オブジェクトを取得
         AccountAction action = service.getAccount().action();
 
         // メディアは Token が取れた場合にのみ取得
         if (action instanceof SlackAction) {
-            String token = ((SlackAction) action) //
-                    .getAuth().getAccessor().getToken();
+            String token = ((SlackAction) action).getAuth().getAccessor().getToken();
             model.setMedias(medias(message, token));
+
         } else {
             model.setMedias(new ArrayList<>());
         }
-
-        // リアクションを追加で格納
-        model.setReactions(reactions(message, userMe, candidates));
 
         return model;
     }
@@ -237,7 +312,6 @@ public final class SlackMapper {
             });
         }
 
-
         if (message.getReplyCount() != null) {
             Reaction model = new Reaction();
             model.setCount(message.getReplyCount().longValue());
@@ -299,7 +373,6 @@ public final class SlackMapper {
                     .findFirst().ifPresent((c) -> c.addAlias(key));
         });
 
-
         return candidates;
     }
 
@@ -309,6 +382,7 @@ public final class SlackMapper {
     public static Pageable<Comment> timeLine(
             ChannelsHistoryResponse history, //
             Map<String, User> userMap, //
+            Map<String, User> botMap, //
             User userMe, //
             List<ReactionCandidate> candidates, //
             String channel, //
@@ -317,7 +391,12 @@ public final class SlackMapper {
 
         Pageable<Comment> model = new Pageable<>();
         model.setEntities(history.getMessages().stream() //
-                .map(e -> comment(e, userMap.get(e.getUser()), userMe, candidates, channel, service)) //
+                .map(e -> {
+                    // BOT の投稿かどうかで分岐
+                    User user = BotMessage.getCode().equals(e.getSubtype()) ?
+                            botMap.get(e.getBotId()) : userMap.get(e.getUser());
+                    return comment(e, user, userMe, candidates, channel, service);
+                }) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(Collectors.toList()));
 

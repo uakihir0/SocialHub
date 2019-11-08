@@ -1,5 +1,6 @@
 package net.socialhub.service.slack;
 
+import com.github.seratch.jslack.api.methods.request.bots.BotsInfoRequest;
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsHistoryRequest;
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsHistoryRequest.ChannelsHistoryRequestBuilder;
 import com.github.seratch.jslack.api.methods.request.channels.ChannelsListRequest;
@@ -15,6 +16,7 @@ import com.github.seratch.jslack.api.methods.request.reactions.ReactionsRemoveRe
 import com.github.seratch.jslack.api.methods.request.team.TeamInfoRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersIdentityRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersInfoRequest;
+import com.github.seratch.jslack.api.methods.response.bots.BotsInfoResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsHistoryResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsRepliesResponse;
@@ -27,12 +29,20 @@ import com.github.seratch.jslack.api.methods.response.users.UsersIdentityRespons
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
 import com.github.seratch.jslack.api.model.Message;
 import net.socialhub.define.service.slack.SlackFormKey;
+import net.socialhub.define.service.slack.SlackMessageSubType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.request.MediaForm;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.addition.slack.SlackIdentify;
 import net.socialhub.model.service.addition.slack.SlackTeam;
@@ -46,12 +56,19 @@ import net.socialhub.utils.LimitMap;
 import net.socialhub.utils.MapperUtil;
 
 import java.io.ByteArrayInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static net.socialhub.define.service.slack.SlackMessageSubType.BotMessage;
 
 /**
  * Slack Actions
@@ -68,8 +85,9 @@ public class SlackAction extends AccountActionImpl {
     /** Cached General Channel Id */
     private String generalChannel;
 
-    /** User Cache Data */
+    /** Account Cache Data */
     private Map<String, User> userCache = Collections.synchronizedMap(new LimitMap<>(200));
+    private Map<String, User> botCache = Collections.synchronizedMap(new LimitMap<>(10));
 
     /** Reaction Candidate Cache */
     private List<ReactionCandidate> reactionCandidate;
@@ -433,16 +451,27 @@ public class SlackAction extends AccountActionImpl {
             // ------------------------------------------------ //
 
             Service service = getAccount().getService();
+
+            // USERS
             List<String> users = response.getMessages().stream() //
+                    .filter((e) -> !BotMessage.getCode().equals(e.getSubtype())) //
                     .map(Message::getUser).filter(Objects::nonNull) //
                     .distinct().collect(Collectors.toList());
-
             Map<String, User> userMap = users.parallelStream() //
                     .collect(Collectors.toMap(Function.identity(), //
                             (id) -> getUserWithCache(new Identify(service, id))));
 
+            // BOTS
+            List<String> bots = response.getMessages().stream() //
+                    .filter((e) -> BotMessage.getCode().equals(e.getSubtype())) //
+                    .map(Message::getBotId).filter(Objects::nonNull) //
+                    .distinct().collect(Collectors.toList());
+            Map<String, User> botMap = bots.parallelStream() //
+                    .collect(Collectors.toMap(Function.identity(), //
+                            (id) -> getBotWithCache(new Identify(service, id))));
+
             Pageable<Comment> pageable = SlackMapper.timeLine(response, //
-                    userMap, userMe, candidates, channel, service, paging);
+                    userMap, botMap, userMe, candidates, channel, service, paging);
 
             // スレッド対象外 or スレッド元のみ表示対象
             pageable.setPredicate((comment) -> {
@@ -525,6 +554,23 @@ public class SlackAction extends AccountActionImpl {
         });
     }
 
+    /**
+     * Get Bots Information
+     * ボットの情報を取得
+     */
+    public User getBots(Identify id) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            BotsInfoResponse bots = auth.getAccessor().getSlack() //
+                    .methods().botsInfo(BotsInfoRequest.builder() //
+                            .token(auth.getAccessor().getToken()) //
+                            .bot((String) id.getId()) //
+                            .build());
+
+            return botCache(SlackMapper.bots(bots, service));
+        });
+    }
+
     // ============================================================== //
     // Utils
     // ============================================================== //
@@ -588,12 +634,28 @@ public class SlackAction extends AccountActionImpl {
         return user;
     }
 
+    // Cache
     private User getUserWithCache(Identify id) {
         String time = id.getId(String.class).orElse(null);
         if (time != null && userCache.containsKey(time)) {
             return userCache.get(time);
         }
         return getUser(id);
+    }
+
+    private User botCache(User bot) {
+        bot.getId(String.class).ifPresent( //
+                (id) -> botCache.put(id, bot));
+        return bot;
+    }
+
+    // Cache
+    private User getBotWithCache(Identify id) {
+        String time = id.getId(String.class).orElse(null);
+        if (time != null && botCache.containsKey(time)) {
+            return botCache.get(time);
+        }
+        return getBots(id);
     }
 
     // ============================================================== //

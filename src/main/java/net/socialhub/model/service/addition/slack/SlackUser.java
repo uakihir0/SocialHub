@@ -33,6 +33,9 @@ public class SlackUser extends User {
     /** team information */
     private SlackTeam team;
 
+    /** is bot account? */
+    private Boolean isBot;
+
     @Override
     public String getAccountIdentify() {
         if ((team != null) && (team.getName() != null)) {
@@ -88,6 +91,14 @@ public class SlackUser extends User {
 
     public void setTeam(SlackTeam team) {
         this.team = team;
+    }
+
+    public Boolean getBot() {
+        return isBot;
+    }
+
+    public void setBot(Boolean bot) {
+        isBot = bot;
     }
     //endregion
 }

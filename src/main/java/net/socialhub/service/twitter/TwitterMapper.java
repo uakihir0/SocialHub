@@ -7,44 +7,20 @@ import net.socialhub.define.service.twitter.TwitterMediaType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedString;
-import net.socialhub.model.service.Application;
-import net.socialhub.model.service.Channel;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Media;
-import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
-import net.socialhub.model.service.Service;
 import net.socialhub.model.service.Thread;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.addition.twitter.TwitterChannel;
-import net.socialhub.model.service.addition.twitter.TwitterComment;
-import net.socialhub.model.service.addition.twitter.TwitterMedia;
-import net.socialhub.model.service.addition.twitter.TwitterUser;
+import net.socialhub.model.service.*;
+import net.socialhub.model.service.addition.twitter.*;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.utils.MapperUtil;
-import twitter4j.DirectMessage;
-import twitter4j.Friendship;
-import twitter4j.MediaEntity;
-import twitter4j.PagableResponseList;
-import twitter4j.QueryResult;
-import twitter4j.ResponseList;
-import twitter4j.Status;
-import twitter4j.URLEntity;
-import twitter4j.UserList;
+import twitter4j.*;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -230,44 +206,44 @@ public class TwitterMapper {
 
         switch (TwitterMediaType.of(entity.getType())) {
 
-        case Photo: {
-            TwitterMedia media = new TwitterMedia();
-            media.setType(MediaType.Image);
+            case Photo: {
+                TwitterMedia media = new TwitterMedia();
+                media.setType(MediaType.Image);
 
-            media.setSourceUrl(entity.getMediaURLHttps());
-            media.setPreviewUrl(entity.getMediaURLHttps());
-            return media;
-        }
-
-        case Video: {
-            TwitterMedia media = new TwitterMedia();
-            media.setType(MediaType.Movie);
-
-            media.setPreviewUrl(entity.getMediaURLHttps());
-            for (MediaEntity.Variant variant : entity.getVideoVariants()) {
-
-                // ストリーム向けの動画タイプが存在する場合はそれを利用
-                if (variant.getContentType().equals("application/x-mpegURL")) {
-                    media.setStreamVideoUrl(variant.getUrl());
-                    media.setSourceUrl(variant.getUrl());
-                }
+                media.setSourceUrl(entity.getMediaURLHttps());
+                media.setPreviewUrl(entity.getMediaURLHttps());
+                return media;
             }
 
-            // それ意外の場合一番高画質のものを選択
-            Stream.of(entity.getVideoVariants()) //
-                    .filter((e) -> e.getContentType().startsWith("video")) //
-                    .max(Comparator.comparingInt(MediaEntity.Variant::getBitrate)) //
-                    .ifPresent((variant) -> {
-                        String url = variant.getUrl();
-                        media.setMp4VideoUrl(url);
+            case Video: {
+                TwitterMedia media = new TwitterMedia();
+                media.setType(MediaType.Movie);
 
-                        if (media.getSourceUrl() == null) {
-                            media.setSourceUrl(url);
-                        }
-                    });
+                media.setPreviewUrl(entity.getMediaURLHttps());
+                for (MediaEntity.Variant variant : entity.getVideoVariants()) {
 
-            return media;
-        }
+                    // ストリーム向けの動画タイプが存在する場合はそれを利用
+                    if (variant.getContentType().equals("application/x-mpegURL")) {
+                        media.setStreamVideoUrl(variant.getUrl());
+                        media.setSourceUrl(variant.getUrl());
+                    }
+                }
+
+                // それ意外の場合一番高画質のものを選択
+                Stream.of(entity.getVideoVariants()) //
+                        .filter((e) -> e.getContentType().startsWith("video")) //
+                        .max(Comparator.comparingInt(MediaEntity.Variant::getBitrate)) //
+                        .ifPresent((variant) -> {
+                            String url = variant.getUrl();
+                            media.setMp4VideoUrl(url);
+
+                            if (media.getSourceUrl() == null) {
+                                media.setSourceUrl(url);
+                            }
+                        });
+
+                return media;
+            }
         }
         return null;
     }
@@ -526,6 +502,7 @@ public class TwitterMapper {
     public static List<Thread> message(
             List<DirectMessage> messages, //
             Map<Long, User> users,
+            User me,
             Service service) {
 
         Map<Set<Long>, List<DirectMessage>> threads = new HashMap<>();
@@ -544,25 +521,37 @@ public class TwitterMapper {
 
         List<Thread> model = new ArrayList<>();
         threads.forEach((set, ms) -> {
-            Thread thread = new Thread();
+            TwitterThread thread = new TwitterThread(service);
+
+            for (Long id : set) {
+
+                // 存在しない場合は格納
+                if (thread.getId() == null) {
+                    thread.setId(id);
+                }
+                // 送信相手の ID を格納
+                if (!id.equals(me.getId())) {
+                    thread.setId(id);
+                }
+            }
 
             thread.setUsers(set.stream()
                     .map(users::get)
                     .collect(toList()));
 
-            thread.setComments(ms.stream()
+            thread.setComments(new Pageable<>());
+            thread.getComments().setEntities(ms.stream()
                     .map(e -> comment(e, users, service))
                     .collect(toList()));
 
-            thread.setLastUpdate(thread.getComments()
-                    .stream().map(Comment::getCreateAt)
-                    .max(Date::compareTo).orElse(null));
+            thread.setLastUpdate(thread.getComments() //
+                    .getEntities().stream()
+                    .map(Comment::getCreateAt)
+                    .max(Date::compareTo)
+                    .orElse(null));
 
             model.add(thread);
         });
-
-        // 一番最近に更新されたスレッド順
-        model.sort(Comparator.comparing(Thread::getLastUpdate).reversed());
 
         return model;
     }

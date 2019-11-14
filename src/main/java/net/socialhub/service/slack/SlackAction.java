@@ -11,6 +11,8 @@ import com.github.seratch.jslack.api.methods.request.chat.ChatPostMessageRequest
 import com.github.seratch.jslack.api.methods.request.emoji.EmojiListRequest;
 import com.github.seratch.jslack.api.methods.request.files.FilesUploadRequest;
 import com.github.seratch.jslack.api.methods.request.files.FilesUploadRequest.FilesUploadRequestBuilder;
+import com.github.seratch.jslack.api.methods.request.im.ImListRequest;
+import com.github.seratch.jslack.api.methods.request.mpim.MpimListRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsAddRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsRemoveRequest;
 import com.github.seratch.jslack.api.methods.request.team.TeamInfoRequest;
@@ -22,6 +24,8 @@ import com.github.seratch.jslack.api.methods.response.channels.ChannelsListRespo
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsRepliesResponse;
 import com.github.seratch.jslack.api.methods.response.chat.ChatDeleteResponse;
 import com.github.seratch.jslack.api.methods.response.emoji.EmojiListResponse;
+import com.github.seratch.jslack.api.methods.response.im.ImListResponse;
+import com.github.seratch.jslack.api.methods.response.mpim.MpimListResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsAddResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsRemoveResponse;
 import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
@@ -29,23 +33,18 @@ import com.github.seratch.jslack.api.methods.response.users.UsersIdentityRespons
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
 import com.github.seratch.jslack.api.model.Message;
 import net.socialhub.define.service.slack.SlackFormKey;
-import net.socialhub.define.service.slack.SlackMessageSubType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
+import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.request.MediaForm;
-import net.socialhub.model.service.Channel;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Context;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Service;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.Thread;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.addition.slack.SlackIdentify;
 import net.socialhub.model.service.addition.slack.SlackTeam;
+import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.paging.DatePaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
@@ -56,12 +55,7 @@ import net.socialhub.utils.LimitMap;
 import net.socialhub.utils.MapperUtil;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -518,6 +512,68 @@ public class SlackAction extends AccountActionImpl {
     }
 
     // ============================================================== //
+    // Message
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Thread> getMessageThread(Paging paging) {
+        return proceed(() -> {
+            ExecutorService pool = Executors.newCachedThreadPool();
+
+            Service service = getAccount().getService();
+            Integer count = getCountFromPage(paging, 200);
+            String cursor = getCursorFromPage(paging, null);
+            String token = auth.getAccessor().getToken();
+
+            Future<User> userFuture = pool.submit(this::getUserMeWithCache);
+
+            Future<ImListResponse> imResponseFuture = pool.submit(() ->
+                    auth.getAccessor().getSlack().methods()
+                            .imList(ImListRequest.builder().token(token)
+                                    .setGetLatest(true)
+                                    .cursor(cursor)
+                                    .limit(count)
+                                    .build()));
+
+            Future<MpimListResponse> mpimResponseFuture = pool.submit(() ->
+                    auth.getAccessor().getSlack().methods()
+                            .mpimList(MpimListRequest.builder().token(token)
+                                    .setGetLatest(true)
+                                    .cursor(cursor)
+                                    .limit(count)
+                                    .build()));
+
+            // ユーザー ID を取得
+            Set<String> userIds = new HashSet<>();
+            ImListResponse imResponse = imResponseFuture.get();
+            imResponse.getIms().forEach((im) -> userIds.add(im.getUser()));
+            MpimListResponse mpimResponse = mpimResponseFuture.get();
+            mpimResponse.getGroups().forEach((mpim) -> userIds.addAll(mpim.getMembers()));
+
+            // アカウント & BOT の内容を取得
+            User myAccount = userFuture.get();
+            Map<String, User> accountMap = userIds.parallelStream() //
+                    .collect(Collectors.toMap(Function.identity(), //
+                            (id) -> getAccountWithCache(new Identify(service, id))));
+
+
+            // スレッド一覧を取得
+            List<Thread> threads = new ArrayList<>();
+            threads.addAll(SlackMapper.thread(imResponse, accountMap, myAccount, service));
+            threads.addAll(SlackMapper.thread(mpimResponse, accountMap, service));
+            threads.sort(Comparator.comparing(Thread::getLastUpdate).reversed());
+
+            Pageable<Thread> pageable = new Pageable<>();
+            pageable.setEntities(threads);
+            return pageable;
+        });
+
+    }
+
+    // ============================================================== //
     // Request
     // ============================================================== //
 
@@ -656,6 +712,40 @@ public class SlackAction extends AccountActionImpl {
             return botCache.get(time);
         }
         return getBots(id);
+    }
+
+    private User getAccountWithCache(Identify id) {
+        if (((String) id.getId()).startsWith("U")) {
+            return getUserWithCache(id);
+        }
+        if (((String) id.getId()).startsWith("B")) {
+            return getUserWithCache(id);
+        }
+        throw new NotImplimentedException();
+    }
+
+    // ============================================================== //
+    // Paging
+    // ============================================================== //
+
+    private Integer getCountFromPage(Paging paging, Integer defValue) {
+        if (paging != null) {
+            if (paging.getCount() != null) {
+                return paging.getCount().intValue();
+            }
+        }
+        return defValue;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T getCursorFromPage(Paging paging, T defValue) {
+        if (paging != null) {
+            if (paging instanceof CursorPaging) {
+                CursorPaging pg = ((CursorPaging) paging);
+                return (T) pg.getCurrentCursor();
+            }
+        }
+        return defValue;
     }
 
     // ============================================================== //

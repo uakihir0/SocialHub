@@ -315,7 +315,23 @@ public interface AccountAction {
      * Get Message Thread
      * メッセージスレッドを取得
      */
-    default List<Thread> getMessageThread(Paging paging) {
+    default Pageable<Thread> getMessageThread(Paging paging) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Get Message Thread Comments
+     * メッセージスレッドの内容を取得
+     */
+    default Pageable<Comment> getMessageTimeLine(Identify id, Paging paging) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Post Message to Thread
+     * メッセージを送信
+     */
+    default void postMessage(CommentForm req) {
         throw new NotImplimentedException();
     }
 

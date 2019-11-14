@@ -821,7 +821,7 @@ public class TwitterAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public List<Thread> getMessageThread(Paging paging) {
+    public Pageable<Thread> getMessageThread(Paging paging) {
         return proceed(() -> {
             int count = getCountFromPage(paging, 50);
             String cursor = getCursorFromPage(paging, null);
@@ -880,7 +880,13 @@ public class TwitterAction extends AccountActionImpl {
                 }
             }
 
-            return TwitterMapper.message(messages, users, service);
+            // FIXME: 自分自身はすでに取得済みなのでリクエストを省略可能
+            List<Thread> threads = TwitterMapper.message(messages, users, getUserMeWithCache(), service);
+            threads.sort(Comparator.comparing(Thread::getLastUpdate).reversed());
+
+            Pageable<Thread> pageable = new Pageable<>();
+            pageable.setEntities(threads);
+            return pageable;
         });
     }
 

@@ -6,6 +6,7 @@ import net.socialhub.define.service.twitter.TwitterSearchBuilder;
 import net.socialhub.define.service.twitter.TwitterSearchQuery;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
+import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Paging;
@@ -15,6 +16,7 @@ import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.twitter.TwitterComment;
+import net.socialhub.model.service.addition.twitter.TwitterThread;
 import net.socialhub.model.service.event.DeleteCommentEvent;
 import net.socialhub.model.service.event.UpdateCommentEvent;
 import net.socialhub.model.service.paging.CursorPaging;
@@ -888,6 +890,26 @@ public class TwitterAction extends AccountActionImpl {
             pageable.setEntities(threads);
             return pageable;
         });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getMessageTimeLine(Identify id, Paging paging) {
+
+        // TwitterThread の場合は中身を取得
+        if (id instanceof TwitterThread) {
+            return ((TwitterThread) id).getComments();
+        }
+
+        return getMessageThread(paging).getEntities().stream()
+                .filter((th) -> th.getId().equals(id.getId()))
+                .findFirst()
+                //
+                .map((th) -> (TwitterThread) th)
+                .map(TwitterThread::getComments)
+                .orElse(null);
     }
 
     // ============================================================== //

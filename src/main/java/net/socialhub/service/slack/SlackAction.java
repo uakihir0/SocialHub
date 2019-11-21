@@ -11,7 +11,11 @@ import com.github.seratch.jslack.api.methods.request.chat.ChatPostMessageRequest
 import com.github.seratch.jslack.api.methods.request.emoji.EmojiListRequest;
 import com.github.seratch.jslack.api.methods.request.files.FilesUploadRequest;
 import com.github.seratch.jslack.api.methods.request.files.FilesUploadRequest.FilesUploadRequestBuilder;
+import com.github.seratch.jslack.api.methods.request.im.ImHistoryRequest;
+import com.github.seratch.jslack.api.methods.request.im.ImHistoryRequest.ImHistoryRequestBuilder;
 import com.github.seratch.jslack.api.methods.request.im.ImListRequest;
+import com.github.seratch.jslack.api.methods.request.mpim.MpimHistoryRequest;
+import com.github.seratch.jslack.api.methods.request.mpim.MpimHistoryRequest.MpimHistoryRequestBuilder;
 import com.github.seratch.jslack.api.methods.request.mpim.MpimListRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsAddRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsRemoveRequest;
@@ -19,7 +23,6 @@ import com.github.seratch.jslack.api.methods.request.team.TeamInfoRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersIdentityRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersInfoRequest;
 import com.github.seratch.jslack.api.methods.response.bots.BotsInfoResponse;
-import com.github.seratch.jslack.api.methods.response.channels.ChannelsHistoryResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsRepliesResponse;
 import com.github.seratch.jslack.api.methods.response.chat.ChatDeleteResponse;
@@ -36,6 +39,7 @@ import net.socialhub.define.service.slack.SlackFormKey;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotImplimentedException;
+import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.request.MediaForm;
@@ -60,6 +64,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static net.socialhub.define.service.slack.SlackMessageSubType.BotMessage;
@@ -383,99 +388,7 @@ public class SlackAction extends AccountActionImpl {
      */
     @Override
     public Pageable<Comment> getHomeTimeLine(Paging paging) {
-        return this.getTimeLine(getGeneralChannel(), paging);
-    }
-
-    /**
-     * Get Timeline Comments
-     * タイムライン情報を取得
-     */
-    private Pageable<Comment> getTimeLine(String channel, Paging paging) {
-        return proceed(() -> {
-            ExecutorService pool = Executors.newCachedThreadPool();
-
-            // ------------------------------------------------ //
-            // Async Request
-            // ------------------------------------------------ //
-
-            Future<ChannelsHistoryResponse> responseFuture = pool.submit(() -> {
-                ChannelsHistoryRequestBuilder request = ChannelsHistoryRequest.builder() //
-                        .channel(channel).token(auth.getAccessor().getToken());
-
-                if (paging != null) {
-                    if (paging.getCount() != null) {
-                        request.count(paging.getCount().intValue());
-                    }
-
-                    if (paging instanceof DatePaging) {
-                        DatePaging date = (DatePaging) paging;
-                        if (date.getLatest() != null) {
-                            request.latest(date.getLatest());
-                        }
-                        if (date.getOldest() != null) {
-                            request.oldest(date.getOldest());
-                        }
-                        if (date.getInclusive() != null) {
-                            request.inclusive(date.getInclusive());
-                        }
-                    }
-                }
-
-                return auth.getAccessor().getSlack().methods() //
-                        .channelsHistory(request.build());
-            });
-
-            Future<List<ReactionCandidate>> candidatesFuture = //
-                    pool.submit(this::getReactionCandidates);
-
-            Future<SlackTeam> teamFuture = pool.submit(this::getTeam);
-            Future<User> userMeFuture = pool.submit(this::getUserMeWithCache);
-
-            // ------------------------------------------------ //
-            // Await Request
-            // ------------------------------------------------ //
-
-            ChannelsHistoryResponse response = responseFuture.get();
-            List<ReactionCandidate> candidates = candidatesFuture.get();
-            User userMe = userMeFuture.get();
-            teamFuture.get();
-
-            // ------------------------------------------------ //
-            // Get User Instances
-            // ------------------------------------------------ //
-
-            Service service = getAccount().getService();
-
-            // USERS
-            List<String> users = response.getMessages().stream() //
-                    .filter((e) -> !BotMessage.getCode().equals(e.getSubtype())) //
-                    .map(Message::getUser).filter(Objects::nonNull) //
-                    .distinct().collect(Collectors.toList());
-            Map<String, User> userMap = users.parallelStream() //
-                    .collect(Collectors.toMap(Function.identity(), //
-                            (id) -> getUserWithCache(new Identify(service, id))));
-
-            // BOTS
-            List<String> bots = response.getMessages().stream() //
-                    .filter((e) -> BotMessage.getCode().equals(e.getSubtype())) //
-                    .map(Message::getBotId).filter(Objects::nonNull) //
-                    .distinct().collect(Collectors.toList());
-            Map<String, User> botMap = bots.parallelStream() //
-                    .collect(Collectors.toMap(Function.identity(), //
-                            (id) -> getBotWithCache(new Identify(service, id))));
-
-            Pageable<Comment> pageable = SlackMapper.timeLine(response, //
-                    userMap, botMap, userMe, candidates, channel, service, paging);
-
-            // スレッド対象外 or スレッド元のみ表示対象
-            pageable.setPredicate((comment) -> {
-                String threadId = ((SlackComment) comment).getThreadId();
-                return (threadId == null) || comment.getId().equals(threadId);
-            });
-
-            setMentionName(pageable.getEntities(), service);
-            return pageable;
-        });
+        return this.getChannelTimeLine(getGeneralChannel(), paging);
     }
 
     // ============================================================== //
@@ -508,7 +421,7 @@ public class SlackAction extends AccountActionImpl {
      */
     @Override
     public Pageable<Comment> getChannelTimeLine(Identify id, Paging paging) {
-        return this.getTimeLine((String) id.getId(), paging);
+        return this.getChannelTimeLine((String) id.getId(), paging);
     }
 
     // ============================================================== //
@@ -559,7 +472,6 @@ public class SlackAction extends AccountActionImpl {
                     .collect(Collectors.toMap(Function.identity(), //
                             (id) -> getAccountWithCache(new Identify(service, id))));
 
-
             // スレッド一覧を取得
             List<Thread> threads = new ArrayList<>();
             threads.addAll(SlackMapper.thread(imResponse, accountMap, myAccount, service));
@@ -570,9 +482,205 @@ public class SlackAction extends AccountActionImpl {
             pageable.setEntities(threads);
             return pageable;
         });
-
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getMessageTimeLine(Identify id, Paging paging) {
+        return proceed(() -> {
+            String cid = (String) id.getId();
+
+            // D: DirectMessage
+            if (cid.startsWith("D")) {
+                return getMessageTimeLine(cid, paging);
+            }
+            // G: GroupMessage
+            if (cid.startsWith("G")) {
+                return getGroupMessageTimeLine(cid, paging);
+            }
+            
+            throw new NotSupportedException();
+        });
+    }
+
+    // ============================================================== //
+    // Timeline Support
+    // ============================================================== //
+
+    /**
+     * Get Timeline Comments
+     * タイムライン情報を取得
+     */
+    private Pageable<Comment> getChannelTimeLine(String channel, Paging paging) {
+        return getTimeLine(channel, paging, () -> proceed(() -> {
+            ChannelsHistoryRequestBuilder request = ChannelsHistoryRequest
+                    .builder().channel(channel).token(auth.getAccessor().getToken());
+
+            if (paging != null) {
+                if (paging.getCount() != null) {
+                    request.count(paging.getCount().intValue());
+                }
+
+                if (paging instanceof DatePaging) {
+                    DatePaging date = (DatePaging) paging;
+                    if (date.getLatest() != null) {
+                        request.latest(date.getLatest());
+                    }
+                    if (date.getOldest() != null) {
+                        request.oldest(date.getOldest());
+                    }
+                    if (date.getInclusive() != null) {
+                        request.inclusive(date.getInclusive());
+                    }
+                }
+            }
+
+            return auth.getAccessor().getSlack().methods()
+                    .channelsHistory(request.build()).getMessages();
+        }));
+    }
+
+    /**
+     * Get Message Comments
+     * ダイレクトメッセージ情報を取得
+     */
+    private Pageable<Comment> getMessageTimeLine(String channel, Paging paging) {
+        return getTimeLine(channel, paging, () -> proceed(() -> {
+            ImHistoryRequestBuilder builder = ImHistoryRequest
+                    .builder().channel(channel).token(auth.getAccessor().getToken());
+
+            if (paging != null) {
+                if (paging.getCount() != null) {
+                    builder.count(paging.getCount().intValue());
+                }
+
+                if (paging instanceof DatePaging) {
+                    DatePaging date = (DatePaging) paging;
+                    if (date.getLatest() != null) {
+                        builder.latest(date.getLatest());
+                    }
+                    if (date.getOldest() != null) {
+                        builder.oldest(date.getOldest());
+                    }
+                    if (date.getInclusive() != null) {
+                        builder.inclusive(date.getInclusive());
+                    }
+                }
+            }
+
+            return auth.getAccessor().getSlack().methods()
+                    .imHistory(builder.build()).getMessages();
+        }));
+    }
+
+    /**
+     * Get Group Message Comments
+     * グループダイレクトメッセージ情報を取得
+     */
+    private Pageable<Comment> getGroupMessageTimeLine(String channel, Paging paging) {
+        return getTimeLine(channel, paging, () -> proceed(() -> {
+            MpimHistoryRequestBuilder builder = MpimHistoryRequest
+                    .builder().channel(channel).token(auth.getAccessor().getToken());
+
+            if (paging != null) {
+                if (paging.getCount() != null) {
+                    builder.count(paging.getCount().intValue());
+                }
+
+                if (paging instanceof DatePaging) {
+                    DatePaging date = (DatePaging) paging;
+                    if (date.getLatest() != null) {
+                        builder.latest(date.getLatest());
+                    }
+                    if (date.getOldest() != null) {
+                        builder.oldest(date.getOldest());
+                    }
+                    if (date.getInclusive() != null) {
+                        builder.inclusive(date.getInclusive());
+                    }
+                }
+            }
+
+            return auth.getAccessor().getSlack().methods()
+                    .mpimHistory(builder.build()).getMessages();
+        }));
+    }
+
+    /**
+     * Timeline Comments
+     * タイムラインを取得
+     */
+    private Pageable<Comment> getTimeLine(
+            String channel, Paging paging,
+            Supplier<List<Message>> messageSupplier) {
+
+        return proceed(() -> {
+            ExecutorService pool = Executors.newCachedThreadPool();
+
+            // ------------------------------------------------ //
+            // Async Request
+            // ------------------------------------------------ //
+
+            Future<List<Message>> messageFuture =
+                    pool.submit(messageSupplier::get);
+
+            Future<SlackTeam> teamFuture =
+                    pool.submit(this::getTeam);
+
+            Future<User> userMeFuture =
+                    pool.submit(this::getUserMeWithCache);
+
+            Future<List<ReactionCandidate>> candidatesFuture =
+                    pool.submit(this::getReactionCandidates);
+
+            // ------------------------------------------------ //
+            // Await Request
+            // ------------------------------------------------ //
+
+            List<Message> messages = messageFuture.get();
+            List<ReactionCandidate> candidates = candidatesFuture.get();
+            User userMe = userMeFuture.get();
+            teamFuture.get();
+
+            // ------------------------------------------------ //
+            // Get User Instances
+            // ------------------------------------------------ //
+
+            Service service = getAccount().getService();
+
+            // USERS
+            List<String> users = messages.stream() //
+                    .filter((e) -> !BotMessage.getCode().equals(e.getSubtype())) //
+                    .map(Message::getUser).filter(Objects::nonNull) //
+                    .distinct().collect(Collectors.toList());
+            Map<String, User> userMap = users.parallelStream() //
+                    .collect(Collectors.toMap(Function.identity(), //
+                            (id) -> getUserWithCache(new Identify(service, id))));
+
+            // BOTS
+            List<String> bots = messages.stream() //
+                    .filter((e) -> BotMessage.getCode().equals(e.getSubtype())) //
+                    .map(Message::getBotId).filter(Objects::nonNull) //
+                    .distinct().collect(Collectors.toList());
+            Map<String, User> botMap = bots.parallelStream() //
+                    .collect(Collectors.toMap(Function.identity(), //
+                            (id) -> getBotWithCache(new Identify(service, id))));
+
+            Pageable<Comment> pageable = SlackMapper.timeLine(messages, //
+                    userMap, botMap, userMe, candidates, channel, service, paging);
+
+            // スレッド対象外 or スレッド元のみ表示対象
+            pageable.setPredicate((comment) -> {
+                String threadId = ((SlackComment) comment).getThreadId();
+                return (threadId == null) || comment.getId().equals(threadId);
+            });
+
+            setMentionName(pageable.getEntities(), service);
+            return pageable;
+        });
+    }
     // ============================================================== //
     // Request
     // ============================================================== //

@@ -5,6 +5,7 @@ import com.github.seratch.jslack.api.methods.response.bots.BotsInfoResponse.Bot;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsHistoryResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
 import com.github.seratch.jslack.api.methods.response.emoji.EmojiListResponse;
+import com.github.seratch.jslack.api.methods.response.im.ImHistoryResponse;
 import com.github.seratch.jslack.api.methods.response.im.ImListResponse;
 import com.github.seratch.jslack.api.methods.response.mpim.MpimListResponse;
 import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
@@ -369,7 +370,7 @@ public final class SlackMapper {
      * タイムラインマッピング
      */
     public static Pageable<Comment> timeLine(
-            ChannelsHistoryResponse history, //
+            List<Message> messages, //
             Map<String, User> userMap, //
             Map<String, User> botMap, //
             User userMe, //
@@ -379,7 +380,7 @@ public final class SlackMapper {
             Paging paging) {
 
         Pageable<Comment> model = new Pageable<>();
-        model.setEntities(history.getMessages().stream() //
+        model.setEntities(messages.stream() //
                 .map(e -> {
                     // BOT の投稿かどうかで分岐
                     User user = BotMessage.getCode().equals(e.getSubtype()) ?
@@ -392,6 +393,7 @@ public final class SlackMapper {
         model.setPaging(MapperUtil.mappingDatePaging(paging));
         return model;
     }
+
 
     /**
      * チャンネルマッピング

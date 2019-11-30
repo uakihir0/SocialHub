@@ -144,79 +144,7 @@ public class SlackAction extends AccountActionImpl {
      */
     @Override
     public void postComment(CommentForm req) {
-        proceed(() -> {
-            String token = auth.getAccessor().getToken();
-            String channel = (String) req.getParams().get(SlackFormKey.CHANNEL_KEY);
-
-            if (req.getImages() != null && !req.getImages().isEmpty()) {
-
-                if (req.getImages().size() > 1) {
-                    for (MediaForm media : req.getImages()) {
-
-                        // 複数のファイルを先に個々にアップロード
-                        FilesUploadRequestBuilder builder = //
-                                FilesUploadRequest.builder() //
-                                        .channels(Collections.singletonList(channel)) //
-                                        .filestream(new ByteArrayInputStream(media.getData())) //
-                                        .filename(media.getName());
-
-                        if (req.getReplyId() != null) {
-                            builder.threadTs((String) req.getReplyId());
-                        }
-
-                        auth.getAccessor().getSlack().methods() //
-                                .filesUpload(builder.token(token).build());
-                    }
-                    {
-                        // 最後にコメントを投稿
-                        ChatPostMessageRequestBuilder builder = //
-                                ChatPostMessageRequest.builder() //
-                                        .text(req.getMessage()) //
-                                        .channel(channel);
-
-                        if (req.getReplyId() != null) {
-                            builder.threadTs((String) req.getReplyId());
-                        }
-
-                        auth.getAccessor().getSlack().methods() //
-                                .chatPostMessage(builder.token(token).build());
-                    }
-
-                } else {
-
-                    // メディアは一つだけの場合はそれだけを投稿
-                    MediaForm media = req.getImages().get(0);
-                    FilesUploadRequestBuilder builder = //
-                            FilesUploadRequest.builder() //
-                                    .initialComment(req.getMessage()) //
-                                    .channels(Collections.singletonList(channel)) //
-                                    .filestream(new ByteArrayInputStream(media.getData())) //
-                                    .filename(media.getName());
-
-                    if (req.getReplyId() != null) {
-                        builder.threadTs((String) req.getReplyId());
-                    }
-
-                    auth.getAccessor().getSlack().methods() //
-                            .filesUpload(builder.token(token).build());
-                }
-
-            } else {
-
-                // コメントだけの場合
-                ChatPostMessageRequestBuilder builder = //
-                        ChatPostMessageRequest.builder() //
-                                .text(req.getMessage()) //
-                                .channel(channel);
-
-                if (req.getReplyId() != null) {
-                    builder.threadTs((String) req.getReplyId());
-                }
-
-                auth.getAccessor().getSlack().methods() //
-                        .chatPostMessage(builder.token(token).build());
-            }
-        });
+        sendMessage(req);
     }
 
     /**
@@ -500,9 +428,17 @@ public class SlackAction extends AccountActionImpl {
             if (cid.startsWith("G")) {
                 return getGroupMessageTimeLine(cid, paging);
             }
-            
+
             throw new NotSupportedException();
         });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void postMessage(CommentForm req) {
+        sendMessage(req);
     }
 
     // ============================================================== //
@@ -681,6 +617,94 @@ public class SlackAction extends AccountActionImpl {
             return pageable;
         });
     }
+
+    // ============================================================== //
+    // Message Support
+    // ============================================================== //
+
+    /**
+     * Send Message Comment to Channel
+     * チャンネルに対してメッセージを送信
+     */
+    private void sendMessage(CommentForm req) {
+        proceed(() -> {
+            String token = auth.getAccessor().getToken();
+            String channel = (String) req.getParams().get(SlackFormKey.CHANNEL_KEY);
+
+            // 画像がある場合とそうでない場合で処理を分岐
+            if (req.getImages() != null && !req.getImages().isEmpty()) {
+
+                // 画像が複数あるかどうかで処理を分岐
+                if (req.getImages().size() > 1) {
+                    for (MediaForm media : req.getImages()) {
+
+                        // 複数のファイルを先に個々にアップロード
+                        // -> 最後にコメントを送信する形で表示
+                        FilesUploadRequestBuilder builder = //
+                                FilesUploadRequest.builder() //
+                                        .channels(Collections.singletonList(channel)) //
+                                        .filestream(new ByteArrayInputStream(media.getData())) //
+                                        .filename(media.getName());
+
+                        if (req.getReplyId() != null) {
+                            builder.threadTs((String) req.getReplyId());
+                        }
+
+                        auth.getAccessor().getSlack().methods() //
+                                .filesUpload(builder.token(token).build());
+                    }
+                    {
+                        // 最後にコメントを投稿
+                        ChatPostMessageRequestBuilder builder = //
+                                ChatPostMessageRequest.builder() //
+                                        .text(req.getMessage()) //
+                                        .channel(channel);
+
+                        if (req.getReplyId() != null) {
+                            builder.threadTs((String) req.getReplyId());
+                        }
+
+                        auth.getAccessor().getSlack().methods() //
+                                .chatPostMessage(builder.token(token).build());
+                    }
+
+                } else {
+
+                    // メディアは一つだけの場合はそれだけを投稿
+                    MediaForm media = req.getImages().get(0);
+                    FilesUploadRequestBuilder builder = //
+                            FilesUploadRequest.builder() //
+                                    .initialComment(req.getMessage()) //
+                                    .channels(Collections.singletonList(channel)) //
+                                    .filestream(new ByteArrayInputStream(media.getData())) //
+                                    .filename(media.getName());
+
+                    if (req.getReplyId() != null) {
+                        builder.threadTs((String) req.getReplyId());
+                    }
+
+                    auth.getAccessor().getSlack().methods() //
+                            .filesUpload(builder.token(token).build());
+                }
+
+            } else {
+
+                // コメントだけの場合
+                ChatPostMessageRequestBuilder builder = //
+                        ChatPostMessageRequest.builder() //
+                                .text(req.getMessage()) //
+                                .channel(channel);
+
+                if (req.getReplyId() != null) {
+                    builder.threadTs((String) req.getReplyId());
+                }
+
+                auth.getAccessor().getSlack().methods() //
+                        .chatPostMessage(builder.token(token).build());
+            }
+        });
+    }
+
     // ============================================================== //
     // Request
     // ============================================================== //

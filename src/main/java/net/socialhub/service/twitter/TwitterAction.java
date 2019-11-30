@@ -6,15 +6,19 @@ import net.socialhub.define.service.twitter.TwitterSearchBuilder;
 import net.socialhub.define.service.twitter.TwitterSearchQuery;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
-import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.request.CommentForm;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Service;
 import net.socialhub.model.service.Thread;
 import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.twitter.TwitterComment;
 import net.socialhub.model.service.addition.twitter.TwitterThread;
 import net.socialhub.model.service.event.DeleteCommentEvent;
@@ -34,21 +38,66 @@ import net.socialhub.service.action.callback.UpdateCommentCallback;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.SnowflakeUtil;
-import twitter4j.*;
+import twitter4j.DirectMessage;
+import twitter4j.DirectMessageList;
+import twitter4j.FilterQuery;
+import twitter4j.IDs;
+import twitter4j.Location;
+import twitter4j.PagableResponseList;
+import twitter4j.Query;
+import twitter4j.QueryResult;
+import twitter4j.ResponseList;
+import twitter4j.SavedSearch;
+import twitter4j.Status;
+import twitter4j.StatusAdapter;
+import twitter4j.StatusDeletionNotice;
+import twitter4j.StatusUpdate;
+import twitter4j.Trends;
+import twitter4j.Twitter;
+import twitter4j.TwitterStream;
+import twitter4j.UserList;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import static java.util.stream.Collectors.toList;
-import static net.socialhub.define.action.OtherActionType.*;
-import static net.socialhub.define.action.TimeLineActionType.*;
-import static net.socialhub.define.action.UsersActionType.*;
+import static net.socialhub.define.action.OtherActionType.BlockUser;
+import static net.socialhub.define.action.OtherActionType.DeleteComment;
+import static net.socialhub.define.action.OtherActionType.FollowUser;
+import static net.socialhub.define.action.OtherActionType.GetChannels;
+import static net.socialhub.define.action.OtherActionType.GetComment;
+import static net.socialhub.define.action.OtherActionType.GetRelationship;
+import static net.socialhub.define.action.OtherActionType.GetUser;
+import static net.socialhub.define.action.OtherActionType.GetUserMe;
+import static net.socialhub.define.action.OtherActionType.LikeComment;
+import static net.socialhub.define.action.OtherActionType.MuteUser;
+import static net.socialhub.define.action.OtherActionType.ShareComment;
+import static net.socialhub.define.action.OtherActionType.UnShareComment;
+import static net.socialhub.define.action.OtherActionType.UnblockUser;
+import static net.socialhub.define.action.OtherActionType.UnfollowUser;
+import static net.socialhub.define.action.OtherActionType.UnlikeComment;
+import static net.socialhub.define.action.OtherActionType.UnmuteUser;
+import static net.socialhub.define.action.TimeLineActionType.ChannelTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.SearchTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
+import static net.socialhub.define.action.UsersActionType.ChannelUsers;
+import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
+import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
+import static net.socialhub.define.action.UsersActionType.SearchUsers;
 import static net.socialhub.utils.CollectionUtil.partitionList;
 
 /**
@@ -910,6 +959,61 @@ public class TwitterAction extends AccountActionImpl {
                 .map((th) -> (TwitterThread) th)
                 .map(TwitterThread::getComments)
                 .orElse(null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void postMessage(CommentForm req) {
+        proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            ExecutorService pool = Executors.newCachedThreadPool();
+
+            // どの DM スレッドかに送信するか？
+            if (req.getReplyId() != null) {
+                throw new IllegalStateException("Needs DM Thread ID.");
+            }
+
+            // 画像の処理
+            List<Long> mediaIds = new ArrayList<>();
+            if (req.getImages() != null && !req.getImages().isEmpty()) {
+
+                // 画像を並列でアップロードする
+                List<Future<Long>> medias = req.getImages() //
+                        .stream().map(image -> pool.submit(() -> {
+                            InputStream input = new ByteArrayInputStream(image.getData());
+                            return twitter.uploadMedia(image.getName(), input).getMediaId();
+                        })).collect(toList());
+
+                for (Future<Long> m : medias) {
+                    mediaIds.add(HandlingUtil.runtime(m::get));
+                }
+            }
+
+            // メディアがない場合
+            if (mediaIds.size() == 0) {
+                twitter.directMessages().sendDirectMessage(
+                        (Long) req.getReplyId(), req.getMessage());
+
+            } else {
+
+                // メディアが複数ある場合は最後のリクエストのみコメントを記載
+                int lastIndex = (mediaIds.size() - 1);
+                for (Long mediaId : mediaIds) {
+
+                    if (mediaId.equals(mediaIds.get(lastIndex))) {
+                        twitter.directMessages().sendDirectMessage(
+                                (Long) req.getReplyId(), req.getMessage(), mediaId);
+                    } else {
+
+                        // 複数画像が存在する場合は先に画像情報を送信
+                        twitter.directMessages().sendDirectMessage(
+                                (Long) req.getReplyId(), "", mediaId);
+                    }
+                }
+            }
+        });
     }
 
     // ============================================================== //

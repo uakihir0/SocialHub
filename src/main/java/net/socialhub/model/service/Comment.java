@@ -53,6 +53,12 @@ public class Comment extends Identify {
     private Application application;
 
     /**
+     * Is direct message comment?
+     * (Comment and message are same model)
+     */
+    private Boolean directMessage;
+
+    /**
      * Get many kind of reactions
      * (like, share, :+1:, and so on)
      */
@@ -144,6 +150,14 @@ public class Comment extends Identify {
 
     public void setApplication(Application application) {
         this.application = application;
+    }
+
+    public Boolean getDirectMessage() {
+        return directMessage;
+    }
+
+    public void setDirectMessage(Boolean directMessage) {
+        this.directMessage = directMessage;
     }
     //endregion
 }

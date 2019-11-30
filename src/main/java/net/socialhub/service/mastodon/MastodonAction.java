@@ -18,9 +18,19 @@ import net.socialhub.define.service.mastodon.MastodonNotificationType;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
+import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.request.CommentForm;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.Thread;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.mastodon.MastodonStream;
 import net.socialhub.model.service.event.DeleteCommentEvent;
 import net.socialhub.model.service.event.UpdateCommentEvent;
@@ -38,17 +48,45 @@ import net.socialhub.utils.MapperUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static net.socialhub.define.action.OtherActionType.*;
-import static net.socialhub.define.action.TimeLineActionType.*;
-import static net.socialhub.define.action.UsersActionType.*;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+import static net.socialhub.define.action.OtherActionType.BlockUser;
+import static net.socialhub.define.action.OtherActionType.DeleteComment;
+import static net.socialhub.define.action.OtherActionType.FollowUser;
+import static net.socialhub.define.action.OtherActionType.GetChannels;
+import static net.socialhub.define.action.OtherActionType.GetComment;
+import static net.socialhub.define.action.OtherActionType.GetContext;
+import static net.socialhub.define.action.OtherActionType.GetRelationship;
+import static net.socialhub.define.action.OtherActionType.GetUser;
+import static net.socialhub.define.action.OtherActionType.GetUserMe;
+import static net.socialhub.define.action.OtherActionType.LikeComment;
+import static net.socialhub.define.action.OtherActionType.MuteUser;
+import static net.socialhub.define.action.OtherActionType.PostComment;
+import static net.socialhub.define.action.OtherActionType.ShareComment;
+import static net.socialhub.define.action.OtherActionType.UnShareComment;
+import static net.socialhub.define.action.OtherActionType.UnblockUser;
+import static net.socialhub.define.action.OtherActionType.UnfollowUser;
+import static net.socialhub.define.action.OtherActionType.UnlikeComment;
+import static net.socialhub.define.action.OtherActionType.UnmuteUser;
+import static net.socialhub.define.action.TimeLineActionType.ChannelTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserMediaTimeLine;
+import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
+import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
+import static net.socialhub.define.action.UsersActionType.SearchUsers;
 
 public class MastodonAction extends AccountActionImpl {
 
@@ -288,7 +326,8 @@ public class MastodonAction extends AccountActionImpl {
                                     null);
 
             List<Status> statuses = Stream.of(status.get()) //
-                    .map(Notification::getStatus).collect(Collectors.toList());
+                    .map(Notification::getStatus)
+                    .collect(toList());
 
             service.getRateLimit().addInfo(MentionTimeLine, status);
             return MastodonMapper.timeLine(statuses, service, paging);
@@ -418,11 +457,11 @@ public class MastodonAction extends AccountActionImpl {
                             Response<Attachment> attachment = mastodon.media() //
                                     .postMedia(input, image.getName(), null);
                             return attachment.get().getId();
-                        })).collect(Collectors.toList());
+                        })).collect(toList());
 
                 update.setMediaIds(medias.stream().map( //
                         (e) -> HandlingUtil.runtime(e::get)) //
-                        .collect(Collectors.toList()));
+                        .collect(toList()));
             }
 
             // センシティブな内容
@@ -587,10 +626,10 @@ public class MastodonAction extends AccountActionImpl {
             Context context = new Context();
             context.setDescendants(Arrays.stream(response.get().getDescendants()) //
                     .map(e -> MastodonMapper.comment(e, service)) //
-                    .collect(Collectors.toList()));
+                    .collect(toList()));
             context.setAncestors(Arrays.stream(response.get().getAncestors()) //
                     .map(e -> MastodonMapper.comment(e, service)) //
-                    .collect(Collectors.toList()));
+                    .collect(toList()));
 
             MapperUtil.sortContext(context);
             return context;
@@ -658,6 +697,61 @@ public class MastodonAction extends AccountActionImpl {
             service.getRateLimit().addInfo(ChannelTimeLine, status);
             return MastodonMapper.users(status.get(), service, paging);
         });
+    }
+
+    // ============================================================== //
+    // Message API
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Thread> getMessageThread(Paging paging) {
+        Service service = getAccount().getService();
+        Pageable<Comment> comments = getMentionTimeLine(paging);
+        List<Comment> messages = comments.getEntities().stream()
+                .filter(Comment::getDirectMessage).collect(toList());
+
+        Map<Long, List<Comment>> messageMap = messages.stream()
+                .collect(groupingBy((e) -> (Long) e.getUser().getId()));
+
+        List<Thread> threads = new ArrayList<>();
+        for (Long userId : messageMap.keySet()) {
+            List<Comment> userMessages = messageMap.get(userId);
+
+            Comment latest = userMessages.stream()
+                    .max(comparing(Comment::getCreateAt))
+                    .orElseThrow(IllegalStateException::new);
+
+            Thread thread = new Thread(service);
+            thread.setId(latest.getUser().getId());
+            thread.setUsers(new ArrayList<>());
+            thread.getUsers().add(latest.getUser());
+            thread.setLastUpdate(latest.getCreateAt());
+            threads.add(thread);
+        }
+
+        Pageable<Thread> results = new Pageable<>();
+        results.setPaging(comments.getPaging());
+        results.setEntities(threads);
+        return results;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getMessageTimeLine(Identify id, Paging paging) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void postMessage(CommentForm req) {
+        throw new NotImplimentedException();
     }
 
     // ============================================================== //

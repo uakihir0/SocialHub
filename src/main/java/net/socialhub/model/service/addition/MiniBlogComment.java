@@ -64,6 +64,30 @@ public abstract class MiniBlogComment extends Comment {
     }
 
     @Override
+    public void applyReaction(Reaction reaction) {
+        if (reaction.getName().startsWith("like")) {
+            if (reaction.getReacting() && (isLiked != null) && !isLiked) {
+                likeCount = (likeCount == null) ? 1 : likeCount + 1;
+                isLiked = true;
+            }
+            if (!reaction.getReacting() && (isLiked != null) && isLiked) {
+                likeCount = (likeCount == null) ? 0 : likeCount - 1;
+                isLiked = false;
+            }
+        }
+        if (reaction.getName().startsWith("share")) {
+            if (reaction.getReacting() && (isShared != null) && !isShared) {
+                shareCount = (shareCount == null) ? 1 : shareCount + 1;
+                isShared = true;
+            }
+            if (!reaction.getReacting() && (isShared != null) && isShared) {
+                shareCount = (shareCount == null) ? 0 : shareCount - 1;
+                isShared = false;
+            }
+        }
+    }
+
+    @Override
     public CommentForm getReplyForm() {
         CommentForm form = new CommentForm();
         form.replyId(getId());

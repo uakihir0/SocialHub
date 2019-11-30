@@ -66,6 +66,13 @@ public class Comment extends Identify {
         return new ArrayList<>();
     }
 
+    /**
+     * Apply reaction to comment
+     * (like, share, :+1:, and so on)
+     */
+    public void applyReaction(Reaction reaction) {
+    }
+
     public Comment(Service service) {
         super(service);
     }

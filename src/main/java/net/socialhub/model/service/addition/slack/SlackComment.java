@@ -6,6 +6,7 @@ import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Reaction;
 import net.socialhub.model.service.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,6 +34,31 @@ public class SlackComment extends Comment {
         List<Reaction> reactions = super.getReactions();
         reactions.addAll(this.reactions);
         return reactions;
+    }
+
+    @Override
+    public void applyReaction(Reaction reaction) {
+        if (reactions == null) {
+            reactions = new ArrayList<>();
+            reactions.add(reaction);
+            return;
+        }
+
+        for (Reaction exist : reactions) {
+            if (exist.getName().equals(reaction.getName())) {
+                if (reaction.getReacting() && !exist.getReacting()) {
+                    exist.setCount(exist.getCount() + 1);
+                    exist.setReacting(true);
+                }
+                if (!reaction.getReacting() && exist.getReacting()) {
+                    exist.setCount(exist.getCount() - 1);
+                    exist.setReacting(false);
+                }
+                return;
+            }
+        }
+
+        reactions.add(reaction);
     }
 
     @Override

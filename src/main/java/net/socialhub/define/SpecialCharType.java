@@ -39,6 +39,8 @@ public enum SpecialCharType {
     uml("&uml;", "&#168;"), //
     macr("&macr;", "&#175;"), //
     tilde("&tilde;", "&#732;"), //
+
+    zwj("&zwj;", "&#8205;"), //
     ;
 
     private String entityRepl;

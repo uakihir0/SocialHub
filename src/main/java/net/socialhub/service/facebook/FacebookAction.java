@@ -2,8 +2,8 @@ package net.socialhub.service.facebook;
 
 import facebook4j.Facebook;
 import facebook4j.FacebookException;
-import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
+import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
@@ -11,8 +11,6 @@ import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 
 public class FacebookAction extends AccountActionImpl {
-
-    private static Logger logger = Logger.getLogger(FacebookAuth.class);
 
     private ServiceAuth<Facebook> auth;
 
@@ -92,7 +90,7 @@ public class FacebookAction extends AccountActionImpl {
     }
 
     private static void handleFacebookException(FacebookException e) {
-        logger.debug(e.getMessage(), e);
+        throw new SocialHubException(e);
     }
 
     //region // Getter&Setter

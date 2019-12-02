@@ -36,15 +36,21 @@ import com.github.seratch.jslack.api.methods.response.users.UsersIdentityRespons
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
 import com.github.seratch.jslack.api.model.Message;
 import net.socialhub.define.service.slack.SlackFormKey;
-import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.request.MediaForm;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Service;
 import net.socialhub.model.service.Thread;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.addition.slack.SlackIdentify;
 import net.socialhub.model.service.addition.slack.SlackTeam;
@@ -59,7 +65,15 @@ import net.socialhub.utils.LimitMap;
 import net.socialhub.utils.MapperUtil;
 
 import java.io.ByteArrayInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -73,8 +87,6 @@ import static net.socialhub.define.service.slack.SlackMessageSubType.BotMessage;
  * Slack Actions
  */
 public class SlackAction extends AccountActionImpl {
-
-    private static Logger logger = Logger.getLogger(SlackAction.class);
 
     private ServiceAuth<SlackAccessor> auth;
 
@@ -902,7 +914,7 @@ public class SlackAction extends AccountActionImpl {
     }
 
     private static void handleException(Exception e) {
-        logger.debug(e.getMessage(), e);
+        throw new SocialHubException(e);
     }
 
     //region // Getter&Setter

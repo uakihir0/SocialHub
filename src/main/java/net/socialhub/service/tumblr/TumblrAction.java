@@ -6,6 +6,7 @@ import net.socialhub.define.service.tumblr.TumblrIconSize;
 import net.socialhub.define.service.tumblr.TumblrReactionType;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
+import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.request.MediaForm;
 import net.socialhub.model.service.User;
@@ -506,7 +507,7 @@ public class TumblrAction extends AccountActionImpl {
     }
 
     private static void handleTumblrException(Exception e) {
-        System.out.println(e.getMessage());
+        throw new SocialHubException(e);
     }
 
     //region // Getter&Setter

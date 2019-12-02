@@ -10,6 +10,7 @@ import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Stream;
 import net.socialhub.service.action.callback.EventCallback;
 
+import javax.annotation.Nonnull;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -18,6 +19,8 @@ public class CommentsRequestImpl implements CommentsRequest {
     private Function<Paging, Pageable<Comment>> commentsFunction;
     private Function<EventCallback, Stream> streamFunction;
     private Supplier<CommentForm> commentFormSupplier;
+    private Supplier<String> serializeSupplier;
+
     private boolean streamRecommended = true;
     private ActionType actionType;
     private Account account;
@@ -67,6 +70,14 @@ public class CommentsRequestImpl implements CommentsRequest {
      * {@inheritDoc}
      */
     @Override
+    public String toSerializedString() {
+        return serializeSupplier.get();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Account getAccount() {
         return account;
     }
@@ -98,6 +109,10 @@ public class CommentsRequestImpl implements CommentsRequest {
 
     public void setCommentFormSupplier(Supplier<CommentForm> commentFormSupplier) {
         this.commentFormSupplier = commentFormSupplier;
+    }
+
+    public void setSerializeSupplier(Supplier<String> serializeSupplier) {
+        this.serializeSupplier = serializeSupplier;
     }
 
     public void setStreamRecommended(boolean streamRecommended) {

@@ -20,6 +20,7 @@ import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
+import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
@@ -957,7 +958,7 @@ public class MastodonAction extends AccountActionImpl {
     }
 
     private static void handleException(Exception e) {
-        logger.debug(e.getMessage(), e);
+        throw new SocialHubException(e);
     }
 
     //region // Getter&Setter

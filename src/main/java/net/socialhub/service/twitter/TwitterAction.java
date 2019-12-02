@@ -7,6 +7,7 @@ import net.socialhub.define.service.twitter.TwitterSearchQuery;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
+import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
@@ -1345,7 +1346,7 @@ public class TwitterAction extends AccountActionImpl {
     }
 
     private static void handleTwitterException(Exception e) {
-        System.out.println(e.getMessage());
+        throw new SocialHubException(e);
     }
 
     private String decodeUrlEncode(String str) {

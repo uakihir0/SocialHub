@@ -9,6 +9,7 @@ import net.socialhub.service.action.RequestActionImpl;
 import net.socialhub.service.action.request.CommentsRequest;
 import net.socialhub.service.action.request.CommentsRequestImpl;
 
+import static net.socialhub.define.action.service.MastodonActionType.FederationTimeLine;
 import static net.socialhub.define.action.service.MastodonActionType.LocalTimeLine;
 
 public class MastodonRequest extends RequestActionImpl {
@@ -27,7 +28,8 @@ public class MastodonRequest extends RequestActionImpl {
     public CommentsRequest getLocalTimeLine() {
         MastodonAction action = (MastodonAction) account.action();
         CommentsRequestImpl request = getCommentsRequest(
-                LocalTimeLine, action::getLocalTimeLine);
+                LocalTimeLine, action::getLocalTimeLine,
+                () -> new SerializeBuilder(LocalTimeLine).toJson());
 
         request.setStreamFunction(action::setLocalLineStream);
         return request;
@@ -39,7 +41,8 @@ public class MastodonRequest extends RequestActionImpl {
     public CommentsRequest getFederationTimeLine() {
         MastodonAction action = (MastodonAction) account.action();
         CommentsRequestImpl request = getCommentsRequest(
-                LocalTimeLine, action::getFederationTimeLine);
+                FederationTimeLine, action::getFederationTimeLine,
+                () -> new SerializeBuilder(FederationTimeLine).toJson());
 
         request.setStreamFunction(action::setFederationLineStream);
         return request;

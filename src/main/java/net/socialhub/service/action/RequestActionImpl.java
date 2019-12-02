@@ -2,14 +2,8 @@ package net.socialhub.service.action;
 
 import com.google.gson.Gson;
 import net.socialhub.define.action.ActionType;
-import net.socialhub.define.action.TimeLineActionType;
-import net.socialhub.define.action.UsersActionType;
 import net.socialhub.model.Account;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.service.action.request.CommentsRequest;
 import net.socialhub.service.action.request.CommentsRequestImpl;
 import net.socialhub.service.action.request.UsersRequest;
@@ -20,16 +14,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static net.socialhub.define.action.TimeLineActionType.ChannelTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.SearchTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserMediaTimeLine;
-import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
-import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
-import static net.socialhub.define.action.UsersActionType.SearchUsers;
+import static net.socialhub.define.action.TimeLineActionType.*;
+import static net.socialhub.define.action.UsersActionType.*;
 
 public class RequestActionImpl implements RequestAction {
 
@@ -143,7 +129,7 @@ public class RequestActionImpl implements RequestAction {
     @Override
     public CommentsRequest getSearchTimeLine(String query) {
         return getCommentsRequest(SearchTimeLine, (paging) ->
-                account.action().getSearchTimeLine(query, paging),
+                        account.action().getSearchTimeLine(query, paging),
                 () -> new SerializeBuilder(SearchTimeLine)
                         .add("query", query)
                         .toJson());
@@ -168,11 +154,7 @@ public class RequestActionImpl implements RequestAction {
     public static class SerializeBuilder {
         private Map<String, String> params = new HashMap<>();
 
-        private SerializeBuilder(TimeLineActionType action) {
-            add("action", action.name());
-        }
-
-        private SerializeBuilder(UsersActionType action) {
+        public <T extends Enum<T>> SerializeBuilder(Enum<T> action) {
             add("action", action.name());
         }
 

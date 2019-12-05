@@ -1,6 +1,5 @@
 package net.socialhub.service.tumblr;
 
-import com.sun.xml.internal.ws.api.client.WSPortInfo;
 import com.tumblr.jumblr.types.*;
 import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.MediaType;

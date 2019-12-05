@@ -1,37 +1,21 @@
 package net.socialhub.service.tumblr;
 
-import com.tumblr.jumblr.types.Blog;
-import com.tumblr.jumblr.types.Photo;
-import com.tumblr.jumblr.types.PhotoPost;
-import com.tumblr.jumblr.types.TextPost;
-import com.tumblr.jumblr.types.Theme;
-import com.tumblr.jumblr.types.Trail;
-import com.tumblr.jumblr.types.VideoPost;
+import com.sun.xml.internal.ws.api.client.WSPortInfo;
+import com.tumblr.jumblr.types.*;
 import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.MediaType;
 import net.socialhub.define.service.tumblr.TumblrIconSize;
 import net.socialhub.define.service.tumblr.TumblrReactionType;
 import net.socialhub.model.common.AttributedString;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Media;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Relationship;
-import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.tumblr.TumblrComment;
 import net.socialhub.model.service.addition.tumblr.TumblrUser;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.utils.MapperUtil;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -42,7 +26,6 @@ public class TumblrMapper {
 
     /** J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
     private final static List<Class<?>> ClassLoader = Arrays.asList( //
-            com.tumblr.jumblr.types.QuotePost.class, //
             com.tumblr.jumblr.types.TextPost.class, //
             com.tumblr.jumblr.types.Video.class, //
             com.tumblr.jumblr.types.Note.class);
@@ -231,11 +214,13 @@ public class TumblrMapper {
             com.tumblr.jumblr.types.Post post) {
 
         // Trail から優先的に取得
-        if (post.getTrail().size() > 0) {
-            post.getTrail().stream()
-                    .filter(Trail::isCurrentItem)
-                    .findFirst().ifPresent((trail) ->
-                    model.setText(AttributedString.xhtml(trail.getContent())));
+        if (post.getTrail() != null) {
+            if (post.getTrail().size() > 0) {
+                post.getTrail().stream()
+                        .filter(Trail::isCurrentItem)
+                        .findFirst().ifPresent((trail) ->
+                        model.setText(AttributedString.xhtml(trail.getContent())));
+            }
         }
 
         model.setMedias(new ArrayList<>());
@@ -263,6 +248,16 @@ public class TumblrMapper {
 
             if (model.getText() == null) {
                 String str = removeSharedBlogLink(video.getCaption());
+                model.setText(AttributedString.xhtml(str));
+            }
+        }
+
+        if (post instanceof QuotePost) {
+            QuotePost quote = (QuotePost) post;
+
+            if (model.getText() == null) {
+                String str = removeSharedBlogLink(
+                        quote.getText() + " / " + quote.getSource());
                 model.setText(AttributedString.xhtml(str));
             }
         }
@@ -431,8 +426,10 @@ public class TumblrMapper {
     public static Map<String, Trail> getTrailMap(
             List<com.tumblr.jumblr.types.Post> posts) {
 
-        List<Trail> trails = posts.stream() //
-                .flatMap(e -> e.getTrail().stream()) //
+        List<Trail> trails = posts.stream()
+                .map(Post::getTrail)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
         Map<String, Trail> results = new HashMap<>();

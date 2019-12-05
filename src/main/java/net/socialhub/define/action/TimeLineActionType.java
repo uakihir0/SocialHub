@@ -10,5 +10,6 @@ public enum TimeLineActionType implements ActionType {
     UserMediaTimeLine,
     SearchTimeLine,
     ChannelTimeLine,
+    MessageTimeLine,
     ;
 }

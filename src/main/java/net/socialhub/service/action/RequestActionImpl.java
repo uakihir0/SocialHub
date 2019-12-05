@@ -147,6 +147,18 @@ public class RequestActionImpl implements RequestAction {
                         .toJson());
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CommentsRequest getMessageTimeLine(Identify id) {
+        return getCommentsRequest(MessageTimeLine,
+                (paging) -> account.action().getMessageTimeLine(id, paging),
+                () -> new SerializeBuilder(MessageTimeLine)
+                        .add("id", id.toString())
+                        .toJson());
+    }
+    
     // ============================================================== //
     // Inner Class
     // ============================================================== //

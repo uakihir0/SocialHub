@@ -1,7 +1,6 @@
 package net.socialhub.service.action;
 
 import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Paging;
 import net.socialhub.service.action.request.CommentsRequest;
 import net.socialhub.service.action.request.UsersRequest;
 
@@ -76,4 +75,10 @@ public interface RequestAction {
      * チャンネルのタイムラインを取得
      */
     CommentsRequest getChannelTimeLine(Identify id);
+
+    /**
+     * Get Message TimeLine
+     * メッセージのタイムラインを取得
+     */
+    CommentsRequest getMessageTimeLine(Identify id);
 }

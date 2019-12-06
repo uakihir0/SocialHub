@@ -386,7 +386,7 @@ public class SlackAction extends AccountActionImpl {
             Future<ImListResponse> imResponseFuture = pool.submit(() ->
                     auth.getAccessor().getSlack().methods()
                             .imList(ImListRequest.builder().token(token)
-                                    .setGetLatest(true)
+                                    .getLatest(true)
                                     .cursor(cursor)
                                     .limit(count)
                                     .build()));
@@ -394,7 +394,7 @@ public class SlackAction extends AccountActionImpl {
             Future<MpimListResponse> mpimResponseFuture = pool.submit(() ->
                     auth.getAccessor().getSlack().methods()
                             .mpimList(MpimListRequest.builder().token(token)
-                                    .setGetLatest(true)
+                                    .getLatest(true)
                                     .cursor(cursor)
                                     .limit(count)
                                     .build()));

@@ -34,4 +34,4 @@ after_success:
   - git add --all
   - git commit -m "by Travis CI (JOB $TRAVIS_JOB_NUMBER)"
   - git remote add origin https://${AZ_TOKEN}@dev.azure.com/SocialHub/ObjCBinary/_git/ObjCBinary
-  - git push -f origin ${RUN_TARGET}
+  #- git push -f origin ${RUN_TARGET}

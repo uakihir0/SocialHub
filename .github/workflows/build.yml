@@ -43,4 +43,4 @@ jobs:
           git add --all
           git commit -m "by GitHub Action CI (SHA ${GITHUB_SHA})"
           git remote add origin https://${AZ_TOKEN}@dev.azure.com/SocialHub/ObjCBinary/_git/ObjCBinary
-          git push -f origin ${RUN_TARGET}sh
+          git push -f origin ${RUN_TARGET}

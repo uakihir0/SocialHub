@@ -42,15 +42,8 @@ import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.request.MediaForm;
-import net.socialhub.model.service.Channel;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Context;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Service;
 import net.socialhub.model.service.Thread;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.addition.slack.SlackIdentify;
 import net.socialhub.model.service.addition.slack.SlackTeam;
@@ -65,15 +58,7 @@ import net.socialhub.utils.LimitMap;
 import net.socialhub.utils.MapperUtil;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -255,9 +240,14 @@ public class SlackAction extends AccountActionImpl {
 
             Future<ChannelsRepliesResponse> responseFuture = pool.submit(() -> {
 
-                // スレッドID を取得する (SlackComment であることを期待)
-                String threadId = (id instanceof SlackComment) ? //
-                        ((SlackComment) id).getThreadId() : (String) id.getId();
+                // スレッドID を取得
+                String threadId = (String) id.getId();
+                if (id instanceof SlackComment) {
+                    SlackComment sc = (SlackComment) id;
+                    if (sc.getThreadId() != null) {
+                        threadId = sc.getThreadId();
+                    }
+                }
 
                 return auth.getAccessor().getSlack() //
                         .methods().channelsReplies(ChannelsRepliesRequest.builder() //
@@ -285,9 +275,11 @@ public class SlackAction extends AccountActionImpl {
             // ------------------------------------------------ //
 
             Service service = getAccount().getService();
-            List<String> users = response.getMessages().stream() //
-                    .map(Message::getUser).filter(Objects::nonNull) //
-                    .distinct().collect(Collectors.toList());
+
+            List<Message> messages = response.getMessages();
+            List<String> users = (messages == null) ? new ArrayList<>() :
+                    messages.stream().map(Message::getUser).filter(Objects::nonNull)
+                            .distinct().collect(Collectors.toList());
 
             Map<String, User> userMap = users.parallelStream() //
                     .collect(Collectors.toMap(Function.identity(), //

@@ -22,7 +22,7 @@ SocialHub is a multi social network service's API library written in **Java**, a
 * [**Instagram**](https://www.instagram.com/)
   * [Instagram API](https://www.instagram.com/developer/) is deplicated, and [new Graph API](https://developers.facebook.com/products/instagram/) is buissiness use.
 * [**Pleroma**](https://pleroma.social/)
-* [**Misskey**](https://joinmisskey.github.io/ja/)
+* [**Misskey**](https://join.misskey.page/ja/)
 
 
 Most of all libraries are modified (remove complex dependency and unused functions in SocialHub) for compilation to Objective-C with [J2ObjC].
@@ -81,8 +81,7 @@ if you want more samples, please see [detail documents](./docs/README.md) and te
 [J2ObjC] is project aim to compile **Java** code to **Objective-C** code. SocialHub is adapted with J2ObjC compilation So, you can use SocialHub as an Objective-C library (also use in Swift) in MacOS or iOS application development. Travis CI compiles SocialHub and make [**SocialHub CocoaPods Repository**](https://dev.azure.com/SocialHub/_git/ObjCBinary). It's easy way to use this repository rather than compiling yourself.
 
 ### Compile to Objective-C
-To compile SocialHub to Objective-C framework, do following instructions. **It's only executable on MacOS environment** ([This file](./.travis.yml) is script of followings.)
-
+To compile SocialHub to Objective-C framework, do following instructions. **It's only executable on MacOS environment** ([This file](./.github/workflows/build.yml) is script of followings.)
 
 1. Download latest J2ObjC builds and unzip
 

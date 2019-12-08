@@ -38,10 +38,11 @@ public class CommentsRequestGroupActionImpl implements CommentsRequestGroupActio
     private CommentGroup getComments(Paging paging) {
         CommentGroupImpl model = new CommentGroupImpl();
         ExecutorService pool = Executors.newCachedThreadPool();
+        Paging copiedPage = (paging != null) ? paging.copy() : null;
 
         Map<CommentsRequest, Future<Pageable<Comment>>> futures = requestGroup //
                 .getRequests().stream().collect(Collectors.toMap(Function.identity(), //
-                        (request) -> pool.submit(() -> request.getComments(paging.copy()))));
+                        (request) -> pool.submit(() -> request.getComments(copiedPage))));
 
         Map<CommentsRequest, Pageable<Comment>> entities = futures //
                 .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, //

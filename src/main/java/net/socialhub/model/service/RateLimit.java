@@ -1,7 +1,7 @@
 package net.socialhub.model.service;
 
-import net.socialhub.define.action.ActionType;
 import net.socialhub.define.ServiceType;
+import net.socialhub.define.action.ActionType;
 import org.apache.commons.lang3.time.DateUtils;
 import twitter4j.RateLimitStatus;
 
@@ -24,8 +24,12 @@ public class RateLimit implements Serializable {
      * (For Twitter)
      */
     public void addInfo(ActionType action, twitter4j.TwitterResponse response) {
-        RateLimitValue value = new RateLimitValue(response);
-        dictionary.put(action, value);
+
+        // POST 系についてはレートリミットは取得不可
+        if (response.getRateLimitStatus() != null) {
+            RateLimitValue value = new RateLimitValue(response);
+            dictionary.put(action, value);
+        }
     }
 
     /**

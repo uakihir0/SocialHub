@@ -1,6 +1,7 @@
-package net.socialhub.apis;
+package net.socialhub.apis.addition;
 
 import net.socialhub.SocialAuthUtil;
+import net.socialhub.apis.AbstractTimelineTest;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.support.TrendComment;

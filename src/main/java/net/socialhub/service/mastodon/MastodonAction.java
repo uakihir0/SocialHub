@@ -3,11 +3,7 @@ package net.socialhub.service.mastodon;
 import mastodon4j.Mastodon;
 import mastodon4j.Page;
 import mastodon4j.Range;
-import mastodon4j.entity.Attachment;
-import mastodon4j.entity.Conversation;
-import mastodon4j.entity.Notification;
-import mastodon4j.entity.Results;
-import mastodon4j.entity.Status;
+import mastodon4j.entity.*;
 import mastodon4j.entity.request.StatusUpdate;
 import mastodon4j.entity.share.Response;
 import mastodon4j.streaming.PublicStream;
@@ -18,22 +14,17 @@ import net.socialhub.define.ServiceType;
 import net.socialhub.define.action.service.MastodonActionType;
 import net.socialhub.define.service.mastodon.MastodonNotificationType;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
+import net.socialhub.define.service.mastodon.MastodonVisibility;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
-import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
-import net.socialhub.model.service.Channel;
-import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Context;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
-import net.socialhub.model.service.Service;
 import net.socialhub.model.service.Thread;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.Trend;
+import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.mastodon.MastodonStream;
 import net.socialhub.model.service.addition.mastodon.MastodonThread;
 import net.socialhub.model.service.event.DeleteCommentEvent;
@@ -55,42 +46,16 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static net.socialhub.define.action.OtherActionType.BlockUser;
-import static net.socialhub.define.action.OtherActionType.DeleteComment;
-import static net.socialhub.define.action.OtherActionType.FollowUser;
-import static net.socialhub.define.action.OtherActionType.GetChannels;
-import static net.socialhub.define.action.OtherActionType.GetComment;
-import static net.socialhub.define.action.OtherActionType.GetContext;
-import static net.socialhub.define.action.OtherActionType.GetRelationship;
-import static net.socialhub.define.action.OtherActionType.GetUser;
-import static net.socialhub.define.action.OtherActionType.GetUserMe;
-import static net.socialhub.define.action.OtherActionType.LikeComment;
-import static net.socialhub.define.action.OtherActionType.MuteUser;
-import static net.socialhub.define.action.OtherActionType.PostComment;
-import static net.socialhub.define.action.OtherActionType.ShareComment;
-import static net.socialhub.define.action.OtherActionType.UnShareComment;
-import static net.socialhub.define.action.OtherActionType.UnblockUser;
-import static net.socialhub.define.action.OtherActionType.UnfollowUser;
-import static net.socialhub.define.action.OtherActionType.UnlikeComment;
-import static net.socialhub.define.action.OtherActionType.UnmuteUser;
-import static net.socialhub.define.action.TimeLineActionType.ChannelTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserMediaTimeLine;
-import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
-import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
-import static net.socialhub.define.action.UsersActionType.SearchUsers;
+import static net.socialhub.define.action.OtherActionType.*;
+import static net.socialhub.define.action.TimeLineActionType.*;
+import static net.socialhub.define.action.UsersActionType.*;
 
 public class MastodonAction extends AccountActionImpl {
 
@@ -451,6 +416,11 @@ public class MastodonAction extends AccountActionImpl {
                 update.setInReplyToId((Long) req.getTargetId());
             }
 
+            // ダイレクトメッセージの場合
+            if (req.isMessage()) {
+                update.setVisibility(MastodonVisibility.Direct.getCode());
+            }
+
             // 画像の処理
             if (req.getImages() != null && !req.getImages().isEmpty()) {
 
@@ -789,7 +759,7 @@ public class MastodonAction extends AccountActionImpl {
      */
     @Override
     public void postMessage(CommentForm req) {
-        throw new NotImplimentedException();
+        postComment(req);
     }
 
     // ============================================================== //
@@ -811,6 +781,43 @@ public class MastodonAction extends AccountActionImpl {
             return new MastodonStream(stream);
         });
     }
+
+    // ============================================================== //
+    // Other
+    // ============================================================== //
+
+    /**
+     * Get Mastodon Trends
+     * Mastodon におけるトレンドを取得
+     */
+    public List<Trend> getTrends(Integer limit) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Response<mastodon4j.entity.Trend[]> response =
+                    mastodon.trend().getTrends(limit.longValue());
+
+            List<Trend> results = new ArrayList<>();
+            for (mastodon4j.entity.Trend trend : response.get()) {
+
+                Trend model = new Trend();
+                model.setName("#" + trend.getName());
+                model.setQuery("#" + trend.getName());
+
+                int uses = Arrays
+                        .stream(trend.getHistory())
+                        .map(History::getUses)
+                        .reduce(Long::sum)
+                        .orElse(0L)
+                        .intValue();
+
+                model.setVolume(uses);
+                results.add(model);
+            }
+
+            return results;
+        });
+    }
+
 
     // ============================================================== //
     // Request

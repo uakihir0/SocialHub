@@ -15,7 +15,7 @@ public class Reaction {
     private Long count;
 
     /** 認証ユーザーがリアクションしたか？ */
-    private Boolean isReacting = false;
+    private boolean isReacting = false;
 
     //region // Getter&Setter
     public String getName() {
@@ -50,11 +50,11 @@ public class Reaction {
         this.count = count;
     }
 
-    public Boolean getReacting() {
+    public boolean getReacting() {
         return isReacting;
     }
 
-    public void setReacting(Boolean reacting) {
+    public void setReacting(boolean reacting) {
         isReacting = reacting;
     }
 

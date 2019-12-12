@@ -12,16 +12,19 @@ public class CommentForm {
     // ============================================================== //
 
     /** Text */
-    private String message;
+    private String text;
 
     /** Reply or Thread ID */
-    private Object replyId;
+    private Object targetId;
 
     /** Images */
     private List<MediaForm> images;
 
-    /** Sensitive */
-    private Boolean isSensitive;
+    /** Is Sensitive Content? */
+    private boolean isSensitive = false;
+
+    /** Is Message? */
+    private boolean isMessage = false;
 
     /** Other params */
     private Map<String, Object> params;
@@ -31,18 +34,18 @@ public class CommentForm {
     // ============================================================== //
 
     /**
-     * Set Messages
+     * Set Text
      */
-    public CommentForm message(String message) {
-        this.message = message;
+    public CommentForm text(String text) {
+        this.text = text;
         return this;
     }
 
     /**
-     * Set Reply ID
+     * Set Reply (Thread) ID
      */
-    public CommentForm replyId(Object replyId) {
-        this.replyId = replyId;
+    public CommentForm targetId(Object targetId) {
+        this.targetId = targetId;
         return this;
     }
 
@@ -79,6 +82,14 @@ public class CommentForm {
     }
 
     /**
+     * Set Message
+     */
+    public CommentForm message(boolean isMessage) {
+        this.isMessage = isMessage;
+        return this;
+    }
+
+    /**
      * Set addition params
      */
     public CommentForm param(String key, Object value) {
@@ -94,24 +105,28 @@ public class CommentForm {
     // ============================================================== //
 
     //region // Getter&Setter
-    public String getMessage() {
-        return message;
+    public String getText() {
+        return text;
     }
 
-    public Object getReplyId() {
-        return replyId;
+    public Object getTargetId() {
+        return targetId;
     }
 
     public List<MediaForm> getImages() {
         return images;
     }
 
-    public Boolean getSensitive() {
+    public boolean isSensitive() {
         return isSensitive;
     }
 
     public Map<String, Object> getParams() {
         return params;
+    }
+
+    public boolean isMessage() {
+        return isMessage;
     }
     //endregion
 }

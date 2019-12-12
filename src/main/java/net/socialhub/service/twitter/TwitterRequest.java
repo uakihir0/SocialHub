@@ -44,7 +44,7 @@ public class TwitterRequest extends RequestActionImpl {
             User user = (User) id;
             request.setCommentFormSupplier(() -> {
                 CommentForm form = new CommentForm();
-                form.message(user.getAccountIdentify() + " ");
+                form.text(user.getAccountIdentify() + " ");
                 return form;
             });
         }
@@ -63,7 +63,7 @@ public class TwitterRequest extends RequestActionImpl {
             User user = (User) id;
             request.setCommentFormSupplier(() -> {
                 CommentForm form = new CommentForm();
-                form.message(user.getAccountIdentify() + " ");
+                form.text(user.getAccountIdentify() + " ");
                 return form;
             });
         }
@@ -82,7 +82,7 @@ public class TwitterRequest extends RequestActionImpl {
             User user = (User) id;
             request.setCommentFormSupplier(() -> {
                 CommentForm form = new CommentForm();
-                form.message(user.getAccountIdentify() + " ");
+                form.text(user.getAccountIdentify() + " ");
                 return form;
             });
         }
@@ -103,7 +103,7 @@ public class TwitterRequest extends RequestActionImpl {
 
         request.setCommentFormSupplier(() -> {
             CommentForm form = new CommentForm();
-            form.message(query + " ");
+            form.text(query + " ");
             return form;
         });
         return request;

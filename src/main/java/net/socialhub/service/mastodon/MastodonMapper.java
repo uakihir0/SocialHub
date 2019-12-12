@@ -137,7 +137,7 @@ public class MastodonMapper {
 
         } catch (ParseException e) {
             logger.error(e);
-            return null;
+            throw new IllegalStateException(e);
         }
     }
 
@@ -167,14 +167,14 @@ public class MastodonMapper {
         Media media = new Media();
         switch (MastodonMediaType.of(attachment.getType())) {
 
-            case Image: {
-                media.setType(MediaType.Image);
-                break;
-            }
-            case Video: {
-                media.setType(MediaType.Movie);
-                break;
-            }
+        case Image: {
+            media.setType(MediaType.Image);
+            break;
+        }
+        case Video: {
+            media.setType(MediaType.Movie);
+            break;
+        }
         }
         media.setSourceUrl(attachment.getUrl());
         media.setPreviewUrl(attachment.getPreviewUrl());

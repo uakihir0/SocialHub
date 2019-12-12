@@ -26,7 +26,16 @@ public class MessageThreadTest extends AbstractApiTest {
         threads.getEntities().forEach(this::printThread);
     }
 
+    @Test
+    public void testMessageThreadTest_Mastodon() {
+
+        Account account = SocialAuthUtil.getMastodonAccount();
+        Pageable<Thread> threads = account.action().getMessageThread(new Paging(50L));
+        threads.getEntities().forEach(this::printThread);
+    }
+
     private void printThread(Thread thread) {
+
         System.out.println("===================================");
         System.out.println("ID> " + thread.getId());
         for (User user : thread.getUsers()) {

@@ -21,6 +21,11 @@ public class Thread extends Identify {
      */
     private Date lastUpdate;
 
+    /**
+     * Description about this thread
+     * スレッドの簡単な説明文
+     */
+    private String description;
 
     public Thread(Service service) {
         super(service);
@@ -41,6 +46,14 @@ public class Thread extends Identify {
 
     public void setLastUpdate(Date lastUpdate) {
         this.lastUpdate = lastUpdate;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
     //endregion
 }

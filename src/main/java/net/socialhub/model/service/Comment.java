@@ -44,7 +44,7 @@ public class Comment extends Identify {
      * Is possibly sensitive?
      * NSFW in mastodon term.
      */
-    private Boolean possiblySensitive;
+    private boolean possiblySensitive = false;
 
     /**
      * Application which user used
@@ -56,7 +56,7 @@ public class Comment extends Identify {
      * Is direct message comment?
      * (Comment and message are same model)
      */
-    private Boolean directMessage;
+    private boolean directMessage = false;
 
     /**
      * Get many kind of reactions
@@ -143,11 +143,11 @@ public class Comment extends Identify {
         this.sharedComment = sharedComment;
     }
 
-    public Boolean getPossiblySensitive() {
+    public boolean getPossiblySensitive() {
         return possiblySensitive;
     }
 
-    public void setPossiblySensitive(Boolean possiblySensitive) {
+    public void setPossiblySensitive(boolean possiblySensitive) {
         this.possiblySensitive = possiblySensitive;
     }
 
@@ -159,11 +159,11 @@ public class Comment extends Identify {
         this.application = application;
     }
 
-    public Boolean getDirectMessage() {
+    public boolean getDirectMessage() {
         return directMessage;
     }
 
-    public void setDirectMessage(Boolean directMessage) {
+    public void setDirectMessage(boolean directMessage) {
         this.directMessage = directMessage;
     }
     //endregion

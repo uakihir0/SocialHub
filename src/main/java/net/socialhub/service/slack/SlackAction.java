@@ -650,8 +650,8 @@ public class SlackAction extends AccountActionImpl {
                                         .filestream(new ByteArrayInputStream(media.getData())) //
                                         .filename(media.getName());
 
-                        if (req.getReplyId() != null) {
-                            builder.threadTs((String) req.getReplyId());
+                        if (req.getTargetId() != null) {
+                            builder.threadTs((String) req.getTargetId());
                         }
 
                         auth.getAccessor().getSlack().methods() //
@@ -661,11 +661,11 @@ public class SlackAction extends AccountActionImpl {
                         // 最後にコメントを投稿
                         ChatPostMessageRequestBuilder builder = //
                                 ChatPostMessageRequest.builder() //
-                                        .text(req.getMessage()) //
+                                        .text(req.getText()) //
                                         .channel(channel);
 
-                        if (req.getReplyId() != null) {
-                            builder.threadTs((String) req.getReplyId());
+                        if (req.getTargetId() != null) {
+                            builder.threadTs((String) req.getTargetId());
                         }
 
                         auth.getAccessor().getSlack().methods() //
@@ -678,13 +678,13 @@ public class SlackAction extends AccountActionImpl {
                     MediaForm media = req.getImages().get(0);
                     FilesUploadRequestBuilder builder = //
                             FilesUploadRequest.builder() //
-                                    .initialComment(req.getMessage()) //
+                                    .initialComment(req.getText()) //
                                     .channels(Collections.singletonList(channel)) //
                                     .filestream(new ByteArrayInputStream(media.getData())) //
                                     .filename(media.getName());
 
-                    if (req.getReplyId() != null) {
-                        builder.threadTs((String) req.getReplyId());
+                    if (req.getTargetId() != null) {
+                        builder.threadTs((String) req.getTargetId());
                     }
 
                     auth.getAccessor().getSlack().methods() //
@@ -696,11 +696,11 @@ public class SlackAction extends AccountActionImpl {
                 // コメントだけの場合
                 ChatPostMessageRequestBuilder builder = //
                         ChatPostMessageRequest.builder() //
-                                .text(req.getMessage()) //
+                                .text(req.getText()) //
                                 .channel(channel);
 
-                if (req.getReplyId() != null) {
-                    builder.threadTs((String) req.getReplyId());
+                if (req.getTargetId() != null) {
+                    builder.threadTs((String) req.getTargetId());
                 }
 
                 auth.getAccessor().getSlack().methods() //

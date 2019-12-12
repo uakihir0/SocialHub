@@ -31,9 +31,9 @@ public class SlackComment extends Comment {
             return super.getReactions();
         }
 
-        List<Reaction> reactions = super.getReactions();
-        reactions.addAll(this.reactions);
-        return reactions;
+        List<Reaction> results = super.getReactions();
+        results.addAll(reactions);
+        return results;
     }
 
     @Override
@@ -65,7 +65,8 @@ public class SlackComment extends Comment {
     public CommentForm getReplyForm() {
         CommentForm form = new CommentForm();
         form.param(SlackFormKey.CHANNEL_KEY, channel);
-        form.replyId(getId());
+        form.message(getDirectMessage());
+        form.targetId(getId());
         return form;
     }
 
@@ -73,7 +74,7 @@ public class SlackComment extends Comment {
         this.reactions = reactions;
     }
 
-    //region // Getter&Setter
+    // region // Getter&Setter
     public String getChannel() {
         return channel;
     }
@@ -89,5 +90,5 @@ public class SlackComment extends Comment {
     public void setThreadId(String threadId) {
         this.threadId = threadId;
     }
-    //endregion
+    // endregion
 }

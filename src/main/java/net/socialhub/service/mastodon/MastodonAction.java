@@ -4,6 +4,7 @@ import mastodon4j.Mastodon;
 import mastodon4j.Page;
 import mastodon4j.Range;
 import mastodon4j.entity.Attachment;
+import mastodon4j.entity.Conversation;
 import mastodon4j.entity.Notification;
 import mastodon4j.entity.Results;
 import mastodon4j.entity.Status;
@@ -13,6 +14,7 @@ import mastodon4j.streaming.PublicStream;
 import mastodon4j.streaming.PublicStreamListener;
 import mastodon4j.streaming.UserStream;
 import mastodon4j.streaming.UserStreamListener;
+import net.socialhub.define.ServiceType;
 import net.socialhub.define.action.service.MastodonActionType;
 import net.socialhub.define.service.mastodon.MastodonNotificationType;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
@@ -33,6 +35,7 @@ import net.socialhub.model.service.Service;
 import net.socialhub.model.service.Thread;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.mastodon.MastodonStream;
+import net.socialhub.model.service.addition.mastodon.MastodonThread;
 import net.socialhub.model.service.event.DeleteCommentEvent;
 import net.socialhub.model.service.event.UpdateCommentEvent;
 import net.socialhub.model.service.paging.BorderPaging;
@@ -441,11 +444,11 @@ public class MastodonAction extends AccountActionImpl {
             Service service = getAccount().getService();
 
             StatusUpdate update = new StatusUpdate();
-            update.setContent(req.getMessage());
+            update.setContent(req.getText());
 
             // 返信の処理
-            if (req.getReplyId() != null) {
-                update.setInReplyToId((Long) req.getReplyId());
+            if (req.getTargetId() != null) {
+                update.setInReplyToId((Long) req.getTargetId());
             }
 
             // 画像の処理
@@ -466,7 +469,7 @@ public class MastodonAction extends AccountActionImpl {
             }
 
             // センシティブな内容
-            if (req.getSensitive() != null && req.getSensitive()) {
+            if (req.isSensitive()) {
                 update.setSensitive(true);
             }
 
@@ -709,34 +712,42 @@ public class MastodonAction extends AccountActionImpl {
      */
     @Override
     public Pageable<Thread> getMessageThread(Paging paging) {
-        Service service = getAccount().getService();
-        Pageable<Comment> comments = getMentionTimeLine(paging);
-        List<Comment> messages = comments.getEntities().stream()
-                .filter(Comment::getDirectMessage).collect(toList());
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Range range = getRange(paging);
 
-        Map<Long, List<Comment>> messageMap = messages.stream()
-                .collect(groupingBy((e) -> (Long) e.getUser().getId()));
+            Response<Conversation[]> response =
+                    mastodon.timelines().getConversations(range);
 
-        List<Thread> threads = new ArrayList<>();
-        for (Long userId : messageMap.keySet()) {
-            List<Comment> userMessages = messageMap.get(userId);
+            List<Thread> threads = new ArrayList<>();
+            for (Conversation conv : response.get()) {
 
-            Comment latest = userMessages.stream()
-                    .max(comparing(Comment::getCreateAt))
-                    .orElseThrow(IllegalStateException::new);
+                // 最後のコメントを取得
+                Comment comment = MastodonMapper
+                        .comment(conv.getLastStatus(), service);
 
-            Thread thread = new Thread(service);
-            thread.setId(latest.getUser().getId());
-            thread.setUsers(new ArrayList<>());
-            thread.getUsers().add(latest.getUser());
-            thread.setLastUpdate(latest.getCreateAt());
-            threads.add(thread);
-        }
+                MastodonThread thread = new MastodonThread(service);
+                thread.setDescription(comment.getText().getDisplayText());
+                thread.setLastCommentId((Long) comment.getId());
+                thread.setLastUpdate(comment.getCreateAt());
+                thread.setUsers(new ArrayList<>());
+                thread.setId(conv.getId());
+                threads.add(thread);
 
-        Pageable<Thread> results = new Pageable<>();
-        results.setPaging(comments.getPaging());
-        results.setEntities(threads);
-        return results;
+                // アカウントリストを設定
+                for (mastodon4j.entity.Account account : conv.getAccounts()) {
+                    User user = MastodonMapper.user(account, service);
+                    thread.getUsers().add(user);
+                }
+            }
+
+            Paging border = MapperUtil.mappingBorderPaging(paging, ServiceType.Mastodon);
+            Pageable<Thread> results = new Pageable<>();
+            results.setEntities(threads);
+            results.setPaging(border);
+            return results;
+        });
     }
 
     /**
@@ -744,7 +755,33 @@ public class MastodonAction extends AccountActionImpl {
      */
     @Override
     public Pageable<Comment> getMessageTimeLine(Identify id, Paging paging) {
-        throw new NotImplimentedException();
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            Long commentId = (id instanceof MastodonThread) ?
+                    ((MastodonThread) id).getLastCommentId() :
+                    (Long) id.getId();
+
+            Response<mastodon4j.entity.Context> response =
+                    mastodon.getContext(commentId);
+
+            List<Comment> comments = new ArrayList<>();
+            comments.addAll(Arrays.stream(response.get().getDescendants()) //
+                    .map(e -> MastodonMapper.comment(e, service)) //
+                    .collect(toList()));
+            comments.addAll(Arrays.stream(response.get().getAncestors()) //
+                    .map(e -> MastodonMapper.comment(e, service)) //
+                    .collect(toList()));
+
+            comments.sort(comparing(Comment::getCreateAt).reversed());
+            service.getRateLimit().addInfo(GetContext, response);
+
+            Pageable<Comment> pageable = new Pageable<>();
+            pageable.setEntities(comments);
+            pageable.setPaging(paging);
+            return pageable;
+        });
     }
 
     /**

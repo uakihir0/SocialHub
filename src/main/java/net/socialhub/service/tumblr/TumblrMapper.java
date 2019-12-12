@@ -166,6 +166,7 @@ public class TumblrMapper {
         TumblrComment model = new TumblrComment(service);
         model.setCreateAt(new Date(post.getTimestamp() * 1000));
         model.setReblogKey(post.getReblogKey());
+        model.setNoteCount(post.getNoteCount());
 
         model.setId(post.getId());
         model.setUser(user(post, trails, service));
@@ -196,6 +197,7 @@ public class TumblrMapper {
         TumblrComment model = new TumblrComment(service);
         model.setCreateAt(new Date(post.getTimestamp() * 1000));
         model.setReblogKey(post.getReblogKey());
+        model.setNoteCount(post.getNoteCount());
 
         model.setId(post.getRebloggedRootId());
         model.setUser(reblogUser(post, trails, service));

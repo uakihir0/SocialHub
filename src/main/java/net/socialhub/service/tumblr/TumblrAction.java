@@ -284,7 +284,7 @@ public class TumblrAction extends AccountActionImpl {
                     photoPost.addPhoto(photo);
                 }
 
-                photoPost.setCaption(req.getMessage());
+                photoPost.setCaption(req.getText());
                 post = photoPost;
 
             } else {
@@ -293,7 +293,7 @@ public class TumblrAction extends AccountActionImpl {
                 TextPost textPost = auth.getAccessor() //
                         .newPost((String) me.getId(), TextPost.class);
 
-                textPost.setBody(req.getMessage());
+                textPost.setBody(req.getText());
                 post = textPost;
             }
 

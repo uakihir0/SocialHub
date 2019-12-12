@@ -166,6 +166,7 @@ public class TwitterMapper {
         model.setId(message.getId());
         model.setCreateAt(message.getCreatedAt());
         model.setUser(users.get(message.getSenderId()));
+        model.setDirectMessage(true);
 
         AttributedString text = new AttributedString(displayText(message));
         model.setText(text);

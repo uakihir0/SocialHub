@@ -494,14 +494,19 @@ public class TwitterAction extends AccountActionImpl {
      */
     @Override
     public void postComment(CommentForm req) {
+        if (req.isMessage()) {
+            postMessage(req);
+            return;
+        }
+
         proceed(() -> {
             Twitter twitter = auth.getAccessor();
             ExecutorService pool = Executors.newCachedThreadPool();
-            StatusUpdate update = new StatusUpdate(req.getMessage());
+            StatusUpdate update = new StatusUpdate(req.getText());
 
             // 返信の処理
-            if (req.getReplyId() != null) {
-                update.setInReplyToStatusId((Long) req.getReplyId());
+            if (req.getTargetId() != null) {
+                update.setInReplyToStatusId((Long) req.getTargetId());
             }
 
             // 画像の処理
@@ -519,7 +524,7 @@ public class TwitterAction extends AccountActionImpl {
             }
 
             // センシティブな内容
-            if (req.getSensitive() != null && req.getSensitive()) {
+            if (req.isSensitive()) {
                 update.setPossiblySensitive(true);
             }
 
@@ -967,12 +972,17 @@ public class TwitterAction extends AccountActionImpl {
      */
     @Override
     public void postMessage(CommentForm req) {
+        if (!req.isMessage()) {
+            postComment(req);
+            return;
+        }
+
         proceed(() -> {
             Twitter twitter = auth.getAccessor();
             ExecutorService pool = Executors.newCachedThreadPool();
 
             // どの DM スレッドかに送信するか？
-            if (req.getReplyId() != null) {
+            if (req.getTargetId() != null) {
                 throw new IllegalStateException("Needs DM Thread ID.");
             }
 
@@ -995,7 +1005,7 @@ public class TwitterAction extends AccountActionImpl {
             // メディアがない場合
             if (mediaIds.size() == 0) {
                 twitter.directMessages().sendDirectMessage(
-                        (Long) req.getReplyId(), req.getMessage());
+                        (Long) req.getTargetId(), req.getText());
 
             } else {
 
@@ -1005,12 +1015,12 @@ public class TwitterAction extends AccountActionImpl {
 
                     if (mediaId.equals(mediaIds.get(lastIndex))) {
                         twitter.directMessages().sendDirectMessage(
-                                (Long) req.getReplyId(), req.getMessage(), mediaId);
+                                (Long) req.getTargetId(), req.getText(), mediaId);
                     } else {
 
                         // 複数画像が存在する場合は先に画像情報を送信
                         twitter.directMessages().sendDirectMessage(
-                                (Long) req.getReplyId(), "", mediaId);
+                                (Long) req.getTargetId(), "", mediaId);
                     }
                 }
             }

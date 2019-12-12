@@ -22,7 +22,7 @@ public class PostCommentTest extends AbstractApiTest {
 
         CommentForm req = new CommentForm() //
                 .addImage(convertFile(stream), "icon.png") //
-                .message("SocialHub Test");
+                .text("SocialHub Test");
 
         account.action().postComment(req);
     }
@@ -37,7 +37,7 @@ public class PostCommentTest extends AbstractApiTest {
 
         CommentForm req = new CommentForm() //
                 .addImage(convertFile(stream), "icon.png") //
-                .message("SocialHub Test");
+                .text("SocialHub Test");
 
         account.action().postComment(req);
     }
@@ -53,7 +53,7 @@ public class PostCommentTest extends AbstractApiTest {
 
         CommentForm req = new CommentForm() //
                 .addImage(convertFile(stream), "icon.png") //
-                .message("SocialHub Test");
+                .text("SocialHub Test");
 
         account.action().postComment(req);
     }
@@ -67,7 +67,7 @@ public class PostCommentTest extends AbstractApiTest {
         CommentForm req = new CommentForm() //
                 .addImage(convertFile(stream), "icon.png") //
                 .param(SlackFormKey.CHANNEL_KEY, "CHANNEL_ID") //
-                .message("SocialHub Test");
+                .text("SocialHub Test");
 
         account.action().postComment(req);
     }
@@ -77,7 +77,7 @@ public class PostCommentTest extends AbstractApiTest {
     public void testPostHomeSlackFromRequest() {
         Account account = SocialAuthUtil.getSlackAccount();
         CommentForm req = account.request().getHomeTimeLine()
-                .getCommentRequest().message("SocialHub Test");
+                .getCommentRequest().text("SocialHub Test");
 
         account.action().postComment(req);
     }

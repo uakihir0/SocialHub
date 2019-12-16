@@ -1,6 +1,7 @@
 package net.socialhub.service.action;
 
 import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Request;
 import net.socialhub.service.action.request.CommentsRequest;
 import net.socialhub.service.action.request.UsersRequest;
 
@@ -81,4 +82,14 @@ public interface RequestAction {
      * メッセージのタイムラインを取得
      */
     CommentsRequest getMessageTimeLine(Identify id);
+
+    // ============================================================== //
+    // Serialize
+    // ============================================================== //
+
+    /**
+     * Get Deserialize Request (Comment or User)
+     * 文字列からリクエストオブジェクトをリストアする
+     */
+    Request fromSerializedString(String serialize);
 }

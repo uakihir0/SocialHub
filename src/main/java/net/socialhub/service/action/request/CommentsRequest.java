@@ -2,6 +2,8 @@ package net.socialhub.service.action.request;
 
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.*;
+import net.socialhub.service.action.RequestActionImpl;
+import net.socialhub.service.action.RequestActionImpl.SerializeBuilder;
 import net.socialhub.service.action.callback.EventCallback;
 
 import javax.annotation.Nonnull;
@@ -30,7 +32,7 @@ public interface CommentsRequest extends Request {
      * Make Comment Request
      * コメントリクエストの雛形作成
      */
-    CommentForm getCommentRequest();
+    CommentForm getCommentFrom();
 
     /**
      * To Serialized String
@@ -39,10 +41,9 @@ public interface CommentsRequest extends Request {
     String toSerializedString();
 
     /**
-     * From Serialized String
-     * シリアライズ文字列から生成
+     * Get Serialize Builder
+     * シリアライズビルダーの取得
      */
-    static CommentsRequest fromSerializedString() {
-        return null;
-    }
+    SerializeBuilder getSerializeBuilder();
+
 }

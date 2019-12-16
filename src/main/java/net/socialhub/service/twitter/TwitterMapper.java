@@ -545,11 +545,14 @@ public class TwitterMapper {
                     .map(e -> comment(e, users, service))
                     .collect(toList()));
 
-            thread.setLastUpdate(thread.getComments() //
-                    .getEntities().stream()
-                    .map(Comment::getCreateAt)
-                    .max(Date::compareTo)
-                    .orElse(null));
+            // 最新のコメント情報を取得
+            Comment lastComment = thread.getComments().getEntities().stream()
+                    .max(Comparator.comparing(Comment::getCreateAt)).orElse(null);
+
+            if (lastComment != null) {
+                thread.setLastUpdate(lastComment.getCreateAt());
+                thread.setDescription(lastComment.getText().getDisplayText());
+            }
 
             model.add(thread);
         });

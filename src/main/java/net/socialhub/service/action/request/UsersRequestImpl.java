@@ -5,6 +5,8 @@ import net.socialhub.model.Account;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.User;
+import net.socialhub.service.action.RequestActionImpl;
+import net.socialhub.service.action.RequestActionImpl.SerializeBuilder;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -12,7 +14,7 @@ import java.util.function.Supplier;
 public class UsersRequestImpl implements UsersRequest {
 
     private Function<Paging, Pageable<User>> usersFunction;
-    private Supplier<String> serializeSupplier;
+    private SerializeBuilder serializeBuilder;
 
     private ActionType actionType;
     private Account account;
@@ -38,7 +40,7 @@ public class UsersRequestImpl implements UsersRequest {
      */
     @Override
     public String toSerializedString() {
-        return serializeSupplier.get();
+        return getSerializeBuilder().toJson();
     }
 
     /**
@@ -47,6 +49,14 @@ public class UsersRequestImpl implements UsersRequest {
     @Override
     public Account getAccount() {
         return account;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SerializeBuilder getSerializeBuilder() {
+        return serializeBuilder;
     }
 
     //region // Getter&Setter
@@ -58,8 +68,8 @@ public class UsersRequestImpl implements UsersRequest {
         this.usersFunction = usersFunction;
     }
 
-    public void setSerializeSupplier(Supplier<String> serializeSupplier) {
-        this.serializeSupplier = serializeSupplier;
+    public void setSerializeBuilder(SerializeBuilder serializeBuilder) {
+        this.serializeBuilder = serializeBuilder;
     }
 
     public void setActionType(ActionType actionType) {

@@ -77,7 +77,7 @@ public class PostCommentTest extends AbstractApiTest {
     public void testPostHomeSlackFromRequest() {
         Account account = SocialAuthUtil.getSlackAccount();
         CommentForm req = account.request().getHomeTimeLine()
-                .getCommentRequest().text("SocialHub Test");
+                .getCommentFrom().text("SocialHub Test");
 
         account.action().postComment(req);
     }

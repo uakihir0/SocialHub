@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.Optional;
 
 /**
- * 識別
  * Identify
+ * 識別
  */
 public class Identify implements Serializable {
 
@@ -24,7 +24,46 @@ public class Identify implements Serializable {
     }
 
     /**
-     * Is Same Identify?
+     * Get serialized string ID. (for serialize request)
+     * (Get id string with type information.)
+     * 識別情報の ID に型情報を入れて文字列として返却
+     */
+    public String getSerializedIdString() {
+        if (id instanceof Integer) {
+            return "I" + id.toString();
+        }
+        if (id instanceof Long) {
+            return "L" + id.toString();
+        }
+        if (id instanceof String) {
+            return "S" + id.toString();
+        }
+        throw new IllegalStateException("Not supported type.");
+    }
+
+    /**
+     * Set serialized string ID. (for serialize request)
+     * (Set id with typed id string.)
+     * 型付き ID 文字列よりID情報を復元
+     */
+    public void setSerializedIdString(String idString) {
+        if (idString.startsWith("I")) {
+            id = Integer.parseInt(idString.substring(1));
+            return;
+        }
+        if (idString.startsWith("L")) {
+            id = Long.parseLong(idString.substring(1));
+            return;
+        }
+        if (idString.startsWith("S")) {
+            id = idString.substring(1);
+            return;
+        }
+        throw new IllegalStateException("Not supported type.");
+    }
+
+    /**
+     * Is same identify?
      * 同じ識別子か？
      */
     public boolean isSameIdentify(Identify id) {

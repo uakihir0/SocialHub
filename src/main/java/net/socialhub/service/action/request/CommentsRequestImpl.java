@@ -8,6 +8,8 @@ import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Stream;
+import net.socialhub.service.action.RequestActionImpl;
+import net.socialhub.service.action.RequestActionImpl.SerializeBuilder;
 import net.socialhub.service.action.callback.EventCallback;
 
 import javax.annotation.Nonnull;
@@ -18,8 +20,8 @@ public class CommentsRequestImpl implements CommentsRequest {
 
     private Function<Paging, Pageable<Comment>> commentsFunction;
     private Function<EventCallback, Stream> streamFunction;
-    private Supplier<CommentForm> commentFormSupplier;
-    private Supplier<String> serializeSupplier;
+    private SerializeBuilder serializeBuilder;
+    private CommentForm commentForm;
 
     private boolean streamRecommended = true;
     private ActionType actionType;
@@ -59,11 +61,11 @@ public class CommentsRequestImpl implements CommentsRequest {
      * {@inheritDoc}
      */
     @Override
-    public CommentForm getCommentRequest() {
-        if (commentFormSupplier == null) {
-            return new CommentForm();
+    public CommentForm getCommentFrom() {
+        if (commentForm == null) {
+            commentForm = new CommentForm();
         }
-        return commentFormSupplier.get();
+        return commentForm;
     }
 
     /**
@@ -71,7 +73,7 @@ public class CommentsRequestImpl implements CommentsRequest {
      */
     @Override
     public String toSerializedString() {
-        return serializeSupplier.get();
+        return getSerializeBuilder().toJson();
     }
 
     /**
@@ -88,6 +90,14 @@ public class CommentsRequestImpl implements CommentsRequest {
     @Override
     public ActionType getActionType() {
         return actionType;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SerializeBuilder getSerializeBuilder() {
+        return serializeBuilder;
     }
 
     //region // Getter&Setter
@@ -107,12 +117,12 @@ public class CommentsRequestImpl implements CommentsRequest {
         this.streamFunction = streamFunction;
     }
 
-    public void setCommentFormSupplier(Supplier<CommentForm> commentFormSupplier) {
-        this.commentFormSupplier = commentFormSupplier;
+    public void setSerializeBuilder(SerializeBuilder serializeBuilder) {
+        this.serializeBuilder = serializeBuilder;
     }
 
-    public void setSerializeSupplier(Supplier<String> serializeSupplier) {
-        this.serializeSupplier = serializeSupplier;
+    public void setCommentForm(CommentForm commentForm) {
+        this.commentForm = commentForm;
     }
 
     public void setStreamRecommended(boolean streamRecommended) {

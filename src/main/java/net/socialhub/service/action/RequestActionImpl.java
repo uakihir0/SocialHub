@@ -6,12 +6,7 @@ import net.socialhub.define.action.TimeLineActionType;
 import net.socialhub.define.action.UsersActionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Request;
-import net.socialhub.model.service.User;
+import net.socialhub.model.service.*;
 import net.socialhub.service.action.request.CommentsRequest;
 import net.socialhub.service.action.request.CommentsRequestImpl;
 import net.socialhub.service.action.request.UsersRequest;
@@ -21,21 +16,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-import static net.socialhub.define.action.TimeLineActionType.ChannelTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.MessageTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.SearchTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
-import static net.socialhub.define.action.TimeLineActionType.UserMediaTimeLine;
-import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
-import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
-import static net.socialhub.define.action.UsersActionType.SearchUsers;
+import static net.socialhub.define.action.TimeLineActionType.*;
+import static net.socialhub.define.action.UsersActionType.*;
 
 public class RequestActionImpl implements RequestAction {
 
@@ -167,10 +152,13 @@ public class RequestActionImpl implements RequestAction {
      */
     @Override
     public CommentsRequest getMessageTimeLine(Identify id) {
-        return getCommentsRequest(MessageTimeLine,
+        CommentsRequest request = getCommentsRequest(MessageTimeLine,
                 (paging) -> account.action().getMessageTimeLine(id, paging),
                 new SerializeBuilder(MessageTimeLine)
                         .add("id", id.getSerializedIdString()));
+
+        request.getCommentFrom().message(true);
+        return request;
     }
 
     // ============================================================== //
@@ -207,18 +195,18 @@ public class RequestActionImpl implements RequestAction {
             if (isTypeIncluded(UsersActionType.values(), action)) {
                 switch (UsersActionType.valueOf(action)) {
 
-                case GetFollowingUsers:
-                    return getFollowingUsers(id);
-                case GetFollowerUsers:
-                    return getFollowerUsers(id);
-                case SearchUsers:
-                    return getSearchTimeLine(query);
-                case ChannelUsers:
-                    return getChannelTimeLine(id);
+                    case GetFollowingUsers:
+                        return getFollowingUsers(id);
+                    case GetFollowerUsers:
+                        return getFollowerUsers(id);
+                    case SearchUsers:
+                        return getSearchTimeLine(query);
+                    case ChannelUsers:
+                        return getChannelTimeLine(id);
 
-                default:
-                    log.debug("invalid user action type: " + action);
-                    return null;
+                    default:
+                        log.debug("invalid user action type: " + action);
+                        return null;
                 }
             }
 
@@ -229,26 +217,26 @@ public class RequestActionImpl implements RequestAction {
             if (isTypeIncluded(TimeLineActionType.values(), action)) {
                 switch (TimeLineActionType.valueOf(action)) {
 
-                case HomeTimeLine:
-                    return getHomeTimeLine();
-                case MentionTimeLine:
-                    return getMentionTimeLine();
-                case SearchTimeLine:
-                    return getSearchTimeLine(query);
-                case ChannelTimeLine:
-                    return getChannelTimeLine(id);
-                case MessageTimeLine:
-                    return getMessageTimeLine(id);
-                case UserLikeTimeLine:
-                    return getUserLikeTimeLine(id);
-                case UserMediaTimeLine:
-                    return getUserMediaTimeLine(id);
-                case UserCommentTimeLine:
-                    return getUserCommentTimeLine(id);
+                    case HomeTimeLine:
+                        return getHomeTimeLine();
+                    case MentionTimeLine:
+                        return getMentionTimeLine();
+                    case SearchTimeLine:
+                        return getSearchTimeLine(query);
+                    case ChannelTimeLine:
+                        return getChannelTimeLine(id);
+                    case MessageTimeLine:
+                        return getMessageTimeLine(id);
+                    case UserLikeTimeLine:
+                        return getUserLikeTimeLine(id);
+                    case UserMediaTimeLine:
+                        return getUserMediaTimeLine(id);
+                    case UserCommentTimeLine:
+                        return getUserCommentTimeLine(id);
 
-                default:
-                    log.debug("invalid comment action type: " + action);
-                    return null;
+                    default:
+                        log.debug("invalid comment action type: " + action);
+                        return null;
                 }
             }
 

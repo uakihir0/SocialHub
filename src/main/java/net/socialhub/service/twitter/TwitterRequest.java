@@ -91,7 +91,6 @@ public class TwitterRequest extends RequestActionImpl {
 
         request.setStreamFunction((callback) ->
                 action.setSearchTimeLineStream(callback, query));
-
         request.getCommentFrom().text(query + " ");
         return request;
     }

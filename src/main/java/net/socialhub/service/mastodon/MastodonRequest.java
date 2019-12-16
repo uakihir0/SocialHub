@@ -5,7 +5,6 @@ import net.socialhub.define.action.TimeLineActionType;
 import net.socialhub.define.action.service.MastodonActionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
-import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Request;
 import net.socialhub.model.service.User;
@@ -117,7 +116,10 @@ public class MastodonRequest extends RequestActionImpl {
      */
     @Override
     public CommentsRequest getSearchTimeLine(String query) {
-        throw new NotSupportedException();
+        CommentsRequestImpl request = (CommentsRequestImpl)
+                super.getSearchTimeLine(query);
+        request.getCommentFrom().text(query + " ");
+        return request;
     }
 
     // ============================================================== //
@@ -138,13 +140,13 @@ public class MastodonRequest extends RequestActionImpl {
             if (isTypeIncluded(MastodonActionType.values(), action)) {
                 switch (MastodonActionType.valueOf(action)) {
 
-                case LocalTimeLine:
-                    return getLocalTimeLine();
-                case FederationTimeLine:
-                    return getFederationTimeLine();
-                default:
-                    log.debug("invalid mastodon action type: " + action);
-                    return null;
+                    case LocalTimeLine:
+                        return getLocalTimeLine();
+                    case FederationTimeLine:
+                        return getFederationTimeLine();
+                    default:
+                        log.debug("invalid mastodon action type: " + action);
+                        return null;
                 }
             }
 
@@ -155,13 +157,13 @@ public class MastodonRequest extends RequestActionImpl {
                 CommentsRequest req = (CommentsRequest) result;
                 switch (TimeLineActionType.valueOf(action)) {
 
-                case UserCommentTimeLine:
-                case UserLikeTimeLine:
-                case UserMediaTimeLine:
-                    setCommentIdentify(req, params.get("to"));
-                    break;
-                default:
-                    break;
+                    case UserCommentTimeLine:
+                    case UserLikeTimeLine:
+                    case UserMediaTimeLine:
+                        setCommentIdentify(req, params.get("to"));
+                        break;
+                    default:
+                        break;
                 }
             }
 

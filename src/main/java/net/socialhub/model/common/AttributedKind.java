@@ -2,11 +2,20 @@ package net.socialhub.model.common;
 
 public enum AttributedKind {
 
-    Link, //
-    Account, //
-    HashTag, //
-    EMail, //
-    Phone, //
+    // STRINGS
+    PLAIN, //
+    IMAGE, //
 
-    Other
+    // ITEMS
+    LINK, //
+    ACCOUNT, //
+    HASH_TAG, //
+    EMAIL, //
+    PHONE, //
+
+    // BUCKETS
+    QUOTE, //
+    COLOR, //
+
+    OTHER
 }

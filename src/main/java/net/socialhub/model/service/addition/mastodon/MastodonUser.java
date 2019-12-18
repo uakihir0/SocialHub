@@ -28,7 +28,7 @@ public class MastodonUser extends MiniBlogUser {
             }
 
             // URL と結合して Mastodon アカウント対応
-            URL url = new URL(getProfileUrl().getText());
+            URL url = new URL(getProfileUrl().getDisplayText());
             return "@" + getScreenName() + "@" + url.getHost();
 
         } catch (Exception e) {

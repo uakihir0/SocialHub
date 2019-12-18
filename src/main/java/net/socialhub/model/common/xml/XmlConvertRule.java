@@ -1,4 +1,4 @@
-package net.socialhub.model.common;
+package net.socialhub.model.common.xml;
 
 public class XmlConvertRule {
 

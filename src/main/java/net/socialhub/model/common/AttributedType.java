@@ -14,7 +14,7 @@ public interface AttributedType {
     /** 表示文字列を取得 */
     String getDisplayedText(Matcher m);
 
-    /** 実行文字列を取得 */
+    /** 文字列を取得 */
     String getExpandedText(Matcher m);
 
     /**
@@ -45,7 +45,10 @@ public interface AttributedType {
         public CommonAttributedType(
                 AttributedKind kind,
                 String regex) {
-            this(kind, regex, null, null);
+
+            this(kind, regex,
+                    Matcher::group,
+                    Matcher::group);
         }
 
         @Override

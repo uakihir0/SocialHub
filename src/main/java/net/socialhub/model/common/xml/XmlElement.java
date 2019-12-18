@@ -1,4 +1,6 @@
-package net.socialhub.model.common;
+package net.socialhub.model.common.xml;
+
+import net.socialhub.model.common.AttributedElement;
 
 import java.util.List;
 
@@ -12,5 +14,6 @@ public interface XmlElement {
     void setAttribute(
             List<AttributedElement> elements,
             StringBuilder builder,
-            XmlConvertRule rule);
+            XmlConvertRule rule,
+            boolean textOnly);
 }

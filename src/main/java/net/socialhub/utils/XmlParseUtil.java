@@ -1,9 +1,9 @@
 package net.socialhub.utils;
 
 import net.socialhub.define.SpecialCharType;
-import net.socialhub.model.common.XmlDocument;
-import net.socialhub.model.common.XmlString;
-import net.socialhub.model.common.XmlTag;
+import net.socialhub.model.common.xml.XmlDocument;
+import net.socialhub.model.common.xml.XmlString;
+import net.socialhub.model.common.xml.XmlTag;
 import net.socialhub.model.error.SocialHubException;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;

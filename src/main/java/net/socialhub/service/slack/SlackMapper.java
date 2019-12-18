@@ -2,10 +2,8 @@ package net.socialhub.service.slack;
 
 import com.github.seratch.jslack.api.methods.response.bots.BotsInfoResponse;
 import com.github.seratch.jslack.api.methods.response.bots.BotsInfoResponse.Bot;
-import com.github.seratch.jslack.api.methods.response.channels.ChannelsHistoryResponse;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
 import com.github.seratch.jslack.api.methods.response.emoji.EmojiListResponse;
-import com.github.seratch.jslack.api.methods.response.im.ImHistoryResponse;
 import com.github.seratch.jslack.api.methods.response.im.ImListResponse;
 import com.github.seratch.jslack.api.methods.response.mpim.MpimListResponse;
 import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
@@ -19,9 +17,10 @@ import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.EmojiType;
 import net.socialhub.define.EmojiVariationType;
 import net.socialhub.define.MediaType;
-import net.socialhub.define.service.slack.SlackAttributedTypes;
 import net.socialhub.define.service.slack.SlackMessageSubType;
 import net.socialhub.logger.Logger;
+import net.socialhub.model.common.AttributedItem;
+import net.socialhub.model.common.AttributedKind;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Thread;
 import net.socialhub.model.service.*;
@@ -193,13 +192,13 @@ public final class SlackMapper {
                     builder.append(text);
                 }
 
-                model.setText(new AttributedString(builder.toString(), simple()));
+                model.setText(AttributedString.plain(builder.toString(), simple()));
             }
 
         } else {
 
             // 通常のメッセージの場合
-            model.setText(new AttributedString(message.getText(), simple()));
+            model.setText(AttributedString.plain(message.getText(), simple()));
         }
 
         // チャンネルはモデルが正
@@ -528,8 +527,8 @@ public final class SlackMapper {
         return comments.stream().map((c) -> {
 
             // 特定のコメントについて含まれるメンションを取得
-            return c.getText().getAttribute().stream() //
-                    .filter((a) -> a.getType().equals(SlackAttributedTypes.mention))
+            return c.getText().getElements().stream() //
+                    .filter((a) -> a.getKind() == AttributedKind.ACCOUNT)
                     .map((a) -> a.getDisplayText().substring(1))
                     .filter((n) -> !n.equals("here")) //
                     .filter((n) -> !n.equals("all")) //
@@ -546,14 +545,16 @@ public final class SlackMapper {
         comments.forEach((c) -> {
 
             // メンション情報を書き換える
-            c.getText().getAttribute().stream() //
-                    .filter((a) -> a.getType().equals(SlackAttributedTypes.mention))
-                    .forEach((a) -> {
+            c.getText().getElements().stream() //
+                    .filter((a) -> a.getKind() == AttributedKind.ACCOUNT)
+                    .forEach((elem) -> {
 
-                        String userId = a.getDisplayText().substring(1);
-                        if (userMap.containsKey(userId)) {
-                            User user = userMap.get(userId);
-                            a.setDisplayText("@" + user.getName());
+                        String userId = elem.getDisplayText().substring(1);
+                        if (elem instanceof AttributedItem) {
+                            if (userMap.containsKey(userId)) {
+                                String display = "@" + userMap.get(userId);
+                                ((AttributedItem) elem).setDisplayText(display);
+                            }
                         }
                     });
         });
@@ -563,7 +564,7 @@ public final class SlackMapper {
 
         if (ts != null && !ts.isEmpty()) {
             String unixTime = ts.split("\\.")[0];
-            return new Date(Long.valueOf(unixTime) * 1000);
+            return new Date(Long.parseLong(unixTime) * 1000);
         }
         return null;
     }

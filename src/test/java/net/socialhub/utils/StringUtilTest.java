@@ -2,6 +2,8 @@ package net.socialhub.utils;
 
 import net.socialhub.define.service.slack.SlackAttributedTypes;
 import net.socialhub.model.common.AttributedElement;
+import net.socialhub.model.common.AttributedItem;
+import net.socialhub.model.common.AttributedKind;
 import net.socialhub.model.common.AttributedString;
 import org.junit.Test;
 
@@ -15,14 +17,11 @@ public class StringUtilTest {
     @Test
     public void testAttributes() {
 
-        AttributedString string = new AttributedString( //
-
+        AttributedString string = AttributedString.plain( //
                 "\nLINK: " //
                         + "https://t.co/rx5cgtsmIj " //
                         + "https://www.googole.com " //
                         + "https://www.yahoo.co.jp " //
-                        + "www.googole.com " //
-                        + "www.yahoo.co.jp " //
 
                         + "\nEMAIL: " //
                         + "sample@example.com " //
@@ -53,14 +52,17 @@ public class StringUtilTest {
     @Test
     public void testDisplayText() {
 
-        AttributedString string = new AttributedString( //
+        AttributedString string = AttributedString.plain( //
                 "\nLINK: " //
                         + "https://t.co/rx5cgtsmIj " //
                         + "https://t.co/scawU8ske9 " //
                         + "END");
 
-        for (AttributedElement element : string.getAttribute()) {
-            element.setDisplayText("www.google.com");
+        for (AttributedElement element : string.getElements()) {
+            AttributedItem item = ((AttributedItem) element);
+            if (item.getKind() == AttributedKind.LINK) {
+                item.setDisplayText("www.google.com");
+            }
         }
 
         printAttributedString(string);
@@ -69,7 +71,7 @@ public class StringUtilTest {
     @Test
     public void testSlackAttributeText() {
 
-        AttributedString string = new AttributedString(
+        AttributedString string = AttributedString.plain(
                 "SLACK: " //
                         + "<https://www.googole.com> " //
                         + "<mailto:sample@example.com|sample@example.com> " //
@@ -104,16 +106,16 @@ public class StringUtilTest {
     private void printAttributedString(AttributedString string) {
 
         System.out.println("====================================");
-        System.out.println("Whole   : " + string.getText());
-        System.out.println("Display : " + string.getDisplayText());
+        System.out.println("Text   : " + string.getDisplayText());
 
-        for (AttributedElement attribute : string.getAttribute()) {
-            System.out.println("------------------------------------");
-            System.out.println("Type    : " + attribute.getType());
-            System.out.println("Test    : " + attribute.getText());
-            System.out.println("Display : " + attribute.getDisplayText());
-            System.out.println("Start   : " + attribute.getRange().getStart());
-            System.out.println("End     : " + attribute.getRange().getEnd());
+        for (AttributedElement attribute : string.getElements()) {
+            if (attribute.getKind() != AttributedKind.PLAIN) {
+
+                System.out.println("------------------------------------");
+                System.out.println("Type    : " + attribute.getKind());
+                System.out.println("Display : " + attribute.getDisplayText());
+                System.out.println("Expand  : " + attribute.getExpandedText());
+            }
         }
     }
 }

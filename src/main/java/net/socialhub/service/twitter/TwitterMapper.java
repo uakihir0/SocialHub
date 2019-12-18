@@ -6,6 +6,7 @@ import net.socialhub.define.service.twitter.TwitterIconSize;
 import net.socialhub.define.service.twitter.TwitterMediaType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.common.AttributedElement;
+import net.socialhub.model.common.AttributedItem;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
@@ -64,10 +65,14 @@ public class TwitterMapper {
             model.setUrl(url);
 
             URLEntity entity = user.getURLEntity();
-            for (AttributedElement elem : url.getAttribute()) {
-                if (elem.getText().equals(entity.getText())) {
-                    elem.setDisplayText(entity.getDisplayURL());
-                    elem.setExpandedText(entity.getExpandedURL());
+            for (AttributedElement elem : url.getElements()) {
+                if (elem.getExpandedText().equals(entity.getText())) {
+
+                    if (elem instanceof AttributedItem) {
+                        AttributedItem item = (AttributedItem) elem;
+                        item.setExpandedText(entity.getExpandedURL());
+                        item.setDisplayText(entity.getDisplayURL());
+                    }
                 }
             }
         }
@@ -82,10 +87,14 @@ public class TwitterMapper {
 
         // URL の DisplayURL ExpandedURL を設定
         for (URLEntity entity : user.getDescriptionURLEntities()) {
-            for (AttributedElement elem : desc.getAttribute()) {
-                if (elem.getText().equals(entity.getText())) {
-                    elem.setDisplayText(entity.getDisplayURL());
-                    elem.setExpandedText(entity.getExpandedURL());
+            for (AttributedElement elem : desc.getElements()) {
+                if (elem.getExpandedText().equals(entity.getText())) {
+
+                    if (elem instanceof AttributedItem) {
+                        AttributedItem item = (AttributedItem) elem;
+                        item.setExpandedText(entity.getExpandedURL());
+                        item.setDisplayText(entity.getDisplayURL());
+                    }
                 }
             }
         }
@@ -133,15 +142,19 @@ public class TwitterMapper {
                 model.setSharedComment(comment(status.getQuotedStatus(), service));
             }
 
-            AttributedString text = new AttributedString(displayText(status));
+            AttributedString text = AttributedString.plain(displayText(status));
             model.setText(text);
 
             // URL の DisplayURL ExpandedURL を設定
             for (URLEntity entity : status.getURLEntities()) {
-                for (AttributedElement elem : text.getAttribute()) {
-                    if (elem.getText().equals(entity.getText())) {
-                        elem.setDisplayText(entity.getDisplayURL());
-                        elem.setExpandedText(entity.getExpandedURL());
+                for (AttributedElement elem : text.getElements()) {
+                    if (elem.getExpandedText().equals(entity.getText())) {
+
+                        if (elem instanceof AttributedItem) {
+                            AttributedItem item = (AttributedItem) elem;
+                            item.setExpandedText(entity.getExpandedURL());
+                            item.setDisplayText(entity.getDisplayURL());
+                        }
                     }
                 }
             }
@@ -168,15 +181,19 @@ public class TwitterMapper {
         model.setUser(users.get(message.getSenderId()));
         model.setDirectMessage(true);
 
-        AttributedString text = new AttributedString(displayText(message));
+        AttributedString text = AttributedString.plain(displayText(message));
         model.setText(text);
 
         // URL の DisplayURL ExpandedURL を設定
         for (URLEntity entity : message.getURLEntities()) {
-            for (AttributedElement elem : text.getAttribute()) {
-                if (elem.getText().equals(entity.getText())) {
-                    elem.setDisplayText(entity.getDisplayURL());
-                    elem.setExpandedText(entity.getExpandedURL());
+            for (AttributedElement elem : text.getElements()) {
+                if (elem.getExpandedText().equals(entity.getText())) {
+
+                    if (elem instanceof AttributedItem) {
+                        AttributedItem item = (AttributedItem) elem;
+                        item.setExpandedText(entity.getExpandedURL());
+                        item.setDisplayText(entity.getDisplayURL());
+                    }
                 }
             }
         }
@@ -207,44 +224,44 @@ public class TwitterMapper {
 
         switch (TwitterMediaType.of(entity.getType())) {
 
-            case Photo: {
-                TwitterMedia media = new TwitterMedia();
-                media.setType(MediaType.Image);
+        case Photo: {
+            TwitterMedia media = new TwitterMedia();
+            media.setType(MediaType.Image);
 
-                media.setSourceUrl(entity.getMediaURLHttps());
-                media.setPreviewUrl(entity.getMediaURLHttps());
-                return media;
-            }
+            media.setSourceUrl(entity.getMediaURLHttps());
+            media.setPreviewUrl(entity.getMediaURLHttps());
+            return media;
+        }
 
-            case Video: {
-                TwitterMedia media = new TwitterMedia();
-                media.setType(MediaType.Movie);
+        case Video: {
+            TwitterMedia media = new TwitterMedia();
+            media.setType(MediaType.Movie);
 
-                media.setPreviewUrl(entity.getMediaURLHttps());
-                for (MediaEntity.Variant variant : entity.getVideoVariants()) {
+            media.setPreviewUrl(entity.getMediaURLHttps());
+            for (MediaEntity.Variant variant : entity.getVideoVariants()) {
 
-                    // ストリーム向けの動画タイプが存在する場合はそれを利用
-                    if (variant.getContentType().equals("application/x-mpegURL")) {
-                        media.setStreamVideoUrl(variant.getUrl());
-                        media.setSourceUrl(variant.getUrl());
-                    }
+                // ストリーム向けの動画タイプが存在する場合はそれを利用
+                if (variant.getContentType().equals("application/x-mpegURL")) {
+                    media.setStreamVideoUrl(variant.getUrl());
+                    media.setSourceUrl(variant.getUrl());
                 }
-
-                // それ意外の場合一番高画質のものを選択
-                Stream.of(entity.getVideoVariants()) //
-                        .filter((e) -> e.getContentType().startsWith("video")) //
-                        .max(Comparator.comparingInt(MediaEntity.Variant::getBitrate)) //
-                        .ifPresent((variant) -> {
-                            String url = variant.getUrl();
-                            media.setMp4VideoUrl(url);
-
-                            if (media.getSourceUrl() == null) {
-                                media.setSourceUrl(url);
-                            }
-                        });
-
-                return media;
             }
+
+            // それ意外の場合一番高画質のものを選択
+            Stream.of(entity.getVideoVariants()) //
+                    .filter((e) -> e.getContentType().startsWith("video")) //
+                    .max(Comparator.comparingInt(MediaEntity.Variant::getBitrate)) //
+                    .ifPresent((variant) -> {
+                        String url = variant.getUrl();
+                        media.setMp4VideoUrl(url);
+
+                        if (media.getSourceUrl() == null) {
+                            media.setSourceUrl(url);
+                        }
+                    });
+
+            return media;
+        }
         }
         return null;
     }

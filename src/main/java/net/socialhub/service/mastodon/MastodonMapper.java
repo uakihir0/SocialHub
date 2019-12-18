@@ -11,7 +11,7 @@ import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
-import net.socialhub.model.common.XmlConvertRule;
+import net.socialhub.model.common.xml.XmlConvertRule;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.mastodon.MastodonComment;
 import net.socialhub.model.service.addition.mastodon.MastodonUser;
@@ -64,7 +64,7 @@ public class MastodonMapper {
         model.setProtected(account.isLocked());
 
         // プロフィールページの設定
-        AttributedString profile = new AttributedString(account.getUrl());
+        AttributedString profile = AttributedString.plain(account.getUrl());
         model.setProfileUrl(profile);
 
         if ((account.getFields() != null) &&  //
@@ -128,7 +128,7 @@ public class MastodonMapper {
                 model.setMedias(new ArrayList<>());
 
             } else {
-                model.setSpoilerText(new AttributedString(status.getSpoilerText()));
+                model.setSpoilerText(AttributedString.plain(status.getSpoilerText()));
                 model.setText(AttributedString.xhtml(status.getContent(), XML_RULE));
 
                 model.setMedias(medias(status.getMediaAttachments()));

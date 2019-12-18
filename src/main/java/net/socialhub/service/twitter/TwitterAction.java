@@ -1220,7 +1220,7 @@ public class TwitterAction extends AccountActionImpl {
                 // 一番リアクション数が多いものを取得
                 model.setComment(comments.stream()
                         .map((e) -> (TwitterComment) e)
-                        .filter((e) -> e.getText().getText().contains(trend.getName()))
+                        .filter((e) -> e.getText().getDisplayText().contains(trend.getName()))
                         .max(Comparator.comparing((a) -> a.getLikeCount() + a.getShareCount()))
                         .orElse(null));
 

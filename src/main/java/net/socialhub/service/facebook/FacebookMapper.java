@@ -20,7 +20,7 @@ public class FacebookMapper {
 
         model.setId(user.getId());
         model.setName(user.getName());
-        model.setDescription(new AttributedString(user.getBio()));
+        model.setDescription(AttributedString.plain(user.getBio()));
 
         model.setIconImageUrl(user.getPicture().getURL().toString());
         model.setCoverImageUrl(user.getCover().getSource());
@@ -39,7 +39,7 @@ public class FacebookMapper {
 
         model.setId(message.getId());
         model.setCreateAt(message.getCreatedTime());
-        model.setText(new AttributedString(message.getMessage()));
+        model.setText(AttributedString.plain(message.getMessage()));
         model.setUser(user(user.get(), service));
 
         return model;

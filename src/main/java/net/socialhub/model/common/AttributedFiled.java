@@ -18,7 +18,7 @@ public class AttributedFiled {
     }
 
     public AttributedFiled(String name, String value) {
-        this.value = new AttributedString(value);
+        this.value = AttributedString.plain(value);
         this.name = name;
     }
 

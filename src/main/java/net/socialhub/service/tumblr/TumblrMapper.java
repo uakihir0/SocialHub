@@ -68,15 +68,9 @@ public class TumblrMapper {
         model.setName(blog.getName());
         model.setBlogTitle(blog.getTitle());
 
+        // Tumblr の自己紹介文は HTML で解釈
         if (blog.getDescription() != null) {
-
-            // p タグから開始されていた場合は HTML と解釈
-            if (blog.getDescription().startsWith("<p>")) {
-                model.setDescription(AttributedString.xhtml(blog.getDescription()));
-            } else {
-                // それ以外の場合は与えられた文字列から要素を正規表現で抜き出して解釈
-                model.setDescription(AttributedString.plain(blog.getDescription()));
-            }
+            model.setDescription(AttributedString.xhtml(blog.getDescription()));
         }
 
         String host = getBlogIdentify(blog);

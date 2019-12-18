@@ -1,15 +1,19 @@
 package net.socialhub.model.common;
 
 import net.socialhub.define.AttributedTypes;
-import net.socialhub.utils.StringUtil;
+import net.socialhub.model.common.xml.XmlConvertRule;
 import net.socialhub.utils.XmlParseUtil;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * String With Attributes
@@ -17,31 +21,26 @@ import java.util.stream.Collectors;
  */
 public class AttributedString {
 
-    private String text;
+    private List<AttributedElement> elements;
 
-    private String displayText;
-
-    private List<AttributedType> kinds;
-
-    private List<AttributedElement> attribute;
-
-    private List<AttributedElement> displayAttribute;
+    // ============================================================================== //
+    // Static functions
+    // ============================================================================== //
 
     /**
      * Make Attributed String from plain text.
      * 装飾無しテキストから属性付き文字列を作成
      */
     public static AttributedString plain(String string) {
-        return new AttributedString(string);
-
+        return new AttributedString(string, AttributedTypes.simple());
     }
 
     /**
-     * Make Attributed String from XHTML text with rule.
-     * XHTML テキストから属性付き文字列を作成 (ルールを指定)
+     * Make Attributed String from plain text with kinds.
+     * 装飾無しテキストから属性付き文字列を作成 (種類を指定)
      */
-    public static AttributedString xhtml(String string, XmlConvertRule rule) {
-        return XmlParseUtil.xhtml(string).toAttributedString(rule);
+    public static AttributedString plain(String string, List<AttributedType> kinds) {
+        return new AttributedString(string, kinds);
     }
 
     /**
@@ -53,178 +52,117 @@ public class AttributedString {
     }
 
     /**
-     * Attributed String
-     * (属性文字列に変換)
+     * Make Attributed String from XHTML text with rule.
+     * XHTML テキストから属性付き文字列を作成 (ルールを指定)
      */
-    public AttributedString(String text) {
-        this(text, AttributedTypes.simple());
+    public static AttributedString xhtml(String string, XmlConvertRule rule) {
+        return XmlParseUtil.xhtml(string).toAttributedString(rule);
     }
 
     /**
-     * Attributes String
-     * 完成形の提出
+     * Make Attributes String with AttributedElements list.
+     * 属性付き要素から属性付き文字列を生成
      */
-    public AttributedString(String text, List<AttributedElement> attribute, boolean isDisplay) {
-        this.attribute = attribute;
-        this.text = text;
-
-        if (isDisplay) {
-            this.displayAttribute = attribute;
-            this.displayText = text;
-        }
+    public static AttributedString elements(List<AttributedElement> elements) {
+        return new AttributedString(elements);
     }
 
-    /**
-     * Attributed String
-     * (属性文字列に変換)
-     */
-    public AttributedString(String text, List<AttributedType> kinds) {
-        this.displayAttribute = null;
-        this.attribute = null;
-        this.kinds = kinds;
-        this.text = text;
-
-        // 無指定の場合は全部
-        if (kinds == null) {
-            this.kinds = AttributedTypes.simple();
-        }
-    }
+    // ============================================================================== //
+    // Constructor
+    // ============================================================================== //
 
     /**
-     * Get Attributes (with calc)
-     * アトリビュートを取得
-     * (この際に計算が実行される)
+     * Attributed String with plain text and element types.
+     * 文字列から属性文字列を作成 (属性を指定)
      */
-    public List<AttributedElement> getAttribute() {
-        if (attribute != null) {
-            return attribute;
-        }
+    private AttributedString(String text, List<AttributedType> kinds) {
+        AttributedItem model = new AttributedItem();
+        model.setKind(AttributedKind.PLAIN);
+        model.setDisplayText(text);
 
-        // 初期化
-        attribute = new ArrayList<>();
+        Stream<AttributedElement> stream = Stream.of(model);
         for (AttributedType kind : kinds) {
-            scanElements(kind);
+            stream = stream
+                    .map(elem -> scanElements(elem, kind))
+                    .flatMap(Collection::stream);
         }
-
-        // 範囲の開始順にソート
-        attribute.sort(Comparator.comparingInt(e -> e.getRange().getStart()));
-
-        return attribute;
+        elements = stream.collect(toList());
     }
 
     /**
-     * Get Display Attributes (with calc)
-     * 表示向け Attribute の計算
+     * Make Attributes String with AttributedElements list.
+     * 属性付き要素から属性付き文字列を生成
      */
-    public List<AttributedElement> getDisplayAttribute() {
-        if (displayAttribute != null) {
-            return displayAttribute;
-        }
-
-        // 初期化
-        String tmp = text;
-        List<AttributedElement> elements = getAttribute().stream() //
-                .map(AttributedElement::copy) //
-                .collect(Collectors.toList());
-
-        for (int i = 0; i < elements.size(); i++) {
-            AttributedElement elem = elements.get(i);
-
-            // 表示するテキストを変更
-            String before = tmp.substring(0, elem.getRange().getStart());
-            String after = tmp.substring(elem.getRange().getEnd());
-            tmp = (before + elem.getDisplayText() + after);
-
-            // レンジ幅を変えて属性を修正
-            int diff = (elem.getText().length() - elem.getDisplayText().length());
-            elem.getRange().setEnd(elem.getRange().getEnd() - diff);
-            elem.setText(elem.getDisplayText());
-
-            // 後の属性に対してもレンジ幅を変更
-            for (int j = (i + 1); j < elements.size(); j++) {
-                AttributedElement next = elements.get(j);
-                next.getRange().setStart(next.getRange().getStart() - diff);
-                next.getRange().setEnd(next.getRange().getEnd() - diff);
-            }
-        }
-
-        // 最後の空白は除去
-        displayText = StringUtil.trimLast(tmp);
-        displayAttribute = elements;
-        return displayAttribute;
+    private AttributedString(List<AttributedElement> elements) {
+        this.elements = elements;
     }
 
     /**
-     * 表示向けテキストの計算
+     * Get Elements
+     * 要素情報の取得
+     */
+    public List<AttributedElement> getElements() {
+        return this.elements;
+    }
+
+    /**
+     * Get Display Text
+     * 表示文字列を取得
      */
     public String getDisplayText() {
-        if (displayText != null) {
-            return displayText;
-        }
-
-        getDisplayAttribute();
-        return displayText;
+        return this.elements.stream()
+                .map(AttributedElement::getDisplayText)
+                .collect(Collectors.joining());
     }
 
     /**
+     * Scan elements
      * エレメントを走査
      */
-    private void scanElements(AttributedType kind) {
-        if (kinds.contains(kind)) {
+    private List<AttributedElement> scanElements(
+            AttributedElement element,
+            AttributedType kind) {
+
+        if (element.getKind() == AttributedKind.PLAIN) {
+
+            // プレーン文字列の場合にスキャンして走査
             Pattern p = Pattern.compile(kind.getRegex());
+            String text = element.getDisplayText();
             Matcher m = p.matcher(text);
 
-            while (m.find()) {
+            // 見つかった場合分割
+            if (m.find()) {
+                String found = m.group();
+                int i = text.indexOf(found);
 
-                // 範囲が被っていない事を確認
-                if (this.isUnusedRange(m)) {
-                    AttributedElement element = new AttributedElement();
-                    element.setDisplayText(kind.getDisplayedText(m));
-                    element.setExpandedText(kind.getExpandedText(m));
-                    element.setRange(new AttributedRange(m));
-                    element.setText(m.group());
-                    element.setType(kind);
-                    attribute.add(element);
+                String before = text.substring(0, i);
+                String after = text.substring(i + found.length());
+                List<AttributedElement> results = new ArrayList<>();
+
+                {
+                    AttributedItem model = new AttributedItem();
+                    model.setKind(AttributedKind.PLAIN);
+                    model.setDisplayText(before);
+                    results.add(model);
                 }
+                {
+                    AttributedItem model = new AttributedItem();
+                    model.setDisplayText(kind.getDisplayedText(m));
+                    model.setExpandedText(kind.getExpandedText(m));
+                    model.setKind(kind.getKind());
+                    results.add(model);
+                }
+                {
+                    AttributedItem model = new AttributedItem();
+                    model.setKind(AttributedKind.PLAIN);
+                    model.setDisplayText(after);
+
+                    // 再帰的に作成したオブジェクトに対して走査
+                    results.addAll(scanElements(model, kind));
+                }
+                return results;
             }
         }
+        return Collections.singletonList(element);
     }
-
-    /**
-     * 未使用レンジかとうかの確認
-     */
-    private boolean isUnusedRange(Matcher m) {
-        return attribute.stream().noneMatch(elem -> {
-
-            // 範囲が被っているかを確認
-            AttributedRange range = elem.getRange();
-            return ((range.getStart() <= m.start()) && (m.start() < range.getEnd())) || //
-                    ((m.start() <= range.getStart()) && (range.getStart() < m.end()));
-        });
-    }
-
-    @Override
-    public String toString() {
-        return this.text;
-    }
-
-    //region // Getter&Setter
-    public String getText() {
-        return text;
-    }
-
-    /**
-     * Call when user changed attributed element
-     * AttributedElement を書き換えた場合に使用
-     */
-    public void markedElementChanged() {
-        this.displayAttribute = null;
-        this.displayText = null;
-    }
-
-    public void setText(String text) {
-        markedElementChanged();
-        this.text = text;
-    }
-    //endregion
 }

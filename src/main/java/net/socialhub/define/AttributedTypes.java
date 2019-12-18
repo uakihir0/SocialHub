@@ -6,42 +6,46 @@ import net.socialhub.utils.StringUtil;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
 
 import static net.socialhub.define.AttributedTypes.Regex.*;
 import static net.socialhub.model.common.AttributedKind.*;
 
-public class AttributedTypes {
-
-    // Commons
-    public static AttributedType link =
-            new CommonAttributedType(Link, FULL_URL_REGEX, //
-                    (m) -> StringUtil.getDisplayUrl(m.group()), null);
-
-    public static AttributedType email =
-            new CommonAttributedType(EMail, SIMPLE_EMAIL_REGEX);
-    public static AttributedType phone =
-            new CommonAttributedType(Phone, SIMPLE_PHONE_REGEX);
-    public static AttributedType hashTag =
-            new CommonAttributedType(HashTag, HASH_TAG_REGEX);
-
-    public static AttributedType twitterAccount =
-            new CommonAttributedType(Account, TWITTER_ACCOUNT_REGEX);
-    public static AttributedType mastodonAccount =
-            new CommonAttributedType(Account, MASTODON_ACCOUNT_REGEX);
-
-
-    public static List<AttributedType> simple() {
-        return Arrays.asList( //
-                AttributedTypes.link, //
-                AttributedTypes.email, //
-                AttributedTypes.phone, //
-                AttributedTypes.hashTag, //
-                AttributedTypes.twitterAccount, //
-                AttributedTypes.mastodonAccount);
+public final class AttributedTypes {
+    private AttributedTypes() {
     }
 
+    // Commons
+    public static final AttributedType link =
+            new CommonAttributedType(LINK, FULL_URL_REGEX, //
+                    m -> StringUtil.getDisplayUrl(m.group()), Matcher::group);
+
+    public static final AttributedType email =
+            new CommonAttributedType(EMAIL, SIMPLE_EMAIL_REGEX);
+    public static final AttributedType phone =
+            new CommonAttributedType(PHONE, SIMPLE_PHONE_REGEX);
+    public static final AttributedType hashTag =
+            new CommonAttributedType(HASH_TAG, HASH_TAG_REGEX);
+
+    // Identify
+    public static final AttributedType twitter =
+            new CommonAttributedType(ACCOUNT, TWITTER_ACCOUNT_REGEX);
+    public static final AttributedType mastodon =
+            new CommonAttributedType(ACCOUNT, MASTODON_ACCOUNT_REGEX);
+
+    public static List<AttributedType> simple() {
+        return Arrays.asList(
+                AttributedTypes.link,
+                AttributedTypes.mastodon,
+                AttributedTypes.email,
+                AttributedTypes.phone,
+                AttributedTypes.hashTag,
+                AttributedTypes.twitter);
+    }
 
     public static class Regex {
+        private Regex() {
+        }
 
         /** URL の正規表現 */
         public static final String FULL_URL_REGEX = "(https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*))";

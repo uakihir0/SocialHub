@@ -2,6 +2,7 @@ package net.socialhub.model.service.addition.mastodon;
 
 import net.socialhub.define.service.mastodon.MastodonVisibility;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.service.Emoji;
 import net.socialhub.model.service.Reaction;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.addition.MiniBlogComment;

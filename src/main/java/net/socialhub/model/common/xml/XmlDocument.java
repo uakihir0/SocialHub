@@ -1,5 +1,9 @@
-package net.socialhub.model.common;
+package net.socialhub.model.common.xml;
 
+import net.socialhub.model.common.AttributedElement;
+import net.socialhub.model.common.AttributedItem;
+import net.socialhub.model.common.AttributedKind;
+import net.socialhub.model.common.AttributedString;
 import net.socialhub.utils.StringUtil;
 
 import java.util.ArrayList;
@@ -24,10 +28,17 @@ public class XmlDocument {
     public AttributedString toAttributedString(XmlConvertRule rule) {
         List<AttributedElement> elements = new ArrayList<>();
         StringBuilder text = new StringBuilder();
-        root.setAttribute(elements, text, rule);
+        root.setAttribute(elements, text, rule, false);
 
-        String string = StringUtil.trimLast(text.toString());
-        return new AttributedString(string, elements, true);
+        // 最後に文字列要素を追加
+        if (text.length() > 0) {
+            AttributedItem elem = new AttributedItem();
+            elem.setDisplayText(StringUtil.trimLast(text.toString()));
+            elem.setKind(AttributedKind.PLAIN);
+            elements.add(elem);
+        }
+
+        return AttributedString.elements(elements);
     }
 
     //region // Getter&Setter

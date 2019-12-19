@@ -982,7 +982,7 @@ public class TwitterAction extends AccountActionImpl {
             ExecutorService pool = Executors.newCachedThreadPool();
 
             // どの DM スレッドかに送信するか？
-            if (req.getTargetId() != null) {
+            if (req.getTargetId() == null) {
                 throw new IllegalStateException("Needs DM Thread ID.");
             }
 

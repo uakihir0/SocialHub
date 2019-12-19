@@ -1,6 +1,5 @@
 package net.socialhub.model.common;
 
-import net.socialhub.define.AttributedTypes;
 import net.socialhub.model.common.xml.XmlConvertRule;
 import net.socialhub.utils.XmlParseUtil;
 
@@ -14,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static net.socialhub.define.AttributedTypes.simple;
 
 /**
  * String With Attributes
@@ -32,7 +32,7 @@ public class AttributedString {
      * 装飾無しテキストから属性付き文字列を作成
      */
     public static AttributedString plain(String string) {
-        return new AttributedString(string, AttributedTypes.simple());
+        return new AttributedString((string != null) ? string : "", simple());
     }
 
     /**
@@ -40,7 +40,7 @@ public class AttributedString {
      * 装飾無しテキストから属性付き文字列を作成 (種類を指定)
      */
     public static AttributedString plain(String string, List<AttributedType> kinds) {
-        return new AttributedString(string, kinds);
+        return new AttributedString((string != null) ? string : "", kinds);
     }
 
     /**
@@ -124,43 +124,45 @@ public class AttributedString {
             AttributedType kind) {
 
         if (element.getKind() == AttributedKind.PLAIN) {
-
-            // プレーン文字列の場合にスキャンして走査
-            Pattern p = Pattern.compile(kind.getRegex());
             String text = element.getDisplayText();
-            Matcher m = p.matcher(text);
+            if (!text.isEmpty()) {
 
-            // 見つかった場合分割
-            if (m.find()) {
-                String found = m.group();
-                int i = text.indexOf(found);
+                // プレーン文字列の場合にスキャンして走査
+                Pattern p = Pattern.compile(kind.getRegex());
+                Matcher m = p.matcher(text);
 
-                String before = text.substring(0, i);
-                String after = text.substring(i + found.length());
-                List<AttributedElement> results = new ArrayList<>();
+                // 見つかった場合分割
+                if (m.find()) {
+                    String found = m.group();
+                    int i = text.indexOf(found);
 
-                {
-                    AttributedItem model = new AttributedItem();
-                    model.setKind(AttributedKind.PLAIN);
-                    model.setDisplayText(before);
-                    results.add(model);
+                    String before = text.substring(0, i);
+                    String after = text.substring(i + found.length());
+                    List<AttributedElement> results = new ArrayList<>();
+
+                    {
+                        AttributedItem model = new AttributedItem();
+                        model.setKind(AttributedKind.PLAIN);
+                        model.setDisplayText(before);
+                        results.add(model);
+                    }
+                    {
+                        AttributedItem model = new AttributedItem();
+                        model.setDisplayText(kind.getDisplayedText(m));
+                        model.setExpandedText(kind.getExpandedText(m));
+                        model.setKind(kind.getKind());
+                        results.add(model);
+                    }
+                    {
+                        AttributedItem model = new AttributedItem();
+                        model.setKind(AttributedKind.PLAIN);
+                        model.setDisplayText(after);
+
+                        // 再帰的に作成したオブジェクトに対して走査
+                        results.addAll(scanElements(model, kind));
+                    }
+                    return results;
                 }
-                {
-                    AttributedItem model = new AttributedItem();
-                    model.setDisplayText(kind.getDisplayedText(m));
-                    model.setExpandedText(kind.getExpandedText(m));
-                    model.setKind(kind.getKind());
-                    results.add(model);
-                }
-                {
-                    AttributedItem model = new AttributedItem();
-                    model.setKind(AttributedKind.PLAIN);
-                    model.setDisplayText(after);
-
-                    // 再帰的に作成したオブジェクトに対して走査
-                    results.addAll(scanElements(model, kind));
-                }
-                return results;
             }
         }
         return Collections.singletonList(element);

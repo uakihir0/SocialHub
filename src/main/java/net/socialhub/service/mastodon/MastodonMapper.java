@@ -38,6 +38,7 @@ public class MastodonMapper {
     private final static List<Class<?>> ClassLoader = Arrays.asList( //
             mastodon4j.entity.History.class, //
             mastodon4j.entity.Mention.class, //
+            mastodon4j.entity.Emoji.class, //
             mastodon4j.entity.Tag.class);
 
     /**

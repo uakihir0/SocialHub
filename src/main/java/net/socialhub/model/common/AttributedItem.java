@@ -4,6 +4,8 @@ public class AttributedItem implements AttributedElement {
 
     private AttributedKind kind;
 
+    private boolean visible = true;
+
     /** 表示するテキスト */
     private String displayText;
 
@@ -21,6 +23,9 @@ public class AttributedItem implements AttributedElement {
     }
 
     public String getDisplayText() {
+        if (!visible) {
+            return "";
+        }
         return displayText;
     }
 
@@ -37,6 +42,16 @@ public class AttributedItem implements AttributedElement {
 
     public void setExpandedText(String expandedText) {
         this.expandedText = expandedText;
+    }
+
+    @Override
+    public boolean getVisible() {
+        return visible;
+    }
+
+    @Override
+    public void setVisible(boolean visible) {
+        this.visible = visible;
     }
     // endregion
 }

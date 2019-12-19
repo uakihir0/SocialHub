@@ -14,4 +14,8 @@ public interface AttributedElement {
 
     /** Get text that user action. */
     String getExpandedText();
+
+    boolean getVisible();
+
+    void setVisible(boolean visible);
 }

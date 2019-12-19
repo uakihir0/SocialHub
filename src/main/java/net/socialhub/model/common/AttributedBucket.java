@@ -10,11 +10,13 @@ public class AttributedBucket implements AttributedElement {
 
     private AttributedKind kind;
 
+    private boolean visible = true;
+
     private Map<String, String> params = new HashMap<>();
 
     private List<AttributedElement> children = new ArrayList<>();
 
-    // region
+    // region // Getter&Setter
     @Override
     public AttributedKind getKind() {
         return kind;
@@ -26,6 +28,9 @@ public class AttributedBucket implements AttributedElement {
 
     @Override
     public String getDisplayText() {
+        if (!visible) {
+            return "";
+        }
         return this.children.stream()
                 .map(AttributedElement::getDisplayText)
                 .collect(Collectors.joining());
@@ -34,6 +39,16 @@ public class AttributedBucket implements AttributedElement {
     @Override
     public String getExpandedText() {
         return null;
+    }
+
+    @Override
+    public boolean getVisible() {
+        return visible;
+    }
+
+    @Override
+    public void setVisible(boolean visible) {
+        this.visible = visible;
     }
 
     public String getParam(String key) {

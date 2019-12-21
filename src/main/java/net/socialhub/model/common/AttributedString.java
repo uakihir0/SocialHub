@@ -1,6 +1,7 @@
 package net.socialhub.model.common;
 
 import net.socialhub.model.common.xml.XmlConvertRule;
+import net.socialhub.model.service.Emoji;
 import net.socialhub.utils.XmlParseUtil;
 
 import java.util.ArrayList;
@@ -72,6 +73,14 @@ public class AttributedString {
     // ============================================================================== //
 
     /**
+     * Make Attributes String with AttributedElements list.
+     * 属性付き要素から属性付き文字列を生成
+     */
+    private AttributedString(List<AttributedElement> elements) {
+        this.elements = elements;
+    }
+
+    /**
      * Attributed String with plain text and element types.
      * 文字列から属性文字列を作成 (属性を指定)
      */
@@ -89,12 +98,19 @@ public class AttributedString {
         elements = stream.collect(toList());
     }
 
+
     /**
-     * Make Attributes String with AttributedElements list.
-     * 属性付き要素から属性付き文字列を生成
+     * Add Emoji Element
+     * 絵文字要素を追加
      */
-    private AttributedString(List<AttributedElement> elements) {
-        this.elements = elements;
+    public void addEmojiElement(List<Emoji> emojis) {
+        Stream<AttributedElement> stream = elements.stream();
+        for (Emoji emoji : emojis) {
+            stream = stream
+                    .map(elem -> scanEmojis(elem, emoji))
+                    .flatMap(Collection::stream);
+        }
+        elements = stream.collect(toList());
     }
 
     /**
@@ -165,6 +181,60 @@ public class AttributedString {
                 }
             }
         }
+        return Collections.singletonList(element);
+    }
+
+    /**
+     * Scan emojis
+     * 絵文字を抽出
+     */
+    private List<AttributedElement> scanEmojis(
+            AttributedElement element,
+            Emoji emoji) {
+
+        // 文字列の場合のみが対象
+        if (element.getKind() == AttributedKind.PLAIN) {
+            String text = element.getDisplayText();
+
+            // プレーン文字列の場合にスキャンして走査
+            String regex = ":" + emoji.getCode() + ":";
+            Pattern p = Pattern.compile(regex);
+            Matcher m = p.matcher(text);
+
+            // 見つかった場合分割
+            if (m.find()) {
+                String found = m.group();
+                int i = text.indexOf(found);
+
+                String before = text.substring(0, i);
+                String after = text.substring(i + found.length());
+                List<AttributedElement> results = new ArrayList<>();
+
+                {
+                    AttributedItem model = new AttributedItem();
+                    model.setKind(AttributedKind.PLAIN);
+                    model.setDisplayText(before);
+                    results.add(model);
+                }
+                {
+                    AttributedItem model = new AttributedItem();
+                    model.setDisplayText(regex);
+                    model.setExpandedText(emoji.getUrl());
+                    model.setKind(AttributedKind.EMOJI);
+                    results.add(model);
+                }
+                {
+                    AttributedItem model = new AttributedItem();
+                    model.setKind(AttributedKind.PLAIN);
+                    model.setDisplayText(after);
+
+                    // 再帰的に作成したオブジェクトに対して走査
+                    results.addAll(scanEmojis(model, emoji));
+                }
+                return results;
+            }
+        }
+
         return Collections.singletonList(element);
     }
 }

@@ -58,6 +58,15 @@ public class MastodonMapper {
         model.setIconImageUrl(account.getAvatarStatic());
         model.setCoverImageUrl(account.getHeaderStatic());
 
+        // 絵文字の追加
+        model.setEmojis(new ArrayList<>());
+        if (account.getEmojis() != null) {
+            model.getEmojis().addAll(
+                    Stream.of(account.getEmojis())
+                            .map(MastodonMapper::emoji)
+                            .collect(Collectors.toList()));
+        }
+
         model.setDescription(AttributedString.xhtml(account.getNote(), XML_RULE));
         model.setFollowersCount(account.getFollowersCount());
         model.setFollowingsCount(account.getFollowingCount());
@@ -66,6 +75,7 @@ public class MastodonMapper {
 
         // プロフィールページの設定
         AttributedString profile = AttributedString.plain(account.getUrl());
+        profile.addEmojiElement(model.getEmojis());
         model.setProfileUrl(profile);
 
         if ((account.getFields() != null) &&  //
@@ -129,9 +139,25 @@ public class MastodonMapper {
                 model.setMedias(new ArrayList<>());
 
             } else {
-                model.setSpoilerText(AttributedString.plain(status.getSpoilerText()));
-                model.setText(AttributedString.xhtml(status.getContent(), XML_RULE));
 
+                // 絵文字の追加
+                model.setEmojis(new ArrayList<>());
+                if (status.getEmojis() != null) {
+                    model.getEmojis().addAll(
+                            Stream.of(status.getEmojis())
+                                    .map(MastodonMapper::emoji)
+                                    .collect(Collectors.toList()));
+                }
+
+                // 注釈の設定
+                model.setSpoilerText(AttributedString.plain(status.getSpoilerText()));
+                model.getSpoilerText().addEmojiElement(model.getEmojis());
+
+                // 本文の設定
+                model.setText(AttributedString.xhtml(status.getContent(), XML_RULE));
+                model.getText().addEmojiElement(model.getEmojis());
+
+                // メディアの設定
                 model.setMedias(medias(status.getMediaAttachments()));
             }
             return model;
@@ -168,14 +194,14 @@ public class MastodonMapper {
         Media media = new Media();
         switch (MastodonMediaType.of(attachment.getType())) {
 
-        case Image: {
-            media.setType(MediaType.Image);
-            break;
-        }
-        case Video: {
-            media.setType(MediaType.Movie);
-            break;
-        }
+            case Image: {
+                media.setType(MediaType.Image);
+                break;
+            }
+            case Video: {
+                media.setType(MediaType.Movie);
+                break;
+            }
         }
         media.setSourceUrl(attachment.getUrl());
         media.setPreviewUrl(attachment.getPreviewUrl());
@@ -290,6 +316,18 @@ public class MastodonMapper {
         Pageable<Channel> model = new Pageable<>();
         model.setEntities(Stream.of(lists).map(e -> channel(e, service)) //
                 .collect(Collectors.toList()));
+        return model;
+    }
+
+    /**
+     * 絵文字マッピング
+     */
+    public static Emoji emoji(
+            mastodon4j.entity.Emoji emoji) {
+
+        Emoji model = new Emoji();
+        model.setCode(emoji.getShortcode());
+        model.setUrl(emoji.getStaticUrl());
         return model;
     }
 

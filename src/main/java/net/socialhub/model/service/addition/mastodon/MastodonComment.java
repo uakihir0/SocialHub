@@ -25,6 +25,9 @@ public class MastodonComment extends MiniBlogComment {
     /** Reply count */
     private Long replyCount;
 
+    /** emojis which contains */
+    private List<Emoji> emojis;
+
     public MastodonComment(Service service) {
         super(service);
     }
@@ -58,7 +61,7 @@ public class MastodonComment extends MiniBlogComment {
         return reactions;
     }
 
-    //region // Getter&Setter
+    // region // Getter&Setter
     public AttributedString getSpoilerText() {
         return spoilerText;
     }
@@ -86,5 +89,13 @@ public class MastodonComment extends MiniBlogComment {
     public void setReplyCount(Long replyCount) {
         this.replyCount = replyCount;
     }
-    //endregion
+
+    public List<Emoji> getEmojis() {
+        return emojis;
+    }
+
+    public void setEmojis(List<Emoji> emojis) {
+        this.emojis = emojis;
+    }
+    // endregion
 }

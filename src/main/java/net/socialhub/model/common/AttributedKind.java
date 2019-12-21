@@ -4,7 +4,7 @@ public enum AttributedKind {
 
     // STRINGS
     PLAIN, //
-    IMAGE, //
+    EMOJI, //
 
     // ITEMS
     LINK, //

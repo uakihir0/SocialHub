@@ -98,7 +98,6 @@ public class AttributedString {
         elements = stream.collect(toList());
     }
 
-
     /**
      * Add Emoji Element
      * 絵文字要素を追加

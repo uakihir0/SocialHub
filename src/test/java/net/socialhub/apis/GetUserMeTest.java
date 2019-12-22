@@ -8,7 +8,6 @@ import net.socialhub.model.service.addition.MiniBlogUser;
 import net.socialhub.model.service.addition.mastodon.MastodonUser;
 import org.junit.Ignore;
 import org.junit.Test;
-import twitter4j.Twitter;
 
 public class GetUserMeTest extends AbstractApiTest {
 

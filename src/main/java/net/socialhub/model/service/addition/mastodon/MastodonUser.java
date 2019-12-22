@@ -1,6 +1,8 @@
 package net.socialhub.model.service.addition.mastodon;
 
+import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedFiled;
+import net.socialhub.model.common.AttributedKind;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.Emoji;
 import net.socialhub.model.service.Service;
@@ -29,17 +31,25 @@ public class MastodonUser extends MiniBlogUser {
     public MastodonUser(Service service) {
         super(service);
     }
-    
+
     /**
      * Get Attributed Name
      * 絵文字付き属性文字列を取得
      */
     public AttributedString getAttributedName() {
-        if (attributedName != null) {
+        if (attributedName == null) {
             attributedName = AttributedString.plain(getName(), emptyList());
             attributedName.addEmojiElement(emojis);
         }
         return attributedName;
+    }
+
+    /**
+     * Get is custom emoji included user.
+     * 絵文字付きのユーザー情報かを取得
+     */
+    public boolean isEmojiIncluded() {
+        return emojis != null && !emojis.isEmpty();
     }
 
     @Override
@@ -51,12 +61,19 @@ public class MastodonUser extends MiniBlogUser {
             }
 
             // URL と結合して Mastodon アカウント対応
-            URL url = new URL(getProfileUrl().getDisplayText());
-            return "@" + getScreenName() + "@" + url.getHost();
+            AttributedElement link = getProfileUrl().getElements().stream()
+                    .filter(e -> e.getKind() == AttributedKind.LINK)
+                    .findFirst().orElse(null);
+
+            if (link != null) {
+                URL url = new URL(link.getExpandedText());
+                return "@" + getScreenName() + "@" + url.getHost();
+            }
 
         } catch (Exception e) {
-            return getScreenName();
+            e.printStackTrace();
         }
+        return getScreenName();
     }
 
     @Override

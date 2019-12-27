@@ -14,6 +14,22 @@ public class IndexPaging extends Paging {
     private Long page;
 
     /**
+     * From Paging instance
+     */
+    public static IndexPaging fromPaging(Paging paging) {
+        if (paging instanceof IndexPaging) {
+            return ((IndexPaging) paging).copy();
+        }
+
+        // Count の取得
+        IndexPaging pg = new IndexPaging();
+        if ((paging != null) && (paging.getCount() != null)) {
+            pg.setCount(paging.getCount());
+        }
+        return pg;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -41,15 +57,13 @@ public class IndexPaging extends Paging {
         return pastPage;
     }
 
-
     /**
      * オブジェクトコピー
      */
     public IndexPaging copy() {
         IndexPaging pg = new IndexPaging();
-        pg.setCount(getCount());
         pg.setPage(getPage());
-        pg.setHasMore(getHasMore());
+        copyTo(pg);
         return pg;
     }
 

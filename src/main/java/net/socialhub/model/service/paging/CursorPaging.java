@@ -22,6 +22,23 @@ public class CursorPaging<Type> extends Paging {
     private Type nextCursor;
 
     /**
+     * From Paging instance
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> CursorPaging<T> fromPaging(Paging paging) {
+        if (paging instanceof CursorPaging) {
+            return ((CursorPaging<T>) paging).copy();
+        }
+
+        // Count の取得
+        CursorPaging<T> pg = new CursorPaging<>();
+        if ((paging != null) && (paging.getCount() != null)) {
+            pg.setCount(paging.getCount());
+        }
+        return pg;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -54,6 +71,19 @@ public class CursorPaging<Type> extends Paging {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setMarkPagingEnd(List<?> entities) {
+        if (isHasNew() && (getPrevCursor() == null)) {
+            setHasNew(false);
+        }
+        if (isHasPast() && (getNextCursor() == null)) {
+            setHasPast(false);
+        }
+    }
+
+    /**
      * オプジェクトコピー
      */
     public CursorPaging<Type> copy() {
@@ -61,8 +91,7 @@ public class CursorPaging<Type> extends Paging {
         pg.setCurrentCursor(getCurrentCursor());
         pg.setNextCursor(getNextCursor());
         pg.setPrevCursor(getPrevCursor());
-        pg.setCount(getCount());
-        pg.setHasMore(getHasMore());
+        copyTo(pg);
         return pg;
     }
 

@@ -8,26 +8,48 @@ import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedItem;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.service.Application;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Media;
+import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Service;
 import net.socialhub.model.service.Thread;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.*;
-import net.socialhub.model.service.addition.twitter.*;
+import net.socialhub.model.service.addition.twitter.TwitterChannel;
+import net.socialhub.model.service.addition.twitter.TwitterComment;
+import net.socialhub.model.service.addition.twitter.TwitterMedia;
+import net.socialhub.model.service.addition.twitter.TwitterThread;
+import net.socialhub.model.service.addition.twitter.TwitterUser;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
-import net.socialhub.utils.MapperUtil;
-import twitter4j.*;
+import twitter4j.DirectMessage;
+import twitter4j.Friendship;
+import twitter4j.MediaEntity;
+import twitter4j.PagableResponseList;
+import twitter4j.QueryResult;
+import twitter4j.ResponseList;
+import twitter4j.Status;
+import twitter4j.URLEntity;
+import twitter4j.UserList;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-import static net.socialhub.define.ServiceType.Twitter;
 
 public class TwitterMapper {
 
@@ -366,10 +388,11 @@ public class TwitterMapper {
             return model;
 
         } else {
-            BorderPaging model = BorderPaging.twitter();
+            BorderPaging model = new BorderPaging();
             model.setMaxId(paging.getMaxId());
             model.setSinceId(paging.getSinceId());
             model.setCount(((long) paging.getCount()));
+            beTwitterPaging(model);
             return model;
         }
     }
@@ -438,7 +461,7 @@ public class TwitterMapper {
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(toList()));
 
-        model.setPaging(MapperUtil.mappingBorderPaging(paging, Twitter));
+        model.setPaging(beTwitterPaging(BorderPaging.fromPaging(paging)));
         return model;
     }
 
@@ -455,7 +478,7 @@ public class TwitterMapper {
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(toList()));
 
-        model.setPaging(MapperUtil.mappingBorderPaging(paging, Twitter));
+        model.setPaging(beTwitterPaging(BorderPaging.fromPaging(paging)));
         return model;
     }
 
@@ -468,12 +491,12 @@ public class TwitterMapper {
             Paging paging) {
 
         Pageable<User> model = new Pageable<>();
-        model.setEntities(users.stream().map(e -> user(e, service)) //
+        model.setEntities(users.stream()
+                .map(e -> user(e, service))
                 .collect(toList()));
 
-        CursorPaging<Long> pg = MapperUtil.mappingCursorPaging(paging);
-        pg.setPrevCursor(users.getPreviousCursor());
-        pg.setNextCursor(users.getNextCursor());
+        CursorPaging<Long> pg = CursorPaging.fromPaging(paging);
+        TwitterMapper.setCursorPaging(pg, users);
         model.setPaging(pg);
         return model;
     }
@@ -487,10 +510,11 @@ public class TwitterMapper {
             Paging paging) {
 
         Pageable<User> model = new Pageable<>();
-        model.setEntities(users.stream().map(e -> user(e, service)) //
+        model.setEntities(users.stream()
+                .map(e -> user(e, service))
                 .collect(toList()));
 
-        IndexPaging pg = MapperUtil.mappingIndexPaging(paging);
+        IndexPaging pg = IndexPaging.fromPaging(paging);
         model.setPaging(pg);
         return model;
     }
@@ -507,9 +531,8 @@ public class TwitterMapper {
         model.setEntities(lists.stream().map(e -> channel(e, service)) //
                 .collect(toList()));
 
-        CursorPaging<Long> pg = MapperUtil.mappingCursorPaging(paging);
-        pg.setPrevCursor(lists.getPreviousCursor());
-        pg.setNextCursor(lists.getNextCursor());
+        CursorPaging<Long> pg = CursorPaging.fromPaging(paging);
+        TwitterMapper.setCursorPaging(pg, lists);
         model.setPaging(pg);
         return model;
     }
@@ -575,6 +598,28 @@ public class TwitterMapper {
         });
 
         return model;
+    }
+
+    // ============================================================== //
+    // Paging
+    // ============================================================== //
+    private static void setCursorPaging(
+            CursorPaging<Long> pg, PagableResponseList<?> lists) {
+
+        pg.setPrevCursor(lists.getPreviousCursor());
+        pg.setHasPrev(lists.hasPrevious());
+        pg.setNextCursor(lists.getNextCursor());
+        pg.setHasNext(lists.hasNext());
+    }
+
+    /**
+     * for Twitter Timeline
+     */
+    public static BorderPaging beTwitterPaging(BorderPaging bp) {
+        bp.setMaxInclude(true);
+        bp.setSinceInclude(false);
+        bp.setIdUnit(1L);
+        return bp;
     }
 
     // ============================================================== //

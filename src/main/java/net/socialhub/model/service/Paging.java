@@ -18,8 +18,8 @@ import java.util.List;
 public class Paging implements Serializable {
 
     private Long count;
-
-    private Boolean hasMore;
+    private boolean hasNew = true;
+    private boolean hasPast = true;
 
     public Paging() {
     }
@@ -31,8 +31,15 @@ public class Paging implements Serializable {
     public Paging copy() {
         Paging pg = new Paging();
         pg.setCount(count);
-        pg.setHasMore(hasMore);
+        pg.setHasNew(hasNew);
+        pg.setHasPast(hasPast);
         return pg;
+    }
+
+    protected void copyTo(Paging pg) {
+        pg.setCount(count);
+        pg.setHasNew(hasNew);
+        pg.setHasPast(hasPast);
     }
 
     /**
@@ -67,7 +74,19 @@ public class Paging implements Serializable {
         return pastPage(entities);
     }
 
-    //region // Getter&Setter
+    /**
+     * Set mark as paging end
+     * ページの終端をマークする
+     */
+    public void setMarkPagingEnd(List<?> entities) {
+        if (isHasPast()
+                && entities.isEmpty()
+                && (getCount() > 0)) {
+            setHasPast(false);
+        }
+    }
+
+    // region // Getter&Setter
     public Long getCount() {
         return count;
     }
@@ -76,12 +95,52 @@ public class Paging implements Serializable {
         this.count = count;
     }
 
-    public Boolean getHasMore() {
-        return hasMore;
+    public boolean isHasNew() {
+        return hasNew;
     }
 
-    public void setHasMore(Boolean hasMore) {
-        this.hasMore = hasMore;
+    /**
+     * Alias
+     * New <-> Prev
+     */
+    public boolean isHasPrev() {
+        return isHasNew();
     }
-    //endregion
+
+    public void setHasNew(boolean hasNew) {
+        this.hasNew = hasNew;
+    }
+
+    /**
+     * Alias
+     * New <-> Prev
+     */
+    public void setHasPrev(boolean hasPrev) {
+        setHasNew(hasPrev);
+    }
+
+    public boolean isHasPast() {
+        return hasPast;
+    }
+
+    /**
+     * Alias
+     * Past <-> Next
+     */
+    public boolean isHasNext() {
+        return isHasPast();
+    }
+
+    public void setHasPast(boolean hasPast) {
+        this.hasPast = hasPast;
+    }
+
+    /**
+     * Alias
+     * Past <-> Next
+     */
+    public void setHasNext(boolean hasNext) {
+        setHasPast(hasNext);
+    }
+    // endregion
 }

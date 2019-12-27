@@ -22,19 +22,34 @@ import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedItem;
 import net.socialhub.model.common.AttributedKind;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Media;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Reaction;
+import net.socialhub.model.service.Service;
 import net.socialhub.model.service.Thread;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.addition.slack.SlackMedia;
 import net.socialhub.model.service.addition.slack.SlackTeam;
 import net.socialhub.model.service.addition.slack.SlackUser;
 import net.socialhub.model.service.paging.CursorPaging;
+import net.socialhub.model.service.paging.DatePaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.action.AccountAction;
-import net.socialhub.utils.MapperUtil;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 import static net.socialhub.define.service.slack.SlackAttributedTypes.simple;
@@ -290,8 +305,8 @@ public final class SlackMapper {
                 // 絵文字や URL を注入
                 if (candidates != null) {
                     candidates.stream() //
-                            .filter((c) -> c.getName().equals(reaction.getName())) //
-                            .findFirst().ifPresent((c) -> {
+                            .filter(c -> c.getName().equals(reaction.getName())) //
+                            .findFirst().ifPresent(c -> {
                         model.setIconUrl(c.getIconUrl());
                         model.setEmoji(c.getEmoji());
                     });
@@ -358,8 +373,8 @@ public final class SlackMapper {
         // FIXME: エイリアスのエイリアス？
         alias.forEach((key, value) -> {
             candidates.stream() //
-                    .filter((c) -> c.getName().equals(value)) //
-                    .findFirst().ifPresent((c) -> c.addAlias(key));
+                    .filter(c -> c.getName().equals(value)) //
+                    .findFirst().ifPresent(c -> c.addAlias(key));
         });
 
         return candidates;
@@ -389,10 +404,9 @@ public final class SlackMapper {
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(toList()));
 
-        model.setPaging(MapperUtil.mappingDatePaging(paging));
+        model.setPaging(DatePaging.fromPaging(paging));
         return model;
     }
-
 
     /**
      * チャンネルマッピング
@@ -404,7 +418,7 @@ public final class SlackMapper {
         Pageable<Channel> model = new Pageable<>();
         List<Channel> entities = new ArrayList<>();
 
-        channels.getChannels().forEach((c) -> {
+        channels.getChannels().forEach(c -> {
             Channel entity = new Channel(service);
             entities.add(entity);
 
@@ -524,14 +538,14 @@ public final class SlackMapper {
      */
     public static List<String> getReplayUserIds(List<Comment> comments) {
 
-        return comments.stream().map((c) -> {
+        return comments.stream().map(c -> {
 
             // 特定のコメントについて含まれるメンションを取得
             return c.getText().getElements().stream() //
-                    .filter((a) -> a.getKind() == AttributedKind.ACCOUNT)
-                    .map((a) -> a.getDisplayText().substring(1))
-                    .filter((n) -> !n.equals("here")) //
-                    .filter((n) -> !n.equals("all")) //
+                    .filter(a -> a.getKind() == AttributedKind.ACCOUNT)
+                    .map(a -> a.getDisplayText().substring(1))
+                    .filter(n -> !n.equals("here")) //
+                    .filter(n -> !n.equals("all")) //
                     .collect(toList());
 
         }).flatMap(Collection::stream).distinct() //
@@ -542,12 +556,12 @@ public final class SlackMapper {
      * リプライしているユーザーの名前を埋める
      */
     public static void setMentionName(List<Comment> comments, Map<String, User> userMap) {
-        comments.forEach((c) -> {
+        comments.forEach(c -> {
 
             // メンション情報を書き換える
             c.getText().getElements().stream() //
-                    .filter((a) -> a.getKind() == AttributedKind.ACCOUNT)
-                    .forEach((elem) -> {
+                    .filter(a -> a.getKind() == AttributedKind.ACCOUNT)
+                    .forEach(elem -> {
 
                         String userId = elem.getDisplayText().substring(1);
                         if (elem instanceof AttributedItem) {

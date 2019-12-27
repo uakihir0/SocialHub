@@ -9,6 +9,7 @@ import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.tumblr.TumblrComment;
+import net.socialhub.model.service.addition.tumblr.TumblrPaging;
 import net.socialhub.model.service.addition.tumblr.TumblrUser;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.utils.MapperUtil;
@@ -335,7 +336,7 @@ public class TumblrMapper {
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(Collectors.toList()));
 
-        model.setPaging(MapperUtil.mappingTumblrPaging(paging));
+        model.setPaging(TumblrPaging.fromPaging(paging));
         return model;
     }
 
@@ -356,7 +357,7 @@ public class TumblrMapper {
                 .map(e -> user(e, service)) //
                 .collect(Collectors.toList()));
 
-        model.setPaging(MapperUtil.mappingTumblrPaging(paging));
+        model.setPaging(TumblrPaging.fromPaging(paging));
         return model;
     }
 
@@ -373,7 +374,7 @@ public class TumblrMapper {
                 .map(e -> user(e, service)) //
                 .collect(Collectors.toList()));
 
-        model.setPaging(MapperUtil.mappingTumblrPaging(paging));
+        model.setPaging(TumblrPaging.fromPaging(paging));
         return model;
     }
 

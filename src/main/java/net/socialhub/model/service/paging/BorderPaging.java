@@ -14,14 +14,14 @@ public class BorderPaging extends Paging {
 
     /** Max Id */
     private Long maxId;
-    private Boolean maxInclude = true;
+    private boolean maxInclude = true;
 
     /** Since Id */
     private Long sinceId;
-    private Boolean sinceInclude = false;
+    private boolean sinceInclude = false;
 
     /** Hint to next paging */
-    private Boolean hintNewer = false;
+    private boolean hintNewer = false;
 
     /**
      * ID のスキップ単位
@@ -31,30 +31,20 @@ public class BorderPaging extends Paging {
      */
     private Long idUnit = 1L;
 
-    /** Cannot Access */
-    private BorderPaging() {
-
-    }
-
     /**
-     * for Twitter Timeline
+     * From Paging instance
      */
-    public static BorderPaging twitter() {
-        BorderPaging pg = new BorderPaging();
-        pg.setMaxInclude(true);
-        pg.setSinceInclude(false);
-        pg.setIdUnit(1L);
-        return pg;
-    }
+    public static BorderPaging fromPaging(Paging paging) {
+        if (paging instanceof BorderPaging) {
+            return ((BorderPaging) paging).copy();
+        }
 
-    /**
-     * for Mastodon Timeline
-     */
-    public static BorderPaging mastodon() {
+        // Count の取得
         BorderPaging pg = new BorderPaging();
-        pg.setMaxInclude(false);
-        pg.setSinceInclude(false);
-        pg.setIdUnit(4L);
+        if ((paging != null) && (paging.getCount() != null)) {
+            pg.setCount(paging.getCount());
+        }
+
         return pg;
     }
 
@@ -147,18 +137,30 @@ public class BorderPaging extends Paging {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setMarkPagingEnd(List<?> entities) {
+        if (isHasPast()
+                && entities.isEmpty()
+                && (getSinceId() == null)
+                && (getCount() > 0)) {
+            setHasPast(false);
+        }
+    }
+
+    /**
      * オブジェクトコピー
      */
     public BorderPaging copy() {
         BorderPaging pg = new BorderPaging();
-        pg.setCount(getCount());
         pg.setMaxId(getMaxId());
         pg.setSinceId(getSinceId());
         pg.setMaxInclude(getMaxInclude());
         pg.setSinceInclude(getSinceInclude());
         pg.setIdUnit(getIdUnit());
-        pg.setHasMore(getHasMore());
         pg.setHintNewer(getHintNewer());
+        copyTo(pg);
         return pg;
     }
 

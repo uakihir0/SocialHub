@@ -10,6 +10,22 @@ public class OffsetPaging extends Paging {
     private Long offset;
 
     /**
+     * From Paging instance
+     */
+    public static OffsetPaging fromPaging(Paging paging) {
+        if (paging instanceof OffsetPaging) {
+            return ((OffsetPaging) paging).copy();
+        }
+
+        // Count の取得
+        OffsetPaging pg = new OffsetPaging();
+        if ((paging != null) && (paging.getCount() != null)) {
+            pg.setCount(paging.getCount());
+        }
+        return pg;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -36,15 +52,13 @@ public class OffsetPaging extends Paging {
         return pg;
     }
 
-
     /**
      * オブジェクトコピー
      */
     public OffsetPaging copy() {
         OffsetPaging pg = new OffsetPaging();
-        pg.setCount(getCount());
         pg.setOffset(getOffset());
-        pg.setHasMore(getHasMore());
+        copyTo(pg);
         return pg;
     }
 

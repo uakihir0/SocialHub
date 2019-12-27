@@ -12,19 +12,30 @@ import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.common.xml.XmlConvertRule;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Application;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Emoji;
+import net.socialhub.model.service.Media;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Service;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.mastodon.MastodonComment;
 import net.socialhub.model.service.addition.mastodon.MastodonUser;
+import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
-import net.socialhub.utils.MapperUtil;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static net.socialhub.define.ServiceType.Mastodon;
 
 public class MastodonMapper {
 
@@ -38,8 +49,11 @@ public class MastodonMapper {
     private final static List<Class<?>> ClassLoader = Arrays.asList( //
             mastodon4j.entity.History.class, //
             mastodon4j.entity.Mention.class, //
-            mastodon4j.entity.Emoji.class, //
             mastodon4j.entity.Tag.class);
+
+    // ============================================================== //
+    // Single Object Mapper
+    // ============================================================== //
 
     /**
      * ユーザーマッピング
@@ -65,16 +79,17 @@ public class MastodonMapper {
                             .collect(Collectors.toList()));
         }
 
+        // ユーザー説明分の設定
         model.setDescription(AttributedString.xhtml(account.getNote(), XML_RULE));
+        model.getDescription().addEmojiElement(model.getEmojis());
+
         model.setFollowersCount(account.getFollowersCount());
         model.setFollowingsCount(account.getFollowingCount());
         model.setStatusesCount(account.getStatusesCount());
         model.setProtected(account.isLocked());
 
         // プロフィールページの設定
-        AttributedString profile = AttributedString.plain(account.getUrl());
-        profile.addEmojiElement(model.getEmojis());
-        model.setProfileUrl(profile);
+        model.setProfileUrl(AttributedString.plain(account.getUrl()));
 
         if ((account.getFields() != null) &&  //
                 (account.getFields().length > 0)) {
@@ -84,6 +99,7 @@ public class MastodonMapper {
                 AttributedFiled f = new AttributedFiled();
 
                 f.setValue(AttributedString.xhtml(field.getValue(), XML_RULE));
+                f.getValue().addEmojiElement(model.getEmojis());
                 f.setName(field.getName());
                 model.getFields().add(f);
             }
@@ -190,19 +206,19 @@ public class MastodonMapper {
             Attachment attachment) {
 
         Media media = new Media();
-        switch (MastodonMediaType.of(attachment.getType())) {
-
-            case Image: {
-                media.setType(MediaType.Image);
-                break;
-            }
-            case Video: {
-                media.setType(MediaType.Movie);
-                break;
-            }
-        }
         media.setSourceUrl(attachment.getUrl());
         media.setPreviewUrl(attachment.getPreviewUrl());
+
+        MastodonMediaType type = MastodonMediaType.of(attachment.getType());
+
+        if (type == MastodonMediaType.Image) {
+            media.setType(MediaType.Image);
+            return media;
+        }
+        if (type == MastodonMediaType.Video) {
+            media.setType(MediaType.Movie);
+            return media;
+        }
         return media;
     }
 
@@ -257,6 +273,10 @@ public class MastodonMapper {
         return candidates;
     }
 
+    // ============================================================== //
+    // List Object Mapper
+    // ============================================================== //
+
     /**
      * タイムラインマッピング
      */
@@ -283,7 +303,7 @@ public class MastodonMapper {
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(Collectors.toList()));
 
-        model.setPaging(MapperUtil.mappingBorderPaging(paging, Mastodon));
+        model.setPaging(beMastodonPaging(BorderPaging.fromPaging(paging)));
         return model;
     }
 
@@ -291,16 +311,16 @@ public class MastodonMapper {
      * ユーザーマッピング
      */
     public static Pageable<User> users(
-            Account[] accounts, //
+            Account[] accounts,
             Service service,
             Paging paging) {
 
         Pageable<User> model = new Pageable<>();
-        model.setEntities(Stream.of(accounts) //
-                .map((a) -> user(a, service)) //
+        model.setEntities(Stream.of(accounts)
+                .map(a -> user(a, service))
                 .collect(Collectors.toList()));
 
-        model.setPaging(MapperUtil.mappingBorderPaging(paging, Mastodon));
+        model.setPaging(beMastodonPaging(BorderPaging.fromPaging(paging)));
         return model;
     }
 
@@ -308,11 +328,12 @@ public class MastodonMapper {
      * チャンネルマッピング
      */
     public static Pageable<Channel> channels(
-            mastodon4j.entity.List[] lists, //
+            mastodon4j.entity.List[] lists,
             Service service) {
 
         Pageable<Channel> model = new Pageable<>();
-        model.setEntities(Stream.of(lists).map(e -> channel(e, service)) //
+        model.setEntities(Stream.of(lists)
+                .map(e -> channel(e, service))
                 .collect(Collectors.toList()));
         return model;
     }
@@ -336,5 +357,19 @@ public class MastodonMapper {
         XmlConvertRule rule = new XmlConvertRule();
         rule.setP("\n\n");
         return rule;
+    }
+
+    // ============================================================== //
+    // Paging
+    // ============================================================== //
+
+    /**
+     * for Mastodon Timeline
+     */
+    public static BorderPaging beMastodonPaging(BorderPaging bp) {
+        bp.setMaxInclude(false);
+        bp.setSinceInclude(false);
+        bp.setIdUnit(4L);
+        return bp;
     }
 }

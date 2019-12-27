@@ -18,6 +18,22 @@ public class TumblrPaging extends Paging {
     private Long offset;
 
     /**
+     * From Paging instance
+     */
+    public static TumblrPaging fromPaging(Paging paging) {
+        if (paging instanceof TumblrPaging) {
+            return ((TumblrPaging) paging).copy();
+        }
+
+        // Count の取得
+        TumblrPaging pg = new TumblrPaging();
+        if ((paging != null) && (paging.getCount() != null)) {
+            pg.setCount(paging.getCount());
+        }
+        return pg;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -56,9 +72,8 @@ public class TumblrPaging extends Paging {
     public TumblrPaging copy() {
         TumblrPaging pg = new TumblrPaging();
         pg.setOffset(getOffset());
-        pg.setCount(getCount());
         pg.setSinceId(getSinceId());
-        pg.setHasMore(getHasMore());
+        copyTo(pg);
         return pg;
     }
 

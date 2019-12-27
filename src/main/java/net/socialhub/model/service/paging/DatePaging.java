@@ -19,6 +19,22 @@ public class DatePaging extends Paging {
     private Boolean inclusive;
 
     /**
+     * From Paging instance
+     */
+    public static DatePaging fromPaging(Paging paging) {
+        if (paging instanceof DatePaging) {
+            return ((DatePaging) paging).copy();
+        }
+
+        // Count の取得
+        DatePaging pg = new DatePaging();
+        if ((paging != null) && (paging.getCount() != null)) {
+            pg.setCount(paging.getCount());
+        }
+        return pg;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -78,15 +94,27 @@ public class DatePaging extends Paging {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setMarkPagingEnd(List<?> entities) {
+        if (isHasPast()
+                && entities.isEmpty()
+                && (getOldest() == null)
+                && (getCount() > 0)) {
+            setHasPast(false);
+        }
+    }
+
+    /**
      * オプジェクトコピー
      */
     public DatePaging copy() {
         DatePaging pg = new DatePaging();
-        pg.setCount(getCount());
         pg.setLatest(getLatest());
         pg.setOldest(getOldest());
         pg.setInclusive(getInclusive());
-        pg.setHasMore(getHasMore());
+        copyTo(pg);
         return pg;
     }
 

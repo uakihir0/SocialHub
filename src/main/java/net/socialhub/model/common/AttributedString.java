@@ -1,5 +1,6 @@
 package net.socialhub.model.common;
 
+import net.socialhub.logger.Logger;
 import net.socialhub.model.common.xml.XmlConvertRule;
 import net.socialhub.model.service.Emoji;
 import net.socialhub.utils.XmlParseUtil;
@@ -205,32 +206,43 @@ public class AttributedString {
                 String found = m.group();
                 int i = text.indexOf(found);
 
-                String before = text.substring(0, i);
-                String after = text.substring(i + found.length());
-                List<AttributedElement> results = new ArrayList<>();
+                if (i >= 0) {
+                    String before = text.substring(0, i);
+                    String after = text.substring(i + found.length());
+                    List<AttributedElement> results = new ArrayList<>();
 
-                {
-                    AttributedItem model = new AttributedItem();
-                    model.setKind(AttributedKind.PLAIN);
-                    model.setDisplayText(before);
-                    results.add(model);
-                }
-                {
-                    AttributedItem model = new AttributedItem();
-                    model.setDisplayText(regex);
-                    model.setExpandedText(emoji.getUrl());
-                    model.setKind(AttributedKind.EMOJI);
-                    results.add(model);
-                }
-                {
-                    AttributedItem model = new AttributedItem();
-                    model.setKind(AttributedKind.PLAIN);
-                    model.setDisplayText(after);
+                    {
+                        AttributedItem model = new AttributedItem();
+                        model.setKind(AttributedKind.PLAIN);
+                        model.setDisplayText(before);
+                        results.add(model);
+                    }
+                    {
+                        AttributedItem model = new AttributedItem();
+                        model.setDisplayText(regex);
+                        model.setExpandedText(emoji.getUrl());
+                        model.setKind(AttributedKind.EMOJI);
+                        results.add(model);
+                    }
+                    {
+                        AttributedItem model = new AttributedItem();
+                        model.setKind(AttributedKind.PLAIN);
+                        model.setDisplayText(after);
 
-                    // 再帰的に作成したオブジェクトに対して走査
-                    results.addAll(scanEmojis(model, emoji));
+                        // 再帰的に作成したオブジェクトに対して走査
+                        results.addAll(scanEmojis(model, emoji));
+                    }
+                    return results;
+
+                } else {
+
+                    // 特殊環境下でエラーになるようなので調査のためログを挟む
+                    Logger log = Logger.getLogger(AttributedString.class);
+                    log.debug("UnExpected Status");
+                    log.debug("Text : " + text);
+                    log.debug("Found: " + found);
+                    log.debug("Index: " + i);
                 }
-                return results;
             }
         }
 

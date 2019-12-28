@@ -53,6 +53,15 @@ public class MastodonUser extends MiniBlogUser {
     }
 
     @Override
+    public String getName() {
+        String name = super.getName();
+        if (name == null || name.isEmpty()) {
+            return getScreenName().split("@")[0];
+        }
+        return name;
+    }
+
+    @Override
     public String getAccountIdentify() {
         try {
             // 外のホストの場合は既に URL が付与済

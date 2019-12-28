@@ -79,8 +79,8 @@ public class XmlTag implements XmlElement {
                         AttributedItem elem = new AttributedItem();
                         String href = attributes.get("href");
                         elem.setKind(AttributedKind.ACCOUNT);
-                        elem.setExpandedText(displayText + "@" + getHost(href));
                         elem.setDisplayText(displayText);
+                        elem.setExpandedText(href);
                         elems.add(elem);
                         return;
                     }

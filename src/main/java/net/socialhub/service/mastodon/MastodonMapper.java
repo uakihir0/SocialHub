@@ -3,13 +3,17 @@ package net.socialhub.service.mastodon;
 import mastodon4j.entity.Account;
 import mastodon4j.entity.Attachment;
 import mastodon4j.entity.Field;
+import mastodon4j.entity.Mention;
 import mastodon4j.entity.Status;
 import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.MediaType;
 import net.socialhub.define.service.mastodon.MastodonMediaType;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
+import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedFiled;
+import net.socialhub.model.common.AttributedItem;
+import net.socialhub.model.common.AttributedKind;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.common.xml.XmlConvertRule;
 import net.socialhub.model.service.Application;
@@ -170,6 +174,25 @@ public class MastodonMapper {
                 // 本文の設定
                 model.setText(AttributedString.xhtml(status.getContent(), XML_RULE));
                 model.getText().addEmojiElement(model.getEmojis());
+
+                // メンションの設定
+                if (status.getMentions() != null) {
+                    for (Mention mention : status.getMentions()) {
+                        for (AttributedElement elem : model.getText().getElements()) {
+
+                            // 要素の種類が ACCOUNT の場合
+                            if ((elem.getKind() == AttributedKind.ACCOUNT)
+                                    && (elem instanceof AttributedItem)) {
+
+                                // アカウントの ID をフラグメントで埋め込み参照できるように
+                                if (elem.getExpandedText().equals(mention.getUrl())) {
+                                    String url = mention.getUrl() + "#" + mention.getId();
+                                    ((AttributedItem) elem).setExpandedText(url);
+                                }
+                            }
+                        }
+                    }
+                }
 
                 // メディアの設定
                 model.setMedias(medias(status.getMediaAttachments()));

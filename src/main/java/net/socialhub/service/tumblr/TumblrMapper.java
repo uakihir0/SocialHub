@@ -12,7 +12,6 @@ import net.socialhub.model.service.addition.tumblr.TumblrComment;
 import net.socialhub.model.service.addition.tumblr.TumblrPaging;
 import net.socialhub.model.service.addition.tumblr.TumblrUser;
 import net.socialhub.model.service.support.ReactionCandidate;
-import net.socialhub.utils.MapperUtil;
 
 import java.net.URL;
 import java.util.*;
@@ -69,9 +68,15 @@ public class TumblrMapper {
         model.setName(blog.getName());
         model.setBlogTitle(blog.getTitle());
 
-        // Tumblr の自己紹介文は HTML で解釈
+        // FIXME: 説明文が HTML のユーザーはなぜ？
         if (blog.getDescription() != null) {
-            model.setDescription(AttributedString.xhtml(blog.getDescription()));
+            try {
+                // Tumblr の自己紹介文はまず HTML で解釈
+                model.setDescription(AttributedString.xhtml(blog.getDescription()));
+            } catch (Exception ignore) {
+                // 解釈に失敗した場合は単純なプレーンテキストとして解釈
+                model.setDescription(AttributedString.plain(blog.getDescription()));
+            }
         }
 
         String host = getBlogIdentify(blog);

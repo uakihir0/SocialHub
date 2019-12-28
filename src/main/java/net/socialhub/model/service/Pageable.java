@@ -73,7 +73,7 @@ public class Pageable<T extends Identify> implements Serializable {
 
     public void setPaging(Paging paging) {
         this.paging = paging;
-        if (this.entities != null) {
+        if (this.paging != null && this.entities != null) {
             this.paging.setMarkPagingEnd(this.entities);
         }
     }
@@ -84,7 +84,7 @@ public class Pageable<T extends Identify> implements Serializable {
 
     public void setEntities(List<T> entities) {
         this.entities = entities;
-        if (this.paging != null) {
+        if (this.paging != null && this.entities != null) {
             this.paging.setMarkPagingEnd(this.entities);
         }
     }

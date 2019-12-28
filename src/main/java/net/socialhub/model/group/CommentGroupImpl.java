@@ -7,7 +7,11 @@ import net.socialhub.service.action.group.CommentGroupAction;
 import net.socialhub.service.action.group.CommentGroupActionImpl;
 import net.socialhub.service.action.request.CommentsRequest;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,6 +41,11 @@ public class CommentGroupImpl implements CommentGroup {
         Stream<Comment> stream = entities.values().stream() //
                 .flatMap((e) -> e.getEntities().stream());
 
+        long size = entities.values().stream()
+                .filter(e -> (e.getPaging() != null))
+                .map(e -> e.getPaging().getCount())
+                .min(Long::compareTo).orElse(0L);
+
         if (maxDate != null) {
             stream = stream.filter((e) -> e.getCreateAt().getTime() <= maxDate.getTime());
         }
@@ -49,8 +58,7 @@ public class CommentGroupImpl implements CommentGroup {
         Pageable<Comment> result = new Pageable<>();
 
         result.setEntities(comments);
-        result.setPaging(new Paging());
-        result.getPaging().setCount((long) comments.size());
+        result.setPaging(new Paging(size));
         return result;
     }
 

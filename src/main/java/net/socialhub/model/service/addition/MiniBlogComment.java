@@ -18,13 +18,13 @@ public abstract class MiniBlogComment extends Comment {
     private Long likeCount;
 
     /** User likes this comment */
-    private Boolean isLiked;
+    private boolean isLiked = false;
 
     /** Share count (Alias with ReTweet) */
     private Long shareCount;
 
     /** User shared this comment */
-    private Boolean isShared;
+    private boolean isShared = false;
 
     /** Reply To ID */
     private Identify replyTo;
@@ -66,21 +66,21 @@ public abstract class MiniBlogComment extends Comment {
     @Override
     public void applyReaction(Reaction reaction) {
         if (reaction.getName().startsWith("like")) {
-            if (reaction.getReacting() && (isLiked != null) && !isLiked) {
+            if (reaction.getReacting() && !isLiked) {
                 likeCount = (likeCount == null) ? 1 : likeCount + 1;
                 isLiked = true;
             }
-            if (!reaction.getReacting() && (isLiked != null) && isLiked) {
+            if (!reaction.getReacting() && isLiked) {
                 likeCount = (likeCount == null) ? 0 : likeCount - 1;
                 isLiked = false;
             }
         }
         if (reaction.getName().startsWith("share")) {
-            if (reaction.getReacting() && (isShared != null) && !isShared) {
+            if (reaction.getReacting() && !isShared) {
                 shareCount = (shareCount == null) ? 1 : shareCount + 1;
                 isShared = true;
             }
-            if (!reaction.getReacting() && (isShared != null) && isShared) {
+            if (!reaction.getReacting() && isShared) {
                 shareCount = (shareCount == null) ? 0 : shareCount - 1;
                 isShared = false;
             }
@@ -126,19 +126,19 @@ public abstract class MiniBlogComment extends Comment {
         this.replyTo = replyTo;
     }
 
-    public Boolean getLiked() {
+    public boolean getLiked() {
         return isLiked;
     }
 
-    public void setLiked(Boolean liked) {
+    public void setLiked(boolean liked) {
         isLiked = liked;
     }
 
-    public Boolean getShared() {
+    public boolean getShared() {
         return isShared;
     }
 
-    public void setShared(Boolean shared) {
+    public void setShared(boolean shared) {
         isShared = shared;
     }
     //endregion

@@ -733,9 +733,9 @@ public class MastodonAction extends AccountActionImpl {
 
                 MastodonThread thread = new MastodonThread(service);
                 thread.setDescription(comment.getText().getDisplayText());
-                thread.setLastCommentId((Long) comment.getId());
                 thread.setLastUpdate(comment.getCreateAt());
                 thread.setUsers(new ArrayList<>());
+                thread.setLastComment(comment);
                 thread.setId(conv.getId());
                 threads.add(thread);
 
@@ -765,9 +765,11 @@ public class MastodonAction extends AccountActionImpl {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
 
-            Long commentId = (id instanceof MastodonThread) ?
-                    ((MastodonThread) id).getLastCommentId() :
-                    (Long) id.getId();
+            Long commentId = (Long) id.getId();
+            if (id instanceof MastodonThread) {
+                MastodonThread th = (MastodonThread) id;
+                commentId = (Long) (th.getLastComment().getId());
+            }
 
             Response<mastodon4j.entity.Context> response =
                     mastodon.getContext(commentId);
@@ -779,6 +781,11 @@ public class MastodonAction extends AccountActionImpl {
             comments.addAll(Arrays.stream(response.get().getAncestors()) //
                     .map(e -> MastodonMapper.comment(e, service)) //
                     .collect(toList()));
+
+            // 最後のコメントも追加
+            if (id instanceof MastodonThread) {
+                comments.add(((MastodonThread) id).getLastComment());
+            }
 
             comments.sort(comparing(Comment::getCreateAt).reversed());
             service.getRateLimit().addInfo(GetContext, response);

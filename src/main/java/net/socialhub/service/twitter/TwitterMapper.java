@@ -196,7 +196,7 @@ public class TwitterMapper {
             Map<Long, User> users,
             Service service) {
 
-        Comment model = new Comment(service);
+        TwitterComment model = new TwitterComment(service);
 
         model.setId(message.getId());
         model.setCreateAt(message.getCreatedAt());
@@ -246,44 +246,44 @@ public class TwitterMapper {
 
         switch (TwitterMediaType.of(entity.getType())) {
 
-        case Photo: {
-            TwitterMedia media = new TwitterMedia();
-            media.setType(MediaType.Image);
+            case Photo: {
+                TwitterMedia media = new TwitterMedia();
+                media.setType(MediaType.Image);
 
-            media.setSourceUrl(entity.getMediaURLHttps());
-            media.setPreviewUrl(entity.getMediaURLHttps());
-            return media;
-        }
-
-        case Video: {
-            TwitterMedia media = new TwitterMedia();
-            media.setType(MediaType.Movie);
-
-            media.setPreviewUrl(entity.getMediaURLHttps());
-            for (MediaEntity.Variant variant : entity.getVideoVariants()) {
-
-                // ストリーム向けの動画タイプが存在する場合はそれを利用
-                if (variant.getContentType().equals("application/x-mpegURL")) {
-                    media.setStreamVideoUrl(variant.getUrl());
-                    media.setSourceUrl(variant.getUrl());
-                }
+                media.setSourceUrl(entity.getMediaURLHttps());
+                media.setPreviewUrl(entity.getMediaURLHttps());
+                return media;
             }
 
-            // それ意外の場合一番高画質のものを選択
-            Stream.of(entity.getVideoVariants()) //
-                    .filter((e) -> e.getContentType().startsWith("video")) //
-                    .max(Comparator.comparingInt(MediaEntity.Variant::getBitrate)) //
-                    .ifPresent((variant) -> {
-                        String url = variant.getUrl();
-                        media.setMp4VideoUrl(url);
+            case Video: {
+                TwitterMedia media = new TwitterMedia();
+                media.setType(MediaType.Movie);
 
-                        if (media.getSourceUrl() == null) {
-                            media.setSourceUrl(url);
-                        }
-                    });
+                media.setPreviewUrl(entity.getMediaURLHttps());
+                for (MediaEntity.Variant variant : entity.getVideoVariants()) {
 
-            return media;
-        }
+                    // ストリーム向けの動画タイプが存在する場合はそれを利用
+                    if (variant.getContentType().equals("application/x-mpegURL")) {
+                        media.setStreamVideoUrl(variant.getUrl());
+                        media.setSourceUrl(variant.getUrl());
+                    }
+                }
+
+                // それ意外の場合一番高画質のものを選択
+                Stream.of(entity.getVideoVariants()) //
+                        .filter((e) -> e.getContentType().startsWith("video")) //
+                        .max(Comparator.comparingInt(MediaEntity.Variant::getBitrate)) //
+                        .ifPresent((variant) -> {
+                            String url = variant.getUrl();
+                            media.setMp4VideoUrl(url);
+
+                            if (media.getSourceUrl() == null) {
+                                media.setSourceUrl(url);
+                            }
+                        });
+
+                return media;
+            }
         }
         return null;
     }

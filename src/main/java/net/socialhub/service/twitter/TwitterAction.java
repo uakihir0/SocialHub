@@ -673,6 +673,17 @@ public class TwitterAction extends AccountActionImpl {
      */
     @Override
     public Context getCommentContext(Identify id) {
+        if (id instanceof Comment) {
+
+            // DM の場合はコンテキストの取得不可
+            if (((Comment) id).getDirectMessage()) {
+                Context model = new Context();
+                model.setAncestors(new ArrayList<>());
+                model.setDescendants(new ArrayList<>());
+                return model;
+            }
+        }
+
         return proceed(() -> {
             Twitter twitter = auth.getAccessor();
             Service service = getAccount().getService();

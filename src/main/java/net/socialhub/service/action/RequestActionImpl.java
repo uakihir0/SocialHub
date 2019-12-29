@@ -6,7 +6,12 @@ import net.socialhub.define.action.TimeLineActionType;
 import net.socialhub.define.action.UsersActionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
-import net.socialhub.model.service.*;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Request;
+import net.socialhub.model.service.User;
 import net.socialhub.service.action.request.CommentsRequest;
 import net.socialhub.service.action.request.CommentsRequestImpl;
 import net.socialhub.service.action.request.UsersRequest;
@@ -157,7 +162,9 @@ public class RequestActionImpl implements RequestAction {
                 new SerializeBuilder(MessageTimeLine)
                         .add("id", id.getSerializedIdString()));
 
-        request.getCommentFrom().message(true);
+        request.getCommentFrom()
+                .message(true)
+                .targetId(id);
         return request;
     }
 

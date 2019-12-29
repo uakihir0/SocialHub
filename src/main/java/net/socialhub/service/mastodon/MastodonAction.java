@@ -762,13 +762,24 @@ public class MastodonAction extends AccountActionImpl {
     @Override
     public Pageable<Comment> getMessageTimeLine(Identify id, Paging paging) {
         return proceed(() -> {
+            Long commentId = null;
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
 
-            Long commentId = (Long) id.getId();
+            // Identify を直接作成した場合
+            if (id.getId() instanceof Long) {
+                commentId = (Long) id.getId();
+            }
+            // MastodonThread から呼び出した場合
             if (id instanceof MastodonThread) {
                 MastodonThread th = (MastodonThread) id;
                 commentId = (Long) (th.getLastComment().getId());
+            }
+            
+            // ID が発見できない場合
+            if (commentId == null) {
+                String message = "matched id is not found.";
+                throw new IllegalStateException(message);
             }
 
             Response<mastodon4j.entity.Context> response =

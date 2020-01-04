@@ -29,6 +29,23 @@ public class CommentForm {
     /** Other params */
     private Map<String, Object> params;
 
+    /** Copy this object */
+    public CommentForm copy() {
+        CommentForm form = new CommentForm();
+        form.text(text);
+        form.targetId(targetId);
+        form.sensitive(isSensitive);
+        form.message(isMessage);
+
+        for (MediaForm image : images) {
+            form.addImage(image.copy());
+        }
+        for (String key : params.keySet()) {
+            form.param(key, params.get(key));
+        }
+        return form;
+    }
+
     // ============================================================== //
     // Functions
     // ============================================================== //
@@ -53,19 +70,26 @@ public class CommentForm {
      * Add One Image
      */
     public CommentForm addImage(byte[] image, String name) {
+        MediaForm req = new MediaForm();
+        req.setData(image);
+        req.setName(name);
+        return addImage(req);
+    }
+
+    /**
+     * Add One Image
+     */
+    public CommentForm addImage(MediaForm req) {
         if (this.images == null) {
             this.images = new ArrayList<>();
         }
 
-        MediaForm req = new MediaForm();
-        req.setData(image);
-        req.setName(name);
         this.images.add(req);
-
         return this;
     }
 
     /**
+     * s
      * Remove One Image
      */
     public CommentForm removeImage(int index) {

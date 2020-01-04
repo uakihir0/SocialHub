@@ -2,15 +2,19 @@
 
 SocialHub is a multi social network service's API library written in **Java**, and can be complied to **Objective-C** by [J2ObjC]. and we can also use it with **Kotlin** and **Swift** too. 
 
-## List of SNS
+## List of Social Media (SNS)
 
 ### Available 
 
 * [**Twitter**](https://twitter.com/) ( use [library](https://github.com/uakihir0/twitter4j) based on [twitter4j](https://github.com/yusuke/twitter4j) )
-* [**Facebook**](https://www.facebook.com/) ( use [library](https://github.com/uakihir0/facebook4j) based on [facebook4j](https://github.com/roundrop/facebook4j) )
 * [**Slack**](https://slack.com/) ( use [library](https://github.com/uakihir0/jslack) based on [jslack](https://github.com/seratch/jslack) )
 * [**Mastodon**](https://github.com/tootsuite/mastodon) ( use [library](https://github.com/uakihir0/mastodon4j) based on [mastodon4j](https://github.com/hecateball/mastodon4j) )
 * [**Tumblr**](https://www.tumblr.com/) ( use [library](https://github.com/uakihir0/jumblr) based on [jumblr](https://github.com/tumblr/jumblr) )
+
+### Work in Progress
+
+* [**Facebook**](https://www.facebook.com/) ( use [library](https://github.com/uakihir0/facebook4j) based on [facebook4j](https://github.com/roundrop/facebook4j) )
+* [**Misskey**](https://join.misskey.page/ja/) ( making misskey4j now )
 
 ### Future Works
 
@@ -22,7 +26,6 @@ SocialHub is a multi social network service's API library written in **Java**, a
 * [**Instagram**](https://www.instagram.com/)
   * [Instagram API](https://www.instagram.com/developer/) is deplicated, and [new Graph API](https://developers.facebook.com/products/instagram/) is buissiness use.
 * [**Pleroma**](https://pleroma.social/)
-* [**Misskey**](https://join.misskey.page/ja/)
 
 
 Most of all libraries are modified (remove complex dependency and unused functions in SocialHub) for compilation to Objective-C with [J2ObjC].

@@ -1,6 +1,7 @@
 package net.socialhub.define.service.slack;
 
 import net.socialhub.model.common.AttributedType;
+import net.socialhub.model.common.AttributedType.CommonAttributedType;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,15 +21,15 @@ public final class SlackAttributedTypes {
             m -> (m.groupCount() > 0) ? m.group(1) : m.group();
 
     public static final AttributedType fullLink =
-            new AttributedType.CommonAttributedType(LINK, SLACK_FULL_URL_REGEX, //
+            new CommonAttributedType(LINK, SLACK_FULL_URL_REGEX, //
                     SlackAttributedTypes::getLinkDisplayText, GET_INNER_STRING);
 
     public static final AttributedType email =
-            new AttributedType.CommonAttributedType(EMAIL, SLACK_MAIL_REGEX, //
+            new CommonAttributedType(EMAIL, SLACK_MAIL_REGEX, //
                     GET_INNER_STRING, GET_INNER_STRING);
 
     public static final AttributedType mention =
-            new AttributedType.CommonAttributedType(ACCOUNT, SLACK_MENTION_REGEX, //
+            new CommonAttributedType(ACCOUNT, SLACK_MENTION_REGEX, //
                     GET_INNER_STRING, GET_INNER_STRING);
 
     public static List<AttributedType> simple() {

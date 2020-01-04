@@ -75,7 +75,7 @@ public interface AttributedType {
             if (expand != null) {
                 return expand.apply(m);
             }
-            // 未定義の場合は全体
+            // 未定義
             return null;
         }
     }

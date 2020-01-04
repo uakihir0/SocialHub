@@ -566,8 +566,9 @@ public final class SlackMapper {
                         String userId = elem.getDisplayText().substring(1);
                         if (elem instanceof AttributedItem) {
                             if (userMap.containsKey(userId)) {
-                                String display = "@" + userMap.get(userId);
+                                String display = "@" + userMap.get(userId).getName();
                                 ((AttributedItem) elem).setDisplayText(display);
+                                ((AttributedItem) elem).setExpandedText(userId);
                             }
                         }
                     });

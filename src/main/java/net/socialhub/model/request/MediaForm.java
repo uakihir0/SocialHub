@@ -17,6 +17,14 @@ public class MediaForm {
         return data;
     }
 
+    /** Copy this object */
+    public MediaForm copy() {
+        MediaForm model = new MediaForm();
+        model.setData(data);
+        model.setName(name);
+        return model;
+    }
+
     // ============================================================== //
     // Getters
     // ============================================================== //

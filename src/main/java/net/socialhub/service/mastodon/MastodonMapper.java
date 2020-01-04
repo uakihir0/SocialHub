@@ -8,6 +8,7 @@ import mastodon4j.entity.Status;
 import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.MediaType;
 import net.socialhub.define.service.mastodon.MastodonMediaType;
+import net.socialhub.define.service.mastodon.MastodonNotificationType;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedElement;
@@ -21,6 +22,7 @@ import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Emoji;
 import net.socialhub.model.service.Media;
+import net.socialhub.model.service.Notification;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
@@ -35,6 +37,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TimeZone;
@@ -276,6 +279,49 @@ public class MastodonMapper {
     }
 
     /**
+     * 通知マッピング
+     */
+    public static Notification notification(
+            mastodon4j.entity.Notification notification,
+            Service service) {
+
+        SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        try {
+            Notification model = new Notification(service);
+            model.setCreateAt(format.parse(notification.getCreatedAt()));
+            model.setId(notification.getId());
+
+            MastodonNotificationType type =
+                    MastodonNotificationType
+                            .of(notification.getType());
+
+            // 存在する場合のみ設定
+            if (type != null) {
+                model.setType(type.getType().getCode());
+            }
+
+            // ステータス情報
+            if (notification.getStatus() != null) {
+                model.setComments(Collections.singletonList(
+                        comment(notification.getStatus(), service)));
+            }
+
+            // ユーザー情報
+            if (notification.getAccount() != null) {
+                model.setUsers(Collections.singletonList(
+                        user(notification.getAccount(), service)));
+            }
+            return model;
+
+        } catch (ParseException e) {
+            logger.error(e);
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
      * リアクション候補マッピング
      */
     public static List<ReactionCandidate> reactionCandidates() {
@@ -358,6 +404,23 @@ public class MastodonMapper {
         model.setEntities(Stream.of(lists)
                 .map(e -> channel(e, service))
                 .collect(Collectors.toList()));
+        return model;
+    }
+
+    /**
+     * 通知マッピング
+     */
+    public static Pageable<Notification> notifications(
+            mastodon4j.entity.Notification[] notifications,
+            Service service,
+            Paging paging) {
+
+        Pageable<Notification> model = new Pageable<>();
+        model.setEntities(Stream.of(notifications)
+                .map(a -> notification(a, service))
+                .collect(Collectors.toList()));
+
+        model.setPaging(beMastodonPaging(BorderPaging.fromPaging(paging)));
         return model;
     }
 

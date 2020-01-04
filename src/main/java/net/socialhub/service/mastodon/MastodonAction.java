@@ -6,7 +6,6 @@ import mastodon4j.Range;
 import mastodon4j.entity.Attachment;
 import mastodon4j.entity.Conversation;
 import mastodon4j.entity.History;
-import mastodon4j.entity.Notification;
 import mastodon4j.entity.Results;
 import mastodon4j.entity.Status;
 import mastodon4j.entity.request.StatusUpdate;
@@ -28,6 +27,7 @@ import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Context;
 import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Notification;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
@@ -55,6 +55,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -320,16 +321,16 @@ public class MastodonAction extends AccountActionImpl {
             Service service = getAccount().getService();
             Range range = getRange(paging);
 
-            Response<Notification[]> status = //
+            Response<mastodon4j.entity.Notification[]> status = //
                     mastodon.notifications() //
                             .getNotifications(range, Arrays.asList( //
-                                    MastodonNotificationType.follow.getCode(), //
-                                    MastodonNotificationType.favourite.getCode(), //
-                                    MastodonNotificationType.reblog.getCode()), //
+                                    MastodonNotificationType.FOLLOW.getCode(), //
+                                    MastodonNotificationType.FAVOURITE.getCode(), //
+                                    MastodonNotificationType.REBLOG.getCode()), //
                                     null);
 
             List<Status> statuses = Stream.of(status.get()) //
-                    .map(Notification::getStatus)
+                    .map(mastodon4j.entity.Notification::getStatus)
                     .collect(toList());
 
             service.getRateLimit().addInfo(MentionTimeLine, status);
@@ -775,7 +776,7 @@ public class MastodonAction extends AccountActionImpl {
                 MastodonThread th = (MastodonThread) id;
                 commentId = (Long) (th.getLastComment().getId());
             }
-            
+
             // ID が発見できない場合
             if (commentId == null) {
                 String message = "matched id is not found.";
@@ -869,6 +870,27 @@ public class MastodonAction extends AccountActionImpl {
             }
 
             return results;
+        });
+    }
+
+    /**
+     * Get Notifications
+     * 通知を取得
+     */
+    public Pageable<Notification> getNotification(Paging paging) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Range range = getRange(paging);
+
+            Response<mastodon4j.entity.Notification[]> notifications = //
+                    mastodon.notifications() //
+                            .getNotifications(range, Collections.singletonList( //
+                                    MastodonNotificationType.MENTION.getCode()),
+                                    null);
+
+            return MastodonMapper.notifications(
+                    notifications.get(), service, paging);
         });
     }
 

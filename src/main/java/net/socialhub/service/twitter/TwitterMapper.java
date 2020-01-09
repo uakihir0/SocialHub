@@ -590,8 +590,13 @@ public class TwitterMapper {
                     .max(Comparator.comparing(Comment::getCreateAt)).orElse(null);
 
             if (lastComment != null) {
+
+                // 「名前: コメント内容」のフォーマットで説明文を作成
+                String description = lastComment.getUser().getName()
+                        + ": " + lastComment.getText().getDisplayText();
+
                 thread.setLastUpdate(lastComment.getCreateAt());
-                thread.setDescription(lastComment.getText().getDisplayText());
+                thread.setDescription(description);
             }
 
             model.add(thread);

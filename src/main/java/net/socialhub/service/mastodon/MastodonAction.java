@@ -732,9 +732,13 @@ public class MastodonAction extends AccountActionImpl {
                 Comment comment = MastodonMapper
                         .comment(conv.getLastStatus(), service);
 
+                // 「名前: コメント内容」のフォーマットで説明文を作成
+                String description = comment.getUser().getName()
+                        + ": " + comment.getText().getDisplayText();
+
                 MastodonThread thread = new MastodonThread(service);
-                thread.setDescription(comment.getText().getDisplayText());
                 thread.setLastUpdate(comment.getCreateAt());
+                thread.setDescription(description);
                 thread.setUsers(new ArrayList<>());
                 thread.setLastComment(comment);
                 thread.setId(conv.getId());

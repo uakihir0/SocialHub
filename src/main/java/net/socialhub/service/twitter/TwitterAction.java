@@ -893,6 +893,7 @@ public class TwitterAction extends AccountActionImpl {
         return proceed(() -> {
             int count = getCountFromPage(paging, 50);
             String cursor = getCursorFromPage(paging, null);
+            ExecutorService pool = Executors.newCachedThreadPool();
 
             Twitter twitter = auth.getAccessor();
             Service service = getAccount().getService();
@@ -916,6 +917,11 @@ public class TwitterAction extends AccountActionImpl {
                 }
             }
 
+            // ページング情報を作成
+            CursorPaging<String> pg = CursorPaging.fromPaging(paging);
+            pg.setHasNext(cursor != null);
+            pg.setNextCursor(cursor);
+
             // ユーザー ID のリストを取得
             List<Long> userIds = new ArrayList<>();
             userIds.addAll(messages.stream().map(DirectMessage::getSenderId).collect(toList()));
@@ -927,7 +933,6 @@ public class TwitterAction extends AccountActionImpl {
 
             // ユーザー情報を並列で取得
             List<Future<List<User>>> futures = new ArrayList<>();
-            ExecutorService pool = Executors.newCachedThreadPool();
 
             for (List<Long> userIdList : userIdLists) {
                 futures.add(pool.submit(() -> {
@@ -948,12 +953,15 @@ public class TwitterAction extends AccountActionImpl {
                 }
             }
 
-            // FIXME: 自分自身はすでに取得済みなのでリクエストを省略可能
-            List<Thread> threads = TwitterMapper.message(messages, users, getUserMeWithCache(), service);
+            // FIXME: 自身はすでに取得済みなのでリクエストを省略可能
+            User me = getUserMeWithCache();
+
+            List<Thread> threads = TwitterMapper.message(messages, users, me, service, pg);
             threads.sort(Comparator.comparing(Thread::getLastUpdate).reversed());
 
             Pageable<Thread> pageable = new Pageable<>();
             pageable.setEntities(threads);
+            pageable.setPaging(pg);
             return pageable;
         });
     }

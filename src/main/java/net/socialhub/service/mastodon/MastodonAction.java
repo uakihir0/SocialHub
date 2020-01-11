@@ -808,7 +808,11 @@ public class MastodonAction extends AccountActionImpl {
 
             Pageable<Comment> pageable = new Pageable<>();
             pageable.setEntities(comments);
-            pageable.setPaging(paging);
+            pageable.setPaging(new Paging());
+            pageable.getPaging().setCount(0L);
+            pageable.getPaging().setHasNext(false);
+            pageable.getPaging().setHasPast(false);
+
             return pageable;
         });
     }

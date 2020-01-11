@@ -544,7 +544,8 @@ public class TwitterMapper {
             List<DirectMessage> messages, //
             Map<Long, User> users,
             User me,
-            Service service) {
+            Service service,
+            Paging paging) {
 
         Map<Set<Long>, List<DirectMessage>> threads = new HashMap<>();
 
@@ -581,6 +582,7 @@ public class TwitterMapper {
                     .collect(toList()));
 
             thread.setComments(new Pageable<>());
+            thread.getComments().setPaging(paging);
             thread.getComments().setEntities(ms.stream()
                     .map(e -> comment(e, users, service))
                     .collect(toList()));

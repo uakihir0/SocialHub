@@ -997,6 +997,31 @@ public class TwitterAction extends AccountActionImpl {
                 throw new IllegalStateException("Needs DM Thread ID.");
             }
 
+            Long targetId = null;
+            if (req.getTargetId() instanceof Long) {
+                targetId = (Long) req.getTargetId();
+            }
+            if (req.getTargetId() instanceof Thread) {
+                User me = getUserMeWithCache();
+                Thread thread = (Thread) req.getTargetId();
+
+                // 自分に対しての DM の場合はそのまま格納
+                if (thread.getUsers().size() == 1) {
+                    targetId = (Long) thread.getUsers().get(0).getId();
+
+                } else {
+                    // 他人に対しての DM の場合はその人の ID を取得
+                    targetId = (Long) thread.getUsers().stream()
+                            .filter(u -> !u.getId().equals(me.getId()))
+                            .findFirst().map(Identify::getId).orElse(null);
+                }
+            }
+
+            // スレッド ID が不正
+            if (targetId == null) {
+                throw new IllegalStateException("Invalid Thread ID.");
+            }
+
             // 画像の処理
             List<Long> mediaIds = new ArrayList<>();
             if (req.getImages() != null && !req.getImages().isEmpty()) {
@@ -1016,7 +1041,7 @@ public class TwitterAction extends AccountActionImpl {
             // メディアがない場合
             if (mediaIds.size() == 0) {
                 twitter.directMessages().sendDirectMessage(
-                        (Long) req.getTargetId(), req.getText());
+                        targetId, req.getText());
 
             } else {
 
@@ -1026,12 +1051,12 @@ public class TwitterAction extends AccountActionImpl {
 
                     if (mediaId.equals(mediaIds.get(lastIndex))) {
                         twitter.directMessages().sendDirectMessage(
-                                (Long) req.getTargetId(), req.getText(), mediaId);
+                                targetId, req.getText(), mediaId);
                     } else {
 
                         // 複数画像が存在する場合は先に画像情報を送信
                         twitter.directMessages().sendDirectMessage(
-                                (Long) req.getTargetId(), "", mediaId);
+                                targetId, "", mediaId);
                     }
                 }
             }

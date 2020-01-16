@@ -1,4 +1,4 @@
-# SocialHub [![](https://jitpack.io/v/uakihir0/socialhub.svg)](https://jitpack.io/#uakihir0/socialhub) [![Build Status](https://travis-ci.com/uakihir0/SocialHub.svg?branch=master)](https://travis-ci.com/uakihir0/SocialHub)
+# SocialHub [![](https://jitpack.io/v/uakihir0/socialhub.svg)](https://jitpack.io/#uakihir0/socialhub) [![Build Status](https://github.com/uakihir0/SocialHub/workflows/J2ObjC%20Build/badge.svg)](https://travis-ci.com/uakihir0/SocialHub)
 
 SocialHub is a multi social network service's API library written in **Java**, and can be complied to **Objective-C** by [J2ObjC]. and we can also use it with **Kotlin** and **Swift** too. 
 

@@ -956,7 +956,7 @@ public class TwitterAction extends AccountActionImpl {
             // FIXME: 自身はすでに取得済みなのでリクエストを省略可能
             User me = getUserMeWithCache();
 
-            List<Thread> threads = TwitterMapper.message(messages, users, me, service, pg);
+            List<Thread> threads = TwitterMapper.message(messages, users, me, twitter, service, pg);
             threads.sort(Comparator.comparing(Thread::getLastUpdate).reversed());
 
             Pageable<Thread> pageable = new Pageable<>();

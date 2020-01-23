@@ -37,11 +37,15 @@ public class CommentForm {
         form.sensitive(isSensitive);
         form.message(isMessage);
 
-        for (MediaForm image : images) {
-            form.addImage(image.copy());
+        if (images != null) {
+            for (MediaForm image : images) {
+                form.addImage(image.copy());
+            }
         }
-        for (String key : params.keySet()) {
-            form.param(key, params.get(key));
+        if (params != null) {
+            for (String key : params.keySet()) {
+                form.param(key, params.get(key));
+            }
         }
         return form;
     }

@@ -30,11 +30,14 @@ import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import twitter4j.DirectMessage;
 import twitter4j.Friendship;
+import twitter4j.HttpRequest;
 import twitter4j.MediaEntity;
 import twitter4j.PagableResponseList;
 import twitter4j.QueryResult;
+import twitter4j.RequestMethod;
 import twitter4j.ResponseList;
 import twitter4j.Status;
+import twitter4j.Twitter;
 import twitter4j.URLEntity;
 import twitter4j.UserList;
 
@@ -49,6 +52,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 
 public class TwitterMapper {
@@ -194,6 +198,7 @@ public class TwitterMapper {
     public static Comment comment(
             DirectMessage message,
             Map<Long, User> users,
+            Twitter twitter,
             Service service) {
 
         TwitterComment model = new TwitterComment(service);
@@ -222,6 +227,17 @@ public class TwitterMapper {
 
         // メディア情報を取得時に展開
         model.setMedias(medias(message.getMediaEntities()));
+
+        // メディアに認証ヘッダーを設定
+        for (Media media : model.getMedias()) {
+            if (media instanceof TwitterMedia) {
+                TwitterMedia tm = (TwitterMedia) media;
+                HttpRequest request = new HttpRequest(RequestMethod.GET,
+                        tm.getSourceUrl(), null, twitter.getAuthorization(), emptyMap());
+                tm.setAuthorizationHeader(request.getAuthorization().getAuthorizationHeader(request));
+            }
+        }
+
         return model;
     }
 
@@ -544,6 +560,7 @@ public class TwitterMapper {
             List<DirectMessage> messages, //
             Map<Long, User> users,
             User me,
+            Twitter twitter,
             Service service,
             Paging paging) {
 
@@ -584,7 +601,7 @@ public class TwitterMapper {
             thread.setComments(new Pageable<>());
             thread.getComments().setPaging(paging);
             thread.getComments().setEntities(ms.stream()
-                    .map(e -> comment(e, users, service))
+                    .map(e -> comment(e, users, twitter, service))
                     .collect(toList()));
 
             // 最新のコメント情報を取得

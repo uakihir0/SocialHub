@@ -81,23 +81,4 @@ public class PostCommentTest extends AbstractApiTest {
 
         account.action().postComment(req);
     }
-
-    /**
-     * File to ImageBytes
-     */
-    private static byte[] convertFile(InputStream stream) {
-        try (ByteArrayOutputStream bout = new ByteArrayOutputStream()) {
-
-            int len = 0;
-            byte[] buffer = new byte[1024];
-
-            while ((len = stream.read(buffer)) != -1) {
-                bout.write(buffer, 0, len);
-            }
-            return bout.toByteArray();
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

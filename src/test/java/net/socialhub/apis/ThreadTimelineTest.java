@@ -15,7 +15,7 @@ public class ThreadTimelineTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(50L);
 
-        Account account = SocialAuthUtil.getSlackAccount();
+        Account account = SocialAuthUtil.getTwitterAccount();
         Pageable<Thread> threads = account.action().getMessageThread(paging);
 
         if (threads.getEntities().size() > 0) {

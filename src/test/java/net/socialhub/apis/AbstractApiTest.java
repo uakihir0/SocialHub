@@ -4,6 +4,8 @@ import net.socialhub.TestProperty;
 import net.socialhub.j2objc.security.HmacProvider;
 import org.junit.Before;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.security.Security;
 
 public class AbstractApiTest {

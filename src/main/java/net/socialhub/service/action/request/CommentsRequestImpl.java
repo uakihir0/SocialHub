@@ -8,13 +8,10 @@ import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Stream;
-import net.socialhub.service.action.RequestActionImpl;
 import net.socialhub.service.action.RequestActionImpl.SerializeBuilder;
 import net.socialhub.service.action.callback.EventCallback;
 
-import javax.annotation.Nonnull;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class CommentsRequestImpl implements CommentsRequest {
 

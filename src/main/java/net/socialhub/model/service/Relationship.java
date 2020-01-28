@@ -6,44 +6,44 @@ package net.socialhub.model.service;
  */
 public class Relationship {
 
-    private Boolean followed;
+    private boolean followed;
 
-    private Boolean following;
+    private boolean following;
 
-    private Boolean blocking;
+    private boolean blocking;
 
-    private Boolean muting;
+    private boolean muting;
 
     //region // Getter&Setter
-    public Boolean getFollowed() {
+    public boolean getFollowed() {
         return followed;
     }
 
-    public void setFollowed(Boolean followed) {
+    public void setFollowed(boolean followed) {
         this.followed = followed;
     }
 
-    public Boolean getFollowing() {
+    public boolean getFollowing() {
         return following;
     }
 
-    public void setFollowing(Boolean following) {
+    public void setFollowing(boolean following) {
         this.following = following;
     }
 
-    public Boolean getBlocking() {
+    public boolean getBlocking() {
         return blocking;
     }
 
-    public void setBlocking(Boolean blocking) {
+    public void setBlocking(boolean blocking) {
         this.blocking = blocking;
     }
 
-    public Boolean getMuting() {
+    public boolean getMuting() {
         return muting;
     }
 
-    public void setMuting(Boolean muting) {
+    public void setMuting(boolean muting) {
         this.muting = muting;
     }
     //endregion

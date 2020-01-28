@@ -1,7 +1,12 @@
 package net.socialhub.service.tumblr;
 
 import com.tumblr.jumblr.JumblrClient;
-import com.tumblr.jumblr.types.*;
+import com.tumblr.jumblr.types.Blog;
+import com.tumblr.jumblr.types.Photo;
+import com.tumblr.jumblr.types.PhotoPost;
+import com.tumblr.jumblr.types.Post;
+import com.tumblr.jumblr.types.TextPost;
+import com.tumblr.jumblr.types.Trail;
 import net.socialhub.define.service.tumblr.TumblrIconSize;
 import net.socialhub.define.service.tumblr.TumblrReactionType;
 import net.socialhub.model.Account;
@@ -9,8 +14,13 @@ import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.request.MediaForm;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Relationship;
+import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.*;
 import net.socialhub.model.service.addition.tumblr.TumblrComment;
 import net.socialhub.model.service.addition.tumblr.TumblrPaging;
 import net.socialhub.model.service.addition.tumblr.TumblrUser;

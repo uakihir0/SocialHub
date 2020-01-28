@@ -1,16 +1,15 @@
 package net.socialhub.service.action.group;
 
 import net.socialhub.model.Account;
-import net.socialhub.model.group.*;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
+import net.socialhub.model.group.AccountGroup;
+import net.socialhub.model.group.CommentGroup;
+import net.socialhub.model.group.CommentsRequestGroupImpl;
+import net.socialhub.model.group.UserGroup;
+import net.socialhub.model.group.UserGroupImpl;
 import net.socialhub.model.service.User;
-import net.socialhub.service.action.RequestAction;
 import net.socialhub.service.action.request.CommentsRequest;
 import net.socialhub.utils.HandlingUtil;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -18,8 +17,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
 
 /**
  * グループアクション

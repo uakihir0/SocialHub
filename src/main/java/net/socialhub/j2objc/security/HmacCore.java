@@ -29,7 +29,13 @@ package net.socialhub.j2objc.security;
 import javax.crypto.MacSpi;
 import javax.crypto.SecretKey;
 import java.nio.ByteBuffer;
-import java.security.*;
+import java.security.DigestException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.ProviderException;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Arrays;
 

@@ -5,11 +5,9 @@ import net.socialhub.model.Account;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.User;
-import net.socialhub.service.action.RequestActionImpl;
 import net.socialhub.service.action.RequestActionImpl.SerializeBuilder;
 
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class UsersRequestImpl implements UsersRequest {
 

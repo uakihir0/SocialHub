@@ -8,8 +8,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 
-import static net.socialhub.define.AttributedTypes.Regex.*;
-import static net.socialhub.model.common.AttributedKind.*;
+import static net.socialhub.define.AttributedTypes.Regex.FULL_URL_REGEX;
+import static net.socialhub.define.AttributedTypes.Regex.HASH_TAG_REGEX;
+import static net.socialhub.define.AttributedTypes.Regex.MASTODON_ACCOUNT_REGEX;
+import static net.socialhub.define.AttributedTypes.Regex.SIMPLE_EMAIL_REGEX;
+import static net.socialhub.define.AttributedTypes.Regex.SIMPLE_PHONE_REGEX;
+import static net.socialhub.define.AttributedTypes.Regex.TWITTER_ACCOUNT_REGEX;
+import static net.socialhub.model.common.AttributedKind.ACCOUNT;
+import static net.socialhub.model.common.AttributedKind.EMAIL;
+import static net.socialhub.model.common.AttributedKind.HASH_TAG;
+import static net.socialhub.model.common.AttributedKind.LINK;
+import static net.socialhub.model.common.AttributedKind.PHONE;
 
 public final class AttributedTypes {
     private AttributedTypes() {

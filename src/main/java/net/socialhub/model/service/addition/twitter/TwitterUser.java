@@ -27,7 +27,7 @@ public class TwitterUser extends MiniBlogUser {
     private String location;
 
     /** Is verified account? */
-    private Boolean isVerified;
+    private boolean isVerified = false;
 
     /** Count of Favorites */
     private Long favoritesCount;
@@ -84,11 +84,11 @@ public class TwitterUser extends MiniBlogUser {
         this.favoritesCount = favoritesCount;
     }
 
-    public Boolean getVerified() {
+    public boolean getVerified() {
         return isVerified;
     }
 
-    public void setVerified(Boolean verified) {
+    public void setVerified(boolean verified) {
         isVerified = verified;
     }
     //endregion

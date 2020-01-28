@@ -8,7 +8,6 @@ import net.socialhub.model.request.CommentForm;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 public class PostCommentTest extends AbstractApiTest {

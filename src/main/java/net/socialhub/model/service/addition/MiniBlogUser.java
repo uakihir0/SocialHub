@@ -24,7 +24,7 @@ public abstract class MiniBlogUser extends User {
     private Long statusesCount;
 
     /** Is protected account? */
-    private Boolean isProtected;
+    private boolean isProtected = false;
 
     /** Profile url */
     private AttributedString profileUrl;
@@ -59,11 +59,11 @@ public abstract class MiniBlogUser extends User {
         this.statusesCount = statusesCount;
     }
 
-    public Boolean getProtected() {
+    public boolean getProtected() {
         return isProtected;
     }
 
-    public void setProtected(Boolean aProtected) {
+    public void setProtected(boolean aProtected) {
         isProtected = aProtected;
     }
 

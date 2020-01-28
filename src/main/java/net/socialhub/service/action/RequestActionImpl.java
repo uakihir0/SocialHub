@@ -24,8 +24,17 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-import static net.socialhub.define.action.TimeLineActionType.*;
-import static net.socialhub.define.action.UsersActionType.*;
+import static net.socialhub.define.action.TimeLineActionType.ChannelTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.MentionTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.MessageTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.SearchTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserCommentTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserLikeTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.UserMediaTimeLine;
+import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
+import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
+import static net.socialhub.define.action.UsersActionType.SearchUsers;
 
 public class RequestActionImpl implements RequestAction {
 

@@ -4,10 +4,7 @@ import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Request;
 import net.socialhub.model.service.User;
-import net.socialhub.service.action.RequestActionImpl;
 import net.socialhub.service.action.RequestActionImpl.SerializeBuilder;
-
-import javax.annotation.Nonnull;
 
 public interface UsersRequest extends Request {
 

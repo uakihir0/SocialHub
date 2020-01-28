@@ -325,6 +325,8 @@ public class TwitterMapper {
         Relationship model = new Relationship();
         model.setFollowed(relationship.isSourceFollowedByTarget());
         model.setFollowing(relationship.isSourceFollowingTarget());
+        model.setBlocking(relationship.isSourceBlockingTarget());
+        model.setMuting(relationship.isSourceMutingTarget());
         return model;
     }
 

@@ -62,7 +62,7 @@ public class UserActionImpl implements UserAction {
      */
     @Override
     public void block() {
-        action.muteUser(user);
+        action.blockUser(user);
     }
 
     /**
@@ -70,7 +70,7 @@ public class UserActionImpl implements UserAction {
      */
     @Override
     public void unblock() {
-        action.unmuteUser(user);
+        action.unblockUser(user);
     }
 
     /**

@@ -41,6 +41,14 @@ public class XmlDocument {
         return AttributedString.elements(elements);
     }
 
+    /**
+     * Find Specific name tags.
+     * 特定のタグの要素のみを抽出する
+     */
+    public List<XmlTag> findXmlTag(String tagName) {
+        return root.findXmlTag(tagName);
+    }
+
     //region // Getter&Setter
     public XmlTag getRoot() {
         return root;

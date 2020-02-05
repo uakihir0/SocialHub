@@ -102,6 +102,7 @@ public class XmlTag implements XmlElement {
                 AttributedBucket elem = new AttributedBucket();
                 elem.setChildren(new ArrayList<>());
                 elem.setKind(AttributedKind.QUOTE);
+                elems.add(elem);
 
                 // 再帰的に中身を走査
                 StringBuilder text = new StringBuilder();
@@ -112,7 +113,7 @@ public class XmlTag implements XmlElement {
                     AttributedItem item = new AttributedItem();
                     item.setDisplayText(StringUtil.trimLast(text.toString()));
                     item.setKind(AttributedKind.PLAIN);
-                    elem.getChildren().add(elem);
+                    elem.getChildren().add(item);
                 }
                 return;
             }
@@ -159,6 +160,28 @@ public class XmlTag implements XmlElement {
         } catch (Exception e) {
             throw new SocialHubException(e);
         }
+    }
+
+    /**
+     * Find Specific name tags.
+     * 特定のタグの要素のみを抽出する
+     */
+    public List<XmlTag> findXmlTag(String tagName) {
+        ArrayList<XmlTag> tags = new ArrayList<>();
+
+        // 対象タグが画像の場合はそのタグを加える
+        if (name.equalsIgnoreCase(tagName)) {
+            tags.add(this);
+        }
+
+        // XmlTag の場合は分岐して処理
+        for (XmlElement elem : elements) {
+            if (elem instanceof XmlTag) {
+                tags.addAll(((XmlTag) elem).findXmlTag(tagName));
+            }
+        }
+
+        return tags;
     }
 
     @Override

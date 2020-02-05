@@ -14,6 +14,9 @@ import net.socialhub.define.MediaType;
 import net.socialhub.define.service.tumblr.TumblrIconSize;
 import net.socialhub.define.service.tumblr.TumblrReactionType;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.common.xml.XmlConvertRule;
+import net.socialhub.model.common.xml.XmlDocument;
+import net.socialhub.model.common.xml.XmlTag;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Media;
 import net.socialhub.model.service.Pageable;
@@ -25,6 +28,7 @@ import net.socialhub.model.service.addition.tumblr.TumblrComment;
 import net.socialhub.model.service.addition.tumblr.TumblrPaging;
 import net.socialhub.model.service.addition.tumblr.TumblrUser;
 import net.socialhub.model.service.support.ReactionCandidate;
+import net.socialhub.utils.XmlParseUtil;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -235,17 +239,17 @@ public class TumblrMapper {
             TumblrComment model, //
             com.tumblr.jumblr.types.Post post) {
 
+        model.setMedias(new ArrayList<>());
+
         // Trail から優先的に取得
         if (post.getTrail() != null) {
             if (post.getTrail().size() > 0) {
                 post.getTrail().stream()
                         .filter(Trail::isCurrentItem)
                         .findFirst().ifPresent((trail) ->
-                        model.setText(AttributedString.xhtml(trail.getContent())));
+                        textMedia(model, trail.getContent()));
             }
         }
-
-        model.setMedias(new ArrayList<>());
 
         if (post instanceof PhotoPost) {
             PhotoPost photo = (PhotoPost) post;
@@ -253,7 +257,7 @@ public class TumblrMapper {
 
             if (model.getText() == null) {
                 String str = removeSharedBlogLink(photo.getCaption());
-                model.setText(AttributedString.xhtml(str));
+                textMedia(model, str);
             }
         }
         if (post instanceof TextPost) {
@@ -261,7 +265,7 @@ public class TumblrMapper {
 
             if (model.getText() == null) {
                 String str = removeSharedBlogLink(text.getBody());
-                model.setText(AttributedString.xhtml(str));
+                textMedia(model, str);
             }
         }
         if (post instanceof VideoPost) {
@@ -270,7 +274,7 @@ public class TumblrMapper {
 
             if (model.getText() == null) {
                 String str = removeSharedBlogLink(video.getCaption());
-                model.setText(AttributedString.xhtml(str));
+                textMedia(model, str);
             }
         }
 
@@ -280,8 +284,31 @@ public class TumblrMapper {
             if (model.getText() == null) {
                 String str = removeSharedBlogLink(
                         quote.getText() + " / " + quote.getSource());
-                model.setText(AttributedString.xhtml(str));
+                textMedia(model, str);
             }
+        }
+    }
+
+    /**
+     * テキスト情報を設定
+     */
+    private static void textMedia(
+            TumblrComment model,
+            String str) {
+
+        XmlDocument xml = XmlParseUtil.xhtml(str);
+        model.setText(xml.toAttributedString(new XmlConvertRule()));
+
+        // 画像一覧を取得
+        List<XmlTag> imgTags = xml.findXmlTag("img");
+        for (XmlTag imgTag : imgTags) {
+
+            // 画像を追加
+            Media media = new Media();
+            media.setType(MediaType.Image);
+            media.setSourceUrl(imgTag.getAttributes().get("src"));
+            media.setPreviewUrl(imgTag.getAttributes().get("src"));
+            model.getMedias().add(media);
         }
     }
 

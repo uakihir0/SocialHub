@@ -33,7 +33,7 @@ public class AttributedBucket implements AttributedElement {
         }
         return this.children.stream()
                 .map(AttributedElement::getDisplayText)
-                .collect(Collectors.joining());
+                .collect(Collectors.joining()) + "\n";
     }
 
     @Override

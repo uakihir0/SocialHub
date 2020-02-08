@@ -28,7 +28,7 @@ public class XmlDocument {
     public AttributedString toAttributedString(XmlConvertRule rule) {
         List<AttributedElement> elements = new ArrayList<>();
         StringBuilder text = new StringBuilder();
-        root.setAttribute(elements, text, rule, false);
+        root.setAttribute(elements, text, rule);
 
         // 最後に文字列要素を追加
         if (text.length() > 0) {

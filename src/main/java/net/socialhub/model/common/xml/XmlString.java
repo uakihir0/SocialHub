@@ -15,8 +15,7 @@ public class XmlString implements XmlElement {
     public void setAttribute(
             List<AttributedElement> elements,
             StringBuilder builder,
-            XmlConvertRule rule,
-            boolean textOnly) {
+            XmlConvertRule rule) {
         builder.append(string);
     }
 

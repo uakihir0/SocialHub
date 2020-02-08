@@ -14,6 +14,5 @@ public interface XmlElement {
     void setAttribute(
             List<AttributedElement> elements,
             StringBuilder builder,
-            XmlConvertRule rule,
-            boolean textOnly);
+            XmlConvertRule rule);
 }

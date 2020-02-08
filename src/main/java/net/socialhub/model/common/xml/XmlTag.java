@@ -25,8 +25,7 @@ public class XmlTag implements XmlElement {
     public void setAttribute(
             List<AttributedElement> elems,
             StringBuilder builder,
-            XmlConvertRule rule,
-            boolean textOnly) {
+            XmlConvertRule rule) {
 
         // 見えない要素の場合は無視
         if (attributes.containsKey("class")) {
@@ -45,84 +44,81 @@ public class XmlTag implements XmlElement {
         // ------------------------------------------------------------------- //
         // <P>: タグの後は段落
         if (name.equalsIgnoreCase("p")) {
-            expandAttribute(elems, builder, rule, textOnly);
+            expandAttribute(elems, builder, rule);
             builder.append(rule.getP());
             return;
         }
 
+
         // ------------------------------------------------------------------- //
-        // テキスト以外の処理
-        if (!textOnly) {
+        // <A>: リンクの処理
+        if (name.equalsIgnoreCase("a")) {
+            expandStringElement(elems, builder);
+            expandAttribute(elems, builder, rule);
 
-            // ------------------------------------------------------------------- //
-            // <A>: リンクの処理
-            if (name.equalsIgnoreCase("a")) {
-                expandStringElement(elems, builder);
-                expandAttribute(elems, builder, rule, true);
+            String displayText = builder.toString();
+            builder.setLength(0);
 
-                String displayText = builder.toString();
-                builder.setLength(0);
+            if (attributes.containsKey("class")) {
 
-                if (attributes.containsKey("class")) {
-
-                    // ハッシュタグの場合
-                    if (attributes.get("class").contains("hashtag")) {
-                        AttributedItem elem = new AttributedItem();
-                        elem.setKind(AttributedKind.HASH_TAG);
-                        elem.setDisplayText(displayText);
-                        elems.add(elem);
-                        return;
-                    }
-
-                    // ユーザー向け URL の場合 (Mastodon)
-                    if (attributes.get("class").contains("u-url")) {
-                        AttributedItem elem = new AttributedItem();
-                        String href = attributes.get("href");
-                        elem.setKind(AttributedKind.ACCOUNT);
-                        elem.setDisplayText(displayText);
-                        elem.setExpandedText(href);
-                        elems.add(elem);
-                        return;
-                    }
+                // ハッシュタグの場合
+                if (attributes.get("class").contains("hashtag")) {
+                    AttributedItem elem = new AttributedItem();
+                    elem.setKind(AttributedKind.HASH_TAG);
+                    elem.setDisplayText(displayText);
+                    elems.add(elem);
+                    return;
                 }
 
-                AttributedItem elem = new AttributedItem();
-                elem.setKind(AttributedKind.LINK);
-                elem.setExpandedText(attributes.get("href"));
-                elem.setDisplayText(displayText);
-                elems.add(elem);
-                return;
-            }
-
-            // ------------------------------------------------------------------- //
-            // <BLOCKQUOTE>: 引用の処理 (Tumblr)
-            if (name.equalsIgnoreCase("blockquote")) {
-                expandStringElement(elems, builder);
-
-                AttributedBucket elem = new AttributedBucket();
-                elem.setChildren(new ArrayList<>());
-                elem.setKind(AttributedKind.QUOTE);
-                elems.add(elem);
-
-                // 再帰的に中身を走査
-                StringBuilder text = new StringBuilder();
-                expandAttribute(elem.getChildren(), text, rule, false);
-
-                // 最後に文字列要素を追加
-                if (text.length() > 0) {
-                    AttributedItem item = new AttributedItem();
-                    item.setDisplayText(StringUtil.trimLast(text.toString()));
-                    item.setKind(AttributedKind.PLAIN);
-                    elem.getChildren().add(item);
+                // ユーザー向け URL の場合 (Mastodon)
+                if (attributes.get("class").contains("u-url")) {
+                    AttributedItem elem = new AttributedItem();
+                    String href = attributes.get("href");
+                    elem.setKind(AttributedKind.ACCOUNT);
+                    elem.setDisplayText(displayText);
+                    elem.setExpandedText(href);
+                    elems.add(elem);
+                    return;
                 }
-                return;
             }
 
-            // TODO: テキスト装飾系
+            AttributedItem elem = new AttributedItem();
+            elem.setKind(AttributedKind.LINK);
+            elem.setExpandedText(attributes.get("href"));
+            elem.setDisplayText(displayText);
+            elems.add(elem);
+            return;
         }
 
+        // ------------------------------------------------------------------- //
+        // <BLOCKQUOTE>: 引用の処理 (Tumblr)
+        if (name.equalsIgnoreCase("blockquote")) {
+            expandStringElement(elems, builder);
+
+            AttributedBucket elem = new AttributedBucket();
+            elem.setChildren(new ArrayList<>());
+            elem.setKind(AttributedKind.QUOTE);
+            elems.add(elem);
+
+            // 再帰的に中身を走査
+            StringBuilder text = new StringBuilder();
+            expandAttribute(elem.getChildren(), text, rule);
+
+            // 最後に文字列要素を追加
+            if (text.length() > 0) {
+                AttributedItem item = new AttributedItem();
+                item.setDisplayText(StringUtil.trimLast(text.toString()));
+                item.setKind(AttributedKind.PLAIN);
+                elem.getChildren().add(item);
+            }
+            return;
+        }
+
+        // TODO: テキスト装飾系
+
+
         // その他の場合は無視して続行
-        expandAttribute(elems, builder, rule, textOnly);
+        expandAttribute(elems, builder, rule);
     }
 
     /** 文字を切り出す処理 */
@@ -146,11 +142,10 @@ public class XmlTag implements XmlElement {
     private void expandAttribute(
             List<AttributedElement> elems,
             StringBuilder builder,
-            XmlConvertRule rule,
-            boolean textOnly) {
+            XmlConvertRule rule) {
 
         for (XmlElement element : elements) {
-            element.setAttribute(elems, builder, rule, textOnly);
+            element.setAttribute(elems, builder, rule);
         }
     }
 

@@ -310,6 +310,24 @@ public class TumblrMapper {
             media.setPreviewUrl(imgTag.getAttributes().get("src"));
             model.getMedias().add(media);
         }
+
+        // 動画一覧を選択
+        List<XmlTag> videoTags = xml.findXmlTag("video");
+        for (XmlTag videoTag : videoTags) {
+
+            // さらにそこからソースタグを抽出
+            List<XmlTag> sourceTags = videoTag.findXmlTag("source");
+            if (sourceTags.size() == 1) {
+                XmlTag sourceTag = sourceTags.get(0);
+
+                // 動画を追加
+                Media media = new Media();
+                media.setType(MediaType.Movie);
+                media.setSourceUrl(sourceTag.getAttributes().get("src"));
+                media.setPreviewUrl(videoTag.getAttributes().get("poster"));
+                model.getMedias().add(media);
+            }
+        }
     }
 
     /**
@@ -339,7 +357,13 @@ public class TumblrMapper {
 
         Media media = new Media();
         media.setType(MediaType.Movie);
-        media.setSourceUrl(video.getPermalinkUrl());
+
+        // VideoUrl or PermalinkUrl を選択
+        media.setSourceUrl(video.getVideoUrl());
+        if (media.getSourceUrl() == null) {
+            media.setSourceUrl(video.getPermalinkUrl());
+        }
+
         media.setPreviewUrl(video.getThumbnailUrl());
         return media;
     }

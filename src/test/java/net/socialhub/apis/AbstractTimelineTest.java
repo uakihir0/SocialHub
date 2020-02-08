@@ -22,19 +22,21 @@ public class AbstractTimelineTest extends AbstractApiTest {
             System.out.println(c.getCreateAt());
 
             Comment dc = c.getDisplayComment();
-            System.out.println("T> " + dc.getText().getDisplayText());
+            System.out.println("Text > " + dc.getText().getDisplayText());
 
             if (c instanceof SlackComment) {
-                System.out.println("C> " + ((SlackComment) c).getChannel());
+                System.out.println("Channel > " + ((SlackComment) c).getChannel());
             }
             if (dc.getApplication() != null) {
-                System.out.println("A> " + dc.getApplication().getName());
+                System.out.println("App > " + dc.getApplication().getName());
             }
             for (Media m : dc.getMedias()) {
-                System.out.println("M> " + m.getType() + " : " + m.getPreviewUrl());
+                System.out.println("Media > " + m.getType());
+                System.out.println("M Source > " + m.getSourceUrl());
+                System.out.println("M Preview > " + m.getPreviewUrl());
             }
             for (Reaction m : dc.getReactions()) {
-                System.out.println("R> " + m.getEmoji() + " : " + m.getCount());
+                System.out.println("Reaction > " + m.getEmoji() + " : " + m.getCount());
             }
         }
     }

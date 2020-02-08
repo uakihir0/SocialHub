@@ -36,11 +36,11 @@ public class XmlParseUtil {
         // Remove Script Async
         string = string.replaceAll("<script async", "<script");
 
-        // Regex like: <(br|BR)([^/]*?)>
+        // Regex like: <(br|BR)(.*?)/?>
         String[] tags = {"br", "img", "hr"};
         for (String tag : tags) {
             string = replace(string, "<(" + tag + "|" + //
-                    tag.toUpperCase() + ")([^/]*?)>", "<$1$2/>");
+                    tag.toUpperCase() + ")(.*?)/?>", "<$1$2/>");
         }
 
         // Replace &nbsp; to &#160; (library issue)

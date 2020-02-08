@@ -247,7 +247,7 @@ public class TumblrMapper {
                 post.getTrail().stream()
                         .filter(Trail::isCurrentItem)
                         .findFirst().ifPresent((trail) ->
-                        textMedia(model, trail.getContent()));
+                        textMedia(model, trail.getContentRaw()));
             }
         }
 

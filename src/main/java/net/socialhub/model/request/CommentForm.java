@@ -1,6 +1,7 @@
 package net.socialhub.model.request;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -150,6 +151,9 @@ public class CommentForm {
     }
 
     public Map<String, Object> getParams() {
+        if (params == null) {
+            return Collections.emptyMap();
+        }
         return params;
     }
 

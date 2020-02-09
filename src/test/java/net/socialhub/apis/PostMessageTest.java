@@ -26,5 +26,20 @@ public class PostMessageTest extends AbstractApiTest {
         account.action().postMessage(req);
     }
 
+    @Test
+    @Ignore
+    public void testPostWithMediaSlack() {
+
+        Account account = SocialAuthUtil.getSlackAccount();
+        InputStream stream = getClass().getResourceAsStream("/image/icon.png");
+
+        CommentForm req = new CommentForm()
+                .addImage(convertFile(stream), "icon.png")
+                .text("SocialHub Test")
+                .targetId("")
+                .message(true);
+
+        account.action().postMessage(req);
+    }
 
 }

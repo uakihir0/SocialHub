@@ -1,44 +1,40 @@
 package net.socialhub.service.slack;
 
 import com.github.seratch.jslack.api.methods.request.bots.BotsInfoRequest;
-import com.github.seratch.jslack.api.methods.request.channels.ChannelsHistoryRequest;
-import com.github.seratch.jslack.api.methods.request.channels.ChannelsHistoryRequest.ChannelsHistoryRequestBuilder;
-import com.github.seratch.jslack.api.methods.request.channels.ChannelsListRequest;
-import com.github.seratch.jslack.api.methods.request.channels.ChannelsRepliesRequest;
 import com.github.seratch.jslack.api.methods.request.chat.ChatDeleteRequest;
 import com.github.seratch.jslack.api.methods.request.chat.ChatPostMessageRequest;
 import com.github.seratch.jslack.api.methods.request.chat.ChatPostMessageRequest.ChatPostMessageRequestBuilder;
+import com.github.seratch.jslack.api.methods.request.conversations.ConversationsHistoryRequest;
+import com.github.seratch.jslack.api.methods.request.conversations.ConversationsHistoryRequest.ConversationsHistoryRequestBuilder;
+import com.github.seratch.jslack.api.methods.request.conversations.ConversationsListRequest;
+import com.github.seratch.jslack.api.methods.request.conversations.ConversationsMembersRequest;
+import com.github.seratch.jslack.api.methods.request.conversations.ConversationsRepliesRequest;
 import com.github.seratch.jslack.api.methods.request.emoji.EmojiListRequest;
 import com.github.seratch.jslack.api.methods.request.files.FilesUploadRequest;
 import com.github.seratch.jslack.api.methods.request.files.FilesUploadRequest.FilesUploadRequestBuilder;
-import com.github.seratch.jslack.api.methods.request.im.ImHistoryRequest;
-import com.github.seratch.jslack.api.methods.request.im.ImHistoryRequest.ImHistoryRequestBuilder;
-import com.github.seratch.jslack.api.methods.request.im.ImListRequest;
-import com.github.seratch.jslack.api.methods.request.mpim.MpimHistoryRequest;
-import com.github.seratch.jslack.api.methods.request.mpim.MpimHistoryRequest.MpimHistoryRequestBuilder;
-import com.github.seratch.jslack.api.methods.request.mpim.MpimListRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsAddRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsRemoveRequest;
 import com.github.seratch.jslack.api.methods.request.team.TeamInfoRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersIdentityRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersInfoRequest;
 import com.github.seratch.jslack.api.methods.response.bots.BotsInfoResponse;
-import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
-import com.github.seratch.jslack.api.methods.response.channels.ChannelsRepliesResponse;
 import com.github.seratch.jslack.api.methods.response.chat.ChatDeleteResponse;
+import com.github.seratch.jslack.api.methods.response.conversations.ConversationsHistoryResponse;
+import com.github.seratch.jslack.api.methods.response.conversations.ConversationsListResponse;
+import com.github.seratch.jslack.api.methods.response.conversations.ConversationsMembersResponse;
+import com.github.seratch.jslack.api.methods.response.conversations.ConversationsRepliesResponse;
 import com.github.seratch.jslack.api.methods.response.emoji.EmojiListResponse;
-import com.github.seratch.jslack.api.methods.response.im.ImListResponse;
-import com.github.seratch.jslack.api.methods.response.mpim.MpimListResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsAddResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsRemoveResponse;
 import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersIdentityResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
+import com.github.seratch.jslack.api.model.Conversation;
+import com.github.seratch.jslack.api.model.ConversationType;
 import com.github.seratch.jslack.api.model.Message;
 import net.socialhub.define.service.slack.SlackFormKey;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotImplimentedException;
-import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.request.MediaForm;
@@ -66,9 +62,11 @@ import net.socialhub.utils.MapperUtil;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -253,7 +251,7 @@ public class SlackAction extends AccountActionImpl {
             // Async Request
             // ------------------------------------------------ //
 
-            Future<ChannelsRepliesResponse> responseFuture = pool.submit(() -> {
+            Future<ConversationsRepliesResponse> responseFuture = pool.submit(() -> {
 
                 // スレッドID を取得
                 String threadId = (String) id.getId();
@@ -265,10 +263,10 @@ public class SlackAction extends AccountActionImpl {
                 }
 
                 return auth.getAccessor().getSlack() //
-                        .methods().channelsReplies(ChannelsRepliesRequest.builder() //
-                                .token(auth.getAccessor().getToken()) //
-                                .channel(getChannelId(id)) //
-                                .threadTs(threadId) //
+                        .methods().conversationsReplies(ConversationsRepliesRequest.builder()
+                                .token(auth.getAccessor().getToken())
+                                .channel(getChannelId(id))
+                                .ts(threadId)
                                 .build());
             });
 
@@ -281,7 +279,7 @@ public class SlackAction extends AccountActionImpl {
             // Await Request
             // ------------------------------------------------ //
 
-            ChannelsRepliesResponse response = responseFuture.get();
+            ConversationsRepliesResponse response = responseFuture.get();
             List<ReactionCandidate> candidates = candidatesFuture.get();
             User userMe = userMeFuture.get();
 
@@ -349,9 +347,12 @@ public class SlackAction extends AccountActionImpl {
     public Pageable<Channel> getChannels(Identify id, Paging paging) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            ChannelsListResponse response = auth.getAccessor().getSlack() //
-                    .methods().channelsList(ChannelsListRequest.builder() //
-                            .token(auth.getAccessor().getToken()) //
+            ConversationsListResponse response = auth.getAccessor().getSlack() //
+                    .methods().conversationsList(ConversationsListRequest.builder()
+                            .types(Arrays.asList(
+                                    ConversationType.PUBLIC_CHANNEL,
+                                    ConversationType.PRIVATE_CHANNEL))
+                            .token(auth.getAccessor().getToken())
                             .build());
 
             // General のチャンネルを記録
@@ -390,39 +391,106 @@ public class SlackAction extends AccountActionImpl {
 
             Future<User> userFuture = pool.submit(this::getUserMeWithCache);
 
-            Future<ImListResponse> imResponseFuture = pool.submit(() ->
+            Future<ConversationsListResponse> listFuture = pool.submit(() ->
                     auth.getAccessor().getSlack().methods()
-                            .imList(ImListRequest.builder().token(token)
-                                    .getLatest(true)
-                                    .cursor(cursor)
-                                    .limit(count)
-                                    .build()));
-
-            Future<MpimListResponse> mpimResponseFuture = pool.submit(() ->
-                    auth.getAccessor().getSlack().methods()
-                            .mpimList(MpimListRequest.builder().token(token)
-                                    .getLatest(true)
+                            .conversationsList(ConversationsListRequest
+                                    .builder()
+                                    .excludeArchived(false)
+                                    .types(Arrays.asList(
+                                            ConversationType.IM,
+                                            ConversationType.MPIM))
+                                    .token(token)
                                     .cursor(cursor)
                                     .limit(count)
                                     .build()));
 
             // ユーザー ID を取得
             Set<String> userIds = new HashSet<>();
-            ImListResponse imResponse = imResponseFuture.get();
-            imResponse.getIms().forEach((im) -> userIds.add(im.getUser()));
-            MpimListResponse mpimResponse = mpimResponseFuture.get();
-            mpimResponse.getGroups().forEach((mpim) -> userIds.addAll(mpim.getMembers()));
+
+            // チャンネルとメンバーのリスト対応を取得
+            Map<String, List<String>> memberMap = new HashMap<>();
+            List<Future<?>> memberFutures = new ArrayList<>();
+
+            // 一旦ここまでのリクエストを全て発行
+            User myAccount = userFuture.get();
+            ConversationsListResponse response = listFuture.get();
+
+            for (Conversation channel : response.getChannels()) {
+                if (channel.getUser() != null) {
+                    Set<String> users = new HashSet<>();
+                    users.add((String) myAccount.getId());
+                    users.add(channel.getUser());
+
+                    userIds.add(channel.getUser());
+                    memberMap.put(channel.getId(), new ArrayList<>(users));
+
+                } else {
+
+                    // グループの場合はメンバーを取得
+                    if (channel.isGroup()) {
+                        memberFutures.add(pool.submit(() -> {
+                            ConversationsMembersResponse members =
+                                    auth.getAccessor().getSlack().methods()
+                                            .conversationsMembers(ConversationsMembersRequest
+                                                    .builder()
+                                                    .channel(channel.getId())
+                                                    .token(token)
+                                                    .limit(100)
+                                                    .build());
+
+                            userIds.addAll(members.getMembers());
+                            memberMap.put(channel.getId(), members.getMembers());
+                            return members;
+                        }));
+                    }
+                }
+            }
+
+            // 最後のコメントを取得
+            Map<String, Date> historyMap = new HashMap<>();
+            List<Future<?>> historyFutures = new ArrayList<>();
+
+            for (Conversation channel : response.getChannels()) {
+                historyFutures.add(pool.submit(() -> {
+                    ConversationsHistoryResponse histories =
+                            auth.getAccessor().getSlack().methods()
+                                    .conversationsHistory(ConversationsHistoryRequest
+                                            .builder()
+                                            .channel(channel.getId())
+                                            .token(token)
+                                            .limit(1)
+                                            .build());
+
+                    if ((histories.getMessages() != null) &&
+                            (!histories.getMessages().isEmpty())) {
+
+                        Message message = histories.getMessages().get(0);
+                        Date created = SlackMapper.getDateFromTimeStamp(message.getTs());
+                        historyMap.put(channel.getId(), created);
+                    }
+
+                    return histories;
+                }));
+            }
+
+            // グループメンバーを全て取得できるまで待機
+            for (Future<?> future : memberFutures) {
+                future.get();
+            }
+
+            // 全てのチャンネルのヒストリーを取得できるまで待機
+            for (Future<?> future : historyFutures) {
+                future.get();
+            }
 
             // アカウント & BOT の内容を取得
-            User myAccount = userFuture.get();
             Map<String, User> accountMap = userIds.parallelStream() //
                     .collect(Collectors.toMap(Function.identity(), //
                             (id) -> getAccountWithCache(new Identify(service, id))));
 
             // スレッド一覧を取得
-            List<Thread> threads = new ArrayList<>();
-            threads.addAll(SlackMapper.thread(imResponse, accountMap, myAccount, service));
-            threads.addAll(SlackMapper.thread(mpimResponse, accountMap, service));
+            List<Thread> threads = SlackMapper.thread(
+                    response, memberMap, historyMap, accountMap, service);
             threads.sort(Comparator.comparing(Thread::getLastUpdate).reversed());
 
             Pageable<Thread> pageable = new Pageable<>();
@@ -438,17 +506,7 @@ public class SlackAction extends AccountActionImpl {
     public Pageable<Comment> getMessageTimeLine(Identify id, Paging paging) {
         return proceed(() -> {
             String cid = (String) id.getId();
-
-            // D: DirectMessage
-            if (cid.startsWith("D")) {
-                return getMessageTimeLine(cid, paging);
-            }
-            // G: GroupMessage
-            if (cid.startsWith("G")) {
-                return getGroupMessageTimeLine(cid, paging);
-            }
-
-            throw new NotSupportedException();
+            return getChannelTimeLine(cid, paging);
         });
     }
 
@@ -470,12 +528,12 @@ public class SlackAction extends AccountActionImpl {
      */
     private Pageable<Comment> getChannelTimeLine(String channel, Paging paging) {
         return getTimeLine(channel, paging, () -> proceed(() -> {
-            ChannelsHistoryRequestBuilder request = ChannelsHistoryRequest
+            ConversationsHistoryRequestBuilder request = ConversationsHistoryRequest
                     .builder().channel(channel).token(auth.getAccessor().getToken());
 
             if (paging != null) {
                 if (paging.getCount() != null) {
-                    request.count(paging.getCount().intValue());
+                    request.limit(paging.getCount().intValue());
                 }
 
                 if (paging instanceof DatePaging) {
@@ -493,73 +551,7 @@ public class SlackAction extends AccountActionImpl {
             }
 
             return auth.getAccessor().getSlack().methods()
-                    .channelsHistory(request.build()).getMessages();
-        }));
-    }
-
-    /**
-     * Get Message Comments
-     * ダイレクトメッセージ情報を取得
-     */
-    private Pageable<Comment> getMessageTimeLine(String channel, Paging paging) {
-        return getTimeLine(channel, paging, () -> proceed(() -> {
-            ImHistoryRequestBuilder builder = ImHistoryRequest
-                    .builder().channel(channel).token(auth.getAccessor().getToken());
-
-            if (paging != null) {
-                if (paging.getCount() != null) {
-                    builder.count(paging.getCount().intValue());
-                }
-
-                if (paging instanceof DatePaging) {
-                    DatePaging date = (DatePaging) paging;
-                    if (date.getLatest() != null) {
-                        builder.latest(date.getLatest());
-                    }
-                    if (date.getOldest() != null) {
-                        builder.oldest(date.getOldest());
-                    }
-                    if (date.getInclusive() != null) {
-                        builder.inclusive(date.getInclusive());
-                    }
-                }
-            }
-
-            return auth.getAccessor().getSlack().methods()
-                    .imHistory(builder.build()).getMessages();
-        }));
-    }
-
-    /**
-     * Get Group Message Comments
-     * グループダイレクトメッセージ情報を取得
-     */
-    private Pageable<Comment> getGroupMessageTimeLine(String channel, Paging paging) {
-        return getTimeLine(channel, paging, () -> proceed(() -> {
-            MpimHistoryRequestBuilder builder = MpimHistoryRequest
-                    .builder().channel(channel).token(auth.getAccessor().getToken());
-
-            if (paging != null) {
-                if (paging.getCount() != null) {
-                    builder.count(paging.getCount().intValue());
-                }
-
-                if (paging instanceof DatePaging) {
-                    DatePaging date = (DatePaging) paging;
-                    if (date.getLatest() != null) {
-                        builder.latest(date.getLatest());
-                    }
-                    if (date.getOldest() != null) {
-                        builder.oldest(date.getOldest());
-                    }
-                    if (date.getInclusive() != null) {
-                        builder.inclusive(date.getInclusive());
-                    }
-                }
-            }
-
-            return auth.getAccessor().getSlack().methods()
-                    .mpimHistory(builder.build()).getMessages();
+                    .conversationsHistory(request.build()).getMessages();
         }));
     }
 

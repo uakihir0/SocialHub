@@ -3,9 +3,8 @@ package net.socialhub.service.slack;
 import com.github.seratch.jslack.api.methods.response.bots.BotsInfoResponse;
 import com.github.seratch.jslack.api.methods.response.bots.BotsInfoResponse.Bot;
 import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
+import com.github.seratch.jslack.api.methods.response.conversations.ConversationsListResponse;
 import com.github.seratch.jslack.api.methods.response.emoji.EmojiListResponse;
-import com.github.seratch.jslack.api.methods.response.im.ImListResponse;
-import com.github.seratch.jslack.api.methods.response.mpim.MpimListResponse;
 import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersIdentityResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
@@ -412,7 +411,7 @@ public final class SlackMapper {
      * チャンネルマッピング
      */
     public static Pageable<Channel> channel(
-            ChannelsListResponse channels, //
+            ConversationsListResponse channels, //
             Service service) {
 
         Pageable<Channel> model = new Pageable<>();
@@ -425,7 +424,7 @@ public final class SlackMapper {
             entity.setId(c.getId());
             entity.setName(c.getName());
             entity.setDescription(c.getPurpose().getValue());
-            entity.setCreateAt(new Date(c.getCreated() * 1000));
+            entity.setCreateAt(getFromDateString(c.getCreated()));
         });
 
         CursorPaging<String> pg = new CursorPaging<>();
@@ -445,11 +444,14 @@ public final class SlackMapper {
      * DM スレッドマッピング
      */
     public static List<Thread> thread(
-            MpimListResponse response, //
+            ConversationsListResponse response, //
+            Map<String, List<String>> memberMap, //
+            Map<String, Date> historyMap, //
             Map<String, User> accountMap, //
             Service service) {
 
-        return response.getGroups().stream().map((e) -> {
+        return response.getChannels().stream().map((e) -> {
+
             // アーカイブ済みの場合
             if (e.isArchived()) {
                 return null;
@@ -457,50 +459,14 @@ public final class SlackMapper {
 
             Thread thread = new Thread(service);
             thread.setId(e.getId());
-            thread.setUsers(e.getMembers()
+            thread.setUsers(memberMap.get(e.getId())
                     .stream().map(accountMap::get)
                     .filter(Objects::nonNull).collect(toList()));
-            thread.setLastUpdate(getDateFromTimeStamp(e.getLatest().getTs()));
+            thread.setLastUpdate(historyMap.get(e.getId()));
 
             // 一度も更新されていないスレッドの場合
             if (thread.getLastUpdate() == null) {
-                thread.setLastUpdate(new Date(e.getCreated() * 1000));
-            }
-
-            return thread;
-        }).filter(Objects::nonNull)
-                .collect(toList());
-    }
-
-    /**
-     * DM スレッドマッピング
-     */
-    public static List<Thread> thread(
-            ImListResponse response,
-            Map<String, User> accountMap,
-            User myAccount,
-            Service service) {
-
-        return response.getIms().stream().map((e) -> {
-            // ユーザーが消されている場合
-            if (e.isUser_deleted()) {
-                return null;
-            }
-
-            Thread thread = new Thread(service);
-            thread.setId(e.getId());
-            thread.setUsers(new ArrayList<>());
-            thread.getUsers().add(accountMap.get(e.getUser()));
-            thread.setLastUpdate(getDateFromTimeStamp(e.getLatest()));
-
-            // 一度も更新されていないスレッドの場合
-            if (thread.getLastUpdate() == null) {
-                thread.setLastUpdate(new Date(e.getCreated() * 1000));
-            }
-
-            // ユーザーに自分が含まれていない場合は追加
-            if (thread.getUsers().stream().noneMatch((u) -> u.getId().equals(myAccount.getId()))) {
-                thread.getUsers().add(myAccount);
+                thread.setLastUpdate(getFromDateString(e.getCreated()));
             }
 
             return thread;
@@ -575,7 +541,11 @@ public final class SlackMapper {
         });
     }
 
-    private static Date getDateFromTimeStamp(String ts) {
+    public static Date getFromDateString(String date){
+        return new Date(Long.parseLong(date) * 1000L);
+    }
+
+    public static Date getDateFromTimeStamp(String ts) {
 
         if (ts != null && !ts.isEmpty()) {
             String unixTime = ts.split("\\.")[0];

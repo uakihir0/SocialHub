@@ -8,6 +8,7 @@ import com.github.seratch.jslack.api.methods.request.conversations.Conversations
 import com.github.seratch.jslack.api.methods.request.conversations.ConversationsHistoryRequest.ConversationsHistoryRequestBuilder;
 import com.github.seratch.jslack.api.methods.request.conversations.ConversationsListRequest;
 import com.github.seratch.jslack.api.methods.request.conversations.ConversationsMembersRequest;
+import com.github.seratch.jslack.api.methods.request.conversations.ConversationsOpenRequest;
 import com.github.seratch.jslack.api.methods.request.conversations.ConversationsRepliesRequest;
 import com.github.seratch.jslack.api.methods.request.emoji.EmojiListRequest;
 import com.github.seratch.jslack.api.methods.request.files.FilesUploadRequest;
@@ -22,6 +23,7 @@ import com.github.seratch.jslack.api.methods.response.chat.ChatDeleteResponse;
 import com.github.seratch.jslack.api.methods.response.conversations.ConversationsHistoryResponse;
 import com.github.seratch.jslack.api.methods.response.conversations.ConversationsListResponse;
 import com.github.seratch.jslack.api.methods.response.conversations.ConversationsMembersResponse;
+import com.github.seratch.jslack.api.methods.response.conversations.ConversationsOpenResponse;
 import com.github.seratch.jslack.api.methods.response.conversations.ConversationsRepliesResponse;
 import com.github.seratch.jslack.api.methods.response.emoji.EmojiListResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsAddResponse;
@@ -79,6 +81,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
 import static net.socialhub.define.service.slack.SlackMessageSubType.BotMessage;
 
 /**
@@ -357,7 +360,7 @@ public class SlackAction extends AccountActionImpl {
 
             // General のチャンネルを記録
             response.getChannels().stream() //
-                    .filter((c) -> c.isGeneral()).findFirst() //
+                    .filter(Conversation::isGeneral).findFirst() //
                     .map((c) -> generalChannel = c.getId());
 
             return SlackMapper.channel(response, service);
@@ -642,6 +645,11 @@ public class SlackAction extends AccountActionImpl {
             String token = auth.getAccessor().getToken();
             String channel = (String) req.getParams().get(SlackFormKey.CHANNEL_KEY);
 
+            // ユーザーに対してのメッセージの場合は IM を検索
+            if (channel == null && req.isMessage()) {
+                channel = searchMessageChannel(req);
+            }
+
             // 画像がある場合とそうでない場合で処理を分岐
             if (req.getImages() != null && !req.getImages().isEmpty()) {
 
@@ -653,7 +661,7 @@ public class SlackAction extends AccountActionImpl {
                         // -> 最後にコメントを送信する形で表示
                         FilesUploadRequestBuilder builder = //
                                 FilesUploadRequest.builder() //
-                                        .channels(Collections.singletonList(channel)) //
+                                        .channels(singletonList(channel)) //
                                         .filestream(new ByteArrayInputStream(media.getData())) //
                                         .filename(media.getName());
 
@@ -686,7 +694,7 @@ public class SlackAction extends AccountActionImpl {
                     FilesUploadRequestBuilder builder = //
                             FilesUploadRequest.builder() //
                                     .initialComment(req.getText()) //
-                                    .channels(Collections.singletonList(channel)) //
+                                    .channels(singletonList(channel)) //
                                     .filestream(new ByteArrayInputStream(media.getData())) //
                                     .filename(media.getName());
 
@@ -714,6 +722,50 @@ public class SlackAction extends AccountActionImpl {
                         .chatPostMessage(builder.token(token).build());
             }
         });
+    }
+
+    /**
+     * DM の投稿先を作成
+     */
+    private String searchMessageChannel(CommentForm req) {
+        if (req.isMessage()) {
+            return proceed(() -> {
+                String token = auth.getAccessor().getToken();
+
+                // TargetID にはユーザーの ID が入っていると仮定
+                String userId = (String) req.getTargetId();
+
+                // IM のリストを取得してその中から該当のものを取得
+                ConversationsListResponse listResponse =
+                        auth.getAccessor().getSlack().methods()
+                                .conversationsList(ConversationsListRequest
+                                        .builder()
+                                        .excludeArchived(false)
+                                        .types(singletonList(ConversationType.IM))
+                                        .token(token)
+                                        .limit(100)
+                                        .build());
+
+                for (Conversation conversation : listResponse.getChannels()) {
+                    if (conversation.getUser().equals(userId)) {
+                        return conversation.getId();
+                    }
+                }
+
+                // 発見できなかった場合は新しく IM を作成
+                ConversationsOpenResponse openResponse =
+                        auth.getAccessor().getSlack().methods()
+                                .conversationsOpen(ConversationsOpenRequest
+                                        .builder()
+                                        .token(token)
+                                        .users(singletonList(userId))
+                                        .build());
+
+                // 新しく作成したチャンネルの ID を返却
+                return openResponse.getChannel().getId();
+            });
+        }
+        return null;
     }
 
     // ============================================================== //

@@ -648,6 +648,7 @@ public class SlackAction extends AccountActionImpl {
             // ユーザーに対してのメッセージの場合は IM を検索
             if (channel == null && req.isMessage()) {
                 channel = searchMessageChannel(req);
+                req.targetId(null);
             }
 
             // 画像がある場合とそうでない場合で処理を分岐

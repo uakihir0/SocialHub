@@ -1,5 +1,8 @@
 package net.socialhub.define.service.slack;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Slack Scope Builder
  * {@see https://api.slack.com/docs/oauth-scopes}
@@ -189,4 +192,58 @@ public class SlackScope {
         return this;
     }
 
+    /**
+     * Get All Scopes SocialHub Required.
+     * SocialHub が利用する全てのスコープを取得
+     */
+    public static List<SlackScope> getSocialHubAccess() {
+        return Arrays.asList(
+
+                // Channel
+                new SlackScope().channels().history(),
+                new SlackScope().channels().read(),
+                new SlackScope().channels().write(),
+
+                // Chat
+                new SlackScope().chat().write().user(),
+
+                // Emoji
+                new SlackScope().emoji().read(),
+
+                // Files
+                new SlackScope().files().read(),
+                new SlackScope().files().write().user(),
+
+                // Groups
+                new SlackScope().groups().history(),
+                new SlackScope().groups().read(),
+                new SlackScope().groups().write(),
+
+                // Im
+                new SlackScope().im().history(),
+                new SlackScope().im().read(),
+                new SlackScope().im().write(),
+
+                // Mpim
+                new SlackScope().mpim().history(),
+                new SlackScope().mpim().read(),
+                new SlackScope().mpim().write(),
+
+                // Reactions
+                new SlackScope().reactions().read(),
+                new SlackScope().reactions().write(),
+
+                // Links
+                new SlackScope().links().read(),
+                new SlackScope().links().write(),
+
+                // Team
+                new SlackScope().team().read(),
+
+                // User
+                new SlackScope().usersProfile().read(),
+                new SlackScope().user().read(),
+                new SlackScope().user().readEmail()
+        );
+    }
 }

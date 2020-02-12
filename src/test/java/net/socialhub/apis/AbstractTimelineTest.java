@@ -18,26 +18,31 @@ public class AbstractTimelineTest extends AbstractApiTest {
         System.out.println("========================");
 
         for (Comment c : timeline.getEntities()) {
-            System.out.println(c.getId());
-            System.out.println(c.getCreateAt());
+            printComment(c);
+        }
+    }
 
-            Comment dc = c.getDisplayComment();
-            System.out.println("Text > " + dc.getText().getDisplayText());
+    protected void printComment(Comment c) {
 
-            if (c instanceof SlackComment) {
-                System.out.println("Channel > " + ((SlackComment) c).getChannel());
-            }
-            if (dc.getApplication() != null) {
-                System.out.println("App > " + dc.getApplication().getName());
-            }
-            for (Media m : dc.getMedias()) {
-                System.out.println("Media > " + m.getType());
-                System.out.println("M Source > " + m.getSourceUrl());
-                System.out.println("M Preview > " + m.getPreviewUrl());
-            }
-            for (Reaction m : dc.getReactions()) {
-                System.out.println("Reaction > " + m.getEmoji() + " : " + m.getCount());
-            }
+        System.out.println(c.getId());
+        System.out.println(c.getCreateAt());
+
+        Comment dc = c.getDisplayComment();
+        System.out.println("Text > " + dc.getText().getDisplayText());
+
+        if (c instanceof SlackComment) {
+            System.out.println("Channel > " + ((SlackComment) c).getChannel());
+        }
+        if (dc.getApplication() != null) {
+            System.out.println("App > " + dc.getApplication().getName());
+        }
+        for (Media m : dc.getMedias()) {
+            System.out.println("Media > " + m.getType());
+            System.out.println("M Source > " + m.getSourceUrl());
+            System.out.println("M Preview > " + m.getPreviewUrl());
+        }
+        for (Reaction m : dc.getReactions()) {
+            System.out.println("Reaction > " + m.getEmoji() + " : " + m.getCount());
         }
     }
 

@@ -1314,16 +1314,16 @@ public class TwitterAction extends AccountActionImpl {
     static class TwitterCommentsListener extends StatusAdapter {
 
         private EventCallback listener;
-        private List<Long> idList;
+        private List<Long> userIdList;
         private Service service;
 
         TwitterCommentsListener(
                 EventCallback listener,
-                List<Long> idList,
+                List<Long> userIdList,
                 Service service) {
             this.listener = listener;
+            this.userIdList = userIdList;
             this.service = service;
-            this.idList = idList;
         }
 
         @Override
@@ -1331,11 +1331,12 @@ public class TwitterAction extends AccountActionImpl {
             if (listener instanceof UpdateCommentCallback) {
 
                 // 関連 ID 意外のコメントは除外
-                if (idList != null && !idList.isEmpty()) {
-                    if (!idList.contains(status.getId())) {
+                if (userIdList != null && !userIdList.isEmpty()) {
+                    if (!userIdList.contains(status.getUser().getId())) {
                         return;
                     }
                 }
+
                 Comment comment = TwitterMapper.comment(status, service);
                 UpdateCommentEvent event = new UpdateCommentEvent(comment);
                 ((UpdateCommentCallback) listener).onUpdate(event);

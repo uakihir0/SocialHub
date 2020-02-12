@@ -2,7 +2,11 @@ package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
 import net.socialhub.model.Account;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Media;
+import net.socialhub.model.service.Reaction;
 import net.socialhub.model.service.Stream;
+import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.event.DeleteCommentEvent;
 import net.socialhub.model.service.event.UpdateCommentEvent;
 import net.socialhub.service.action.callback.DeleteCommentCallback;
@@ -58,8 +62,22 @@ public class CommentStreamTest extends AbstractApiTest {
 
         @Override
         public void onUpdate(UpdateCommentEvent event) {
-            System.out.println("Update> " + event.getComment()
-                    .getDisplayComment().getText().getDisplayText());
+            printComment(event.getComment());
+        }
+
+        protected void printComment(Comment c) {
+            System.out.println("// ---------------------------------------------------- //");
+            System.out.println("" + c.getId() + " : " + c.getCreateAt());
+            System.out.println("" + c.getUser().getName());
+
+            Comment dc = c.getDisplayComment();
+            System.out.println("Text > " + dc.getText().getDisplayText());
+
+            for (Media m : dc.getMedias()) {
+                System.out.println("Media > " + m.getType());
+                System.out.println("M Source > " + m.getSourceUrl());
+                System.out.println("M Preview > " + m.getPreviewUrl());
+            }
         }
     }
 

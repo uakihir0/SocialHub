@@ -61,8 +61,28 @@ public class SlackScope {
         return this;
     }
 
+    public SlackScope identity() {
+        group = "identity";
+        return this;
+    }
+
+    public SlackScope identityAvatar() {
+        group = "identity.avatar";
+        return this;
+    }
+
     public SlackScope identityBasic() {
         group = "identity.basic";
+        return this;
+    }
+
+    public SlackScope identityEmail() {
+        group = "identity.email";
+        return this;
+    }
+
+    public SlackScope identityTeam() {
+        group = "identity.team";
         return this;
     }
 

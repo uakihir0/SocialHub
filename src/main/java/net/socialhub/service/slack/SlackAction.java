@@ -1,5 +1,6 @@
 package net.socialhub.service.slack;
 
+import com.github.seratch.jslack.api.methods.request.auth.AuthTestRequest;
 import com.github.seratch.jslack.api.methods.request.bots.BotsInfoRequest;
 import com.github.seratch.jslack.api.methods.request.chat.ChatDeleteRequest;
 import com.github.seratch.jslack.api.methods.request.chat.ChatPostMessageRequest;
@@ -16,8 +17,9 @@ import com.github.seratch.jslack.api.methods.request.files.FilesUploadRequest.Fi
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsAddRequest;
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsRemoveRequest;
 import com.github.seratch.jslack.api.methods.request.team.TeamInfoRequest;
-import com.github.seratch.jslack.api.methods.request.users.UsersIdentityRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersInfoRequest;
+import com.github.seratch.jslack.api.methods.request.users.UsersListRequest;
+import com.github.seratch.jslack.api.methods.response.auth.AuthTestResponse;
 import com.github.seratch.jslack.api.methods.response.bots.BotsInfoResponse;
 import com.github.seratch.jslack.api.methods.response.chat.ChatDeleteResponse;
 import com.github.seratch.jslack.api.methods.response.conversations.ConversationsHistoryResponse;
@@ -29,8 +31,8 @@ import com.github.seratch.jslack.api.methods.response.emoji.EmojiListResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsAddResponse;
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsRemoveResponse;
 import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
-import com.github.seratch.jslack.api.methods.response.users.UsersIdentityResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
+import com.github.seratch.jslack.api.methods.response.users.UsersListResponse;
 import com.github.seratch.jslack.api.model.Conversation;
 import com.github.seratch.jslack.api.model.ConversationType;
 import com.github.seratch.jslack.api.model.Message;
@@ -115,15 +117,15 @@ public class SlackAction extends AccountActionImpl {
     public User getUserMe() {
         return proceed(() -> {
             Service service = getAccount().getService();
-            UsersIdentityResponse identity = auth.getAccessor().getSlack() //
-                    .methods().usersIdentity(UsersIdentityRequest.builder() //
+            AuthTestResponse test = auth.getAccessor().getSlack() //
+                    .methods().authTest(AuthTestRequest.builder() //
                             .token(auth.getAccessor().getToken()) //
                             .build());
 
             UsersInfoResponse account = auth.getAccessor().getSlack() //
                     .methods().usersInfo(UsersInfoRequest.builder() //
                             .token(auth.getAccessor().getToken()) //
-                            .user(identity.getUser().getId()) //
+                            .user(test.getUserId()) //
                             .build());
 
             me = userCache(SlackMapper.user(account, getTeam(), service));

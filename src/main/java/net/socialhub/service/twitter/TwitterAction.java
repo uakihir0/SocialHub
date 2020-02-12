@@ -1106,7 +1106,7 @@ public class TwitterAction extends AccountActionImpl {
                     .twitter.TwitterStream(stream, (s) -> {
                 FilterQuery q = new FilterQuery(idList.stream()
                         .mapToLong(e -> e).toArray());
-                stream.filter(q);
+                s.filter(q);
             });
         });
     }
@@ -1125,7 +1125,7 @@ public class TwitterAction extends AccountActionImpl {
             return new net.socialhub.model.service.addition
                     .twitter.TwitterStream(stream, (s) -> {
                 FilterQuery q = new FilterQuery(query);
-                stream.filter(q);
+                s.filter(q);
             });
         });
     }

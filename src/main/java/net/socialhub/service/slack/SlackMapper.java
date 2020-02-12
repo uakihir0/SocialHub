@@ -68,46 +68,19 @@ public final class SlackMapper {
      * ユーザーマッピング
      */
     public static User user(
-            UsersIdentityResponse response, //
-            Service service) {
-
-        SlackUser model = new SlackUser(service);
-
-        model.setBot(false);
-        model.setId(response.getUser().getId());
-        model.setName(response.getUser().getName());
-
-        model.setIconImageUrl(response.getUser().getImage512());
-        if (StringUtils.isEmpty(model.getIconImageUrl())) {
-            model.setIconImageUrl(response.getUser().getImage192());
-        }
-        if (StringUtils.isEmpty(model.getIconImageUrl())) {
-            model.setIconImageUrl(response.getUser().getImage72());
-        }
-        if (StringUtils.isEmpty(model.getIconImageUrl())) {
-            model.setIconImageUrl(response.getUser().getImage48());
-        }
-
-        return model;
-    }
-
-    /**
-     * ユーザーマッピング
-     */
-    public static User user(
-            UsersInfoResponse user, //
+            com.github.seratch.jslack.api.model.User user, //
             SlackTeam team, //
             Service service) {
 
         SlackUser model = new SlackUser(service);
 
         model.setBot(false);
-        model.setId(user.getUser().getId());
-        model.setName(user.getUser().getName());
-        model.setScreenName(user.getUser().getName());
+        model.setId(user.getId());
+        model.setName(user.getName());
+        model.setScreenName(user.getName());
 
         // Get users data form
-        Profile profile = user.getUser().getProfile();
+        Profile profile = user.getProfile();
 
         // Get Image (Needs image)
         model.setIconImageUrl(profile.getImage512());
@@ -140,6 +113,16 @@ public final class SlackMapper {
 
         model.setTeam(team);
         return model;
+    }
+
+    /**
+     * ユーザーマッピング
+     */
+    public static User user(
+            UsersInfoResponse user, //
+            SlackTeam team, //
+            Service service) {
+        return user(user.getUser(), team, service);
     }
 
     /**

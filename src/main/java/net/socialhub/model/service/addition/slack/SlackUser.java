@@ -2,6 +2,7 @@ package net.socialhub.model.service.addition.slack;
 
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
 
@@ -35,6 +36,14 @@ public class SlackUser extends User {
 
     /** is bot account? */
     private Boolean isBot;
+
+    @Override
+    public CommentForm getMessageForm() {
+        CommentForm form = new CommentForm();
+        form.targetId(getId());
+        form.message(true);
+        return form;
+    }
 
     @Override
     public String getAccountIdentify() {

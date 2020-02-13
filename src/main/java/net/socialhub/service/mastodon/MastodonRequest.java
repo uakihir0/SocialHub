@@ -5,13 +5,18 @@ import net.socialhub.define.action.TimeLineActionType;
 import net.socialhub.define.action.service.MastodonActionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
+import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Request;
 import net.socialhub.model.service.User;
 import net.socialhub.service.action.RequestActionImpl;
 import net.socialhub.service.action.request.CommentsRequest;
 import net.socialhub.service.action.request.CommentsRequestImpl;
 
+import java.util.Comparator;
+
+import static net.socialhub.define.action.TimeLineActionType.MessageTimeLine;
 import static net.socialhub.define.action.service.MastodonActionType.FederationTimeLine;
 import static net.socialhub.define.action.service.MastodonActionType.LocalTimeLine;
 
@@ -119,6 +124,35 @@ public class MastodonRequest extends RequestActionImpl {
         CommentsRequestImpl request = (CommentsRequestImpl)
                 super.getSearchTimeLine(query);
         request.getCommentFrom().text(query + " ");
+        return request;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CommentsRequest getMessageTimeLine(Identify id) {
+        CommentsRequestImpl request = new CommentsRequestImpl();
+        request.setActionType(MessageTimeLine);
+        request.setAccount(account);
+        request.getCommentFrom()
+                .message(true);
+
+        request.setCommentsFunction((paging) -> {
+            Pageable<Comment> comments = account
+                    .action().getMessageTimeLine(id, paging);
+
+            // 最新の投稿の ID を取得してコメント対象に設定
+            Long maxId = (Long) comments.getEntities().stream()
+                    .max(Comparator.comparing(Comment::getCreateAt))
+                    .map(Identify::getId).orElse(null);
+            request.getCommentFrom().targetId(maxId);
+            return comments;
+        });
+
+        request.setSerializeBuilder(
+                new SerializeBuilder(MessageTimeLine)
+                        .add("id", id.getSerializedIdString()));
         return request;
     }
 

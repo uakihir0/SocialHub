@@ -1,6 +1,7 @@
 package net.socialhub.model.service.addition;
 
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
 
@@ -33,6 +34,22 @@ public abstract class MiniBlogUser extends User {
      * Url を取得
      */
     abstract public String getWebUrl();
+
+    @Override
+    public CommentForm getCommentForm() {
+        CommentForm form = new CommentForm();
+        form.text(getAccountIdentify() + " ");
+        form.message(false);
+        return form;
+    }
+
+    @Override
+    public CommentForm getMessageForm() {
+        CommentForm form = new CommentForm();
+        form.targetId(getId());
+        form.message(true);
+        return form;
+    }
 
     //region // Getter&Setter
     public Long getFollowingsCount() {

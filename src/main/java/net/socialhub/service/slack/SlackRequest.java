@@ -6,6 +6,8 @@ import net.socialhub.model.service.Identify;
 import net.socialhub.service.action.RequestActionImpl;
 import net.socialhub.service.action.request.CommentsRequest;
 
+import static net.socialhub.define.action.TimeLineActionType.ChannelTimeLine;
+import static net.socialhub.define.action.TimeLineActionType.HomeTimeLine;
 import static net.socialhub.define.action.TimeLineActionType.MessageTimeLine;
 
 public class SlackRequest extends RequestActionImpl {
@@ -17,6 +19,43 @@ public class SlackRequest extends RequestActionImpl {
     // ============================================================== //
     // TimeLine API
     // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CommentsRequest getHomeTimeLine() {
+        CommentsRequest request = getCommentsRequest(HomeTimeLine,
+                (paging) -> account.action().getHomeTimeLine(paging),
+                new SerializeBuilder(HomeTimeLine));
+
+        if (account.action() instanceof SlackAction) {
+            SlackAction action = (SlackAction) account.action();
+
+            // チャンネル情報を格納
+            request.getCommentFrom().param(
+                    SlackFormKey.CHANNEL_KEY,
+                    action.getGeneralChannel());
+        }
+        return request;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CommentsRequest getChannelTimeLine(Identify id) {
+        CommentsRequest request = getCommentsRequest(ChannelTimeLine,
+                (paging) -> account.action().getChannelTimeLine(id, paging),
+                new SerializeBuilder(ChannelTimeLine)
+                        .add("id", id.getSerializedIdString()));
+
+        request.getCommentFrom().param(
+                SlackFormKey.CHANNEL_KEY,
+                id.getId());
+        return request;
+    }
 
     /**
      * {@inheritDoc}

@@ -96,6 +96,7 @@ public abstract class MiniBlogComment extends Comment {
             return form;
         }
         CommentForm form = new CommentForm();
+        form.text(getUser().getAccountIdentify() + " ");
         form.targetId(getId());
         form.message(false);
         return form;

@@ -2,6 +2,8 @@ package net.socialhub.model.service;
 
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.error.NotImplimentedException;
+import net.socialhub.model.request.CommentForm;
 import net.socialhub.service.action.AccountAction;
 import net.socialhub.service.action.UserAction;
 import net.socialhub.service.action.UserActionImpl;
@@ -61,6 +63,22 @@ public class User extends Identify {
      */
     public List<AttributedFiled> getAdditionalFields() {
         return new ArrayList<>();
+    }
+
+    /**
+     * Get Comment Form
+     * コメント投稿用のフォームを取得
+     */
+    public CommentForm getCommentForm() {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Get Message Form
+     * メッセージ投稿用のフォームを取得
+     */
+    public CommentForm getMessageForm() {
+        throw new NotImplimentedException();
     }
 
     //region // Getter&Setter

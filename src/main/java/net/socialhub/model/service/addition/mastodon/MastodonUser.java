@@ -4,6 +4,7 @@ import net.socialhub.model.common.AttributedElement;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedKind;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Emoji;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.addition.MiniBlogUser;
@@ -95,6 +96,19 @@ public class MastodonUser extends MiniBlogUser {
     @Override
     public List<AttributedFiled> getAdditionalFields() {
         return getFields();
+    }
+
+    /**
+     * Direct Message Form
+     * メッセージフォームは Twitter と Mastodon で扱いが異なる
+     * Mastodon の DM はユーザーの AccountIdentify が必要
+     */
+    @Override
+    public CommentForm getMessageForm() {
+        CommentForm form = new CommentForm();
+        form.text(getAccountIdentify() + " ");
+        form.message(true);
+        return form;
     }
 
     // region // Getter&Setter

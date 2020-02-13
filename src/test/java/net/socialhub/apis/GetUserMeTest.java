@@ -6,6 +6,7 @@ import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.MiniBlogUser;
 import net.socialhub.model.service.addition.mastodon.MastodonUser;
+import net.socialhub.model.service.addition.tumblr.TumblrUser;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -53,6 +54,10 @@ public class GetUserMeTest extends AbstractApiTest {
         User user = account.action().getUserMe();
         System.out.println(user.getName());
         System.out.println(user.getCoverImageUrl());
+
+        if (user instanceof TumblrUser){
+            System.out.println(((TumblrUser) user).getBlogUrl());
+        }
     }
 
     @Test

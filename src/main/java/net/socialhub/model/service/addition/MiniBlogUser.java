@@ -43,14 +43,6 @@ public abstract class MiniBlogUser extends User {
         return form;
     }
 
-    @Override
-    public CommentForm getMessageForm() {
-        CommentForm form = new CommentForm();
-        form.targetId(getId());
-        form.message(true);
-        return form;
-    }
-
     //region // Getter&Setter
     public Long getFollowingsCount() {
         return followingsCount;

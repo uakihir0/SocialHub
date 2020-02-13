@@ -3,6 +3,7 @@ package net.socialhub.model.service.addition.twitter;
 import net.socialhub.define.service.twitter.TwitterIconSize;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.addition.MiniBlogUser;
 import net.socialhub.service.twitter.TwitterMapper;
@@ -48,6 +49,19 @@ public class TwitterUser extends MiniBlogUser {
         fields.add(new AttributedFiled("Location", getLocation()));
         fields.add(new AttributedFiled("URL", getUrl()));
         return fields;
+    }
+
+    /**
+     * Direct Message Form
+     * メッセージフォームは Twitter と Mastodon で扱いが異なる
+     * Twitter の DM はユーザーの AccountIdentify は不要
+     */
+    @Override
+    public CommentForm getMessageForm() {
+        CommentForm form = new CommentForm();
+        form.targetId(getId());
+        form.message(true);
+        return form;
     }
 
     /**

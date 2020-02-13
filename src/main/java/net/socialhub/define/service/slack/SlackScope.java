@@ -242,8 +242,8 @@ public class SlackScope {
 
                 // User
                 new SlackScope().usersProfile().read(),
-                new SlackScope().user().read(),
-                new SlackScope().user().readEmail()
+                new SlackScope().users().read(),
+                new SlackScope().users().readEmail()
         );
     }
 }

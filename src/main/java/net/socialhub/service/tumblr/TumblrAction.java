@@ -372,10 +372,8 @@ public class TumblrAction extends AccountActionImpl {
     public void shareComment(Identify id) {
         proceed(() -> {
             if (id instanceof TumblrComment) {
-                TumblrComment comment = ((TumblrComment) id);
-                String blog = comment.getUser().getScreenName();
-                String key = comment.getReblogKey();
-
+                String key = ((TumblrComment) id).getReblogKey();
+                String blog = getUserMeWithCache().getScreenName();
                 auth.getAccessor().postReblog(blog, (Long) id.getId(), key);
 
             } else {
@@ -435,9 +433,7 @@ public class TumblrAction extends AccountActionImpl {
     public void deleteComment(Identify id) {
         proceed(() -> {
             if (id instanceof TumblrComment) {
-                TumblrComment comment = ((TumblrComment) id);
-                String blog = comment.getUser().getScreenName();
-
+                String blog = getUserMeWithCache().getScreenName();
                 auth.getAccessor().postDelete(blog, (Long) id.getId());
 
             } else {

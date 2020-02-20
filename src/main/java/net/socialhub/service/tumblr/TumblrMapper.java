@@ -247,7 +247,7 @@ public class TumblrMapper {
                 post.getTrail().stream()
                         .filter(Trail::isCurrentItem)
                         .findFirst().ifPresent((trail) ->
-                        textMedia(model, trail.getContentRaw()));
+                        textMedia(model, removeSharedBlogLink(trail.getContentRaw())));
             }
         }
 
@@ -534,7 +534,7 @@ public class TumblrMapper {
      * Share されたポストの定型句を削除
      */
     private static String removeSharedBlogLink(String text) {
-        String regex = "^(<p><a(.+?)href=\"(.+?)\"(.+?)>(.+?)</a>:</p>)";
+        String regex = "^(<p><a(.+?)href=\"(.+?)\"(.*?)>(.+?)</a>:</p>)";
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(text);
 

@@ -149,35 +149,46 @@ public class AttributedString {
 
                 // 見つかった場合分割
                 if (m.find()) {
+                    int i = m.start();
                     String found = m.group();
-                    int i = text.indexOf(found);
 
-                    String before = text.substring(0, i);
-                    String after = text.substring(i + found.length());
-                    List<AttributedElement> results = new ArrayList<>();
+                    if (i >= 0) {
+                        String before = text.substring(0, i);
+                        String after = text.substring(i + found.length());
+                        List<AttributedElement> results = new ArrayList<>();
 
-                    {
-                        AttributedItem model = new AttributedItem();
-                        model.setKind(AttributedKind.PLAIN);
-                        model.setDisplayText(before);
-                        results.add(model);
-                    }
-                    {
-                        AttributedItem model = new AttributedItem();
-                        model.setDisplayText(kind.getDisplayedText(m));
-                        model.setExpandedText(kind.getExpandedText(m));
-                        model.setKind(kind.getKind());
-                        results.add(model);
-                    }
-                    {
-                        AttributedItem model = new AttributedItem();
-                        model.setKind(AttributedKind.PLAIN);
-                        model.setDisplayText(after);
+                        {
+                            AttributedItem model = new AttributedItem();
+                            model.setKind(AttributedKind.PLAIN);
+                            model.setDisplayText(before);
+                            results.add(model);
+                        }
+                        {
+                            AttributedItem model = new AttributedItem();
+                            model.setDisplayText(kind.getDisplayedText(m));
+                            model.setExpandedText(kind.getExpandedText(m));
+                            model.setKind(kind.getKind());
+                            results.add(model);
+                        }
+                        {
+                            AttributedItem model = new AttributedItem();
+                            model.setKind(AttributedKind.PLAIN);
+                            model.setDisplayText(after);
 
-                        // 再帰的に作成したオブジェクトに対して走査
-                        results.addAll(scanElements(model, kind));
+                            // 再帰的に作成したオブジェクトに対して走査
+                            results.addAll(scanElements(model, kind));
+                        }
+                        return results;
+
+                    } else {
+
+                        // 特殊環境下でエラーになるようなので調査のためログを挟む
+                        Logger log = Logger.getLogger(AttributedString.class);
+                        log.debug("UnExpected Status");
+                        log.debug("Text : " + text);
+                        log.debug("Found: " + found);
+                        log.debug("Index: " + i);
                     }
-                    return results;
                 }
             }
         }
@@ -203,8 +214,8 @@ public class AttributedString {
 
             // 見つかった場合分割
             if (m.find()) {
+                int i = m.start();
                 String found = m.group();
-                int i = text.indexOf(found);
 
                 if (i >= 0) {
                     String before = text.substring(0, i);

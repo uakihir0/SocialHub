@@ -22,8 +22,8 @@ idea {
     }
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.8.1'
+tasks.getByName("wrapper") {
+    gradleVersion = '6.2'
 }
 
 allprojects {

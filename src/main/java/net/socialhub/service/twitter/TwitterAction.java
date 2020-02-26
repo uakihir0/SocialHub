@@ -1094,9 +1094,15 @@ public class TwitterAction extends AccountActionImpl {
             idList.add(me);
 
             // 友人の情報を取得
-            IDs ids = twitter.getFriendsIDs(me, -1L, 4999);
-            for (Long id : ids.getIDs()) {
+            IDs friendIds = twitter.getFriendsIDs(me, -1L, 4999);
+            for (Long id : friendIds.getIDs()) {
                 idList.add(id);
+            }
+
+            // ミュートのアカウントを取得し除外
+            IDs muteIds = twitter.getMutesIDs(-1L);
+            for (Long id : muteIds.getIDs()) {
+                idList.remove(id);
             }
 
             TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
@@ -1332,8 +1338,17 @@ public class TwitterAction extends AccountActionImpl {
 
                 // 関連 ID 意外のコメントは除外
                 if (userIdList != null && !userIdList.isEmpty()) {
+
+                    // コメントのユーザーが対象ユーザーリストに含まれるかを確認
                     if (!userIdList.contains(status.getUser().getId())) {
                         return;
+                    }
+
+                    // リプライ先も対象リストに含まれるかを確認
+                    if (status.getInReplyToUserId() > 0) {
+                        if (!userIdList.contains(status.getInReplyToUserId())) {
+                            return;
+                        }
                     }
                 }
 

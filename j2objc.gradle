@@ -39,28 +39,28 @@ allprojects {
 dependencies {
 
     // Translation Exclusion Library
-    implementation(Dependencies.JSR_305)
+    compile(Dependencies.JSR_305)
 
     // Common Library
-    implementation(Dependencies.COMMONS_LANG)
-    implementation(Dependencies.COMMONS_CODEC)
-    implementation(Dependencies.GSON)
-    implementation(Dependencies.SCRIBE)
+    compile(Dependencies.COMMONS_LANG)
+    compile(Dependencies.COMMONS_CODEC)
+    compile(Dependencies.GSON)
+    compile(Dependencies.SCRIBE)
 
     // J2ObjC Common Library
-    implementation(Dependencies.JLOGGER)
-    implementation(Dependencies.JHTTP_CLIENT)
+    compile(Dependencies.JLOGGER)
+    compile(Dependencies.JHTTP_CLIENT)
 
     // J2ObjC Network Library
-    api(Dependencies.TWITTER4J_CORE)
-    api(Dependencies.TWITTER4J_STREAM)
-    api(Dependencies.TWITTER_TEXT)
-    api(Dependencies.FACEBOOK4J)
-    api(Dependencies.JSLACK_CLIENT)
-    api(Dependencies.JSLACK_MODEL)
-    api(Dependencies.MSINSTANCEJ)
-    api(Dependencies.MASTODON4J)
-    api(Dependencies.JUMBLR)
+    compile(Dependencies.TWITTER4J_CORE)
+    compile(Dependencies.TWITTER4J_STREAM)
+    compile(Dependencies.TWITTER_TEXT)
+    compile(Dependencies.FACEBOOK4J)
+    compile(Dependencies.JSLACK_CLIENT)
+    compile(Dependencies.JSLACK_MODEL)
+    compile(Dependencies.MSINSTANCEJ)
+    compile(Dependencies.MASTODON4J)
+    compile(Dependencies.JUMBLR)
 
     // Test
     testImplementation(Dependencies.JUNIT)

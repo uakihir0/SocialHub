@@ -4,13 +4,12 @@ import net.socialhub.SocialAuthUtil;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Media;
-import net.socialhub.model.service.Reaction;
 import net.socialhub.model.service.Stream;
-import net.socialhub.model.service.addition.slack.SlackComment;
 import net.socialhub.model.service.event.DeleteCommentEvent;
 import net.socialhub.model.service.event.UpdateCommentEvent;
-import net.socialhub.service.action.callback.DeleteCommentCallback;
-import net.socialhub.service.action.callback.UpdateCommentCallback;
+import net.socialhub.service.action.callback.comment.DeleteCommentCallback;
+import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
+import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
 import net.socialhub.service.mastodon.MastodonAction;
 import net.socialhub.service.twitter.TwitterAction;
 import org.junit.Test;
@@ -53,7 +52,7 @@ public class CommentStreamTest extends AbstractApiTest {
         stream.close();
     }
 
-    static class StreamCallback implements UpdateCommentCallback, DeleteCommentCallback {
+    static class StreamCallback implements UpdateCommentCallback, DeleteCommentCallback, DisconnectCallback {
 
         @Override
         public void onDelete(DeleteCommentEvent event) {
@@ -63,6 +62,11 @@ public class CommentStreamTest extends AbstractApiTest {
         @Override
         public void onUpdate(UpdateCommentEvent event) {
             printComment(event.getComment());
+        }
+
+        @Override
+        public void onDisconnect() {
+            System.out.println("!!onDisconnect!!");
         }
 
         protected void printComment(Comment c) {

@@ -6,7 +6,6 @@ import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.addition.MiniBlogUser;
 import org.junit.Test;
 
 public class GetFollowingsTest extends AbstractApiTest {

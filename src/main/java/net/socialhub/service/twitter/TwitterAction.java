@@ -33,12 +33,15 @@ import net.socialhub.model.service.support.TrendCountry.TrendLocation;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.service.action.RequestAction;
-import net.socialhub.service.action.callback.DeleteCommentCallback;
 import net.socialhub.service.action.callback.EventCallback;
-import net.socialhub.service.action.callback.UpdateCommentCallback;
+import net.socialhub.service.action.callback.comment.DeleteCommentCallback;
+import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
+import net.socialhub.service.action.callback.lifecycle.ConnectCallback;
+import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.SnowflakeUtil;
+import twitter4j.ConnectionLifeCycleListener;
 import twitter4j.DirectMessage;
 import twitter4j.DirectMessageList;
 import twitter4j.FilterQuery;
@@ -1106,6 +1109,7 @@ public class TwitterAction extends AccountActionImpl {
             }
 
             TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
+            stream.addConnectionLifeCycleListener(new TwitterConnectionListener(callback));
             stream.addListener(new TwitterCommentsListener(callback, idList, service));
 
             return new net.socialhub.model.service.addition
@@ -1126,6 +1130,7 @@ public class TwitterAction extends AccountActionImpl {
         return proceed(() -> {
             Service service = getAccount().getService();
             TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
+            stream.addConnectionLifeCycleListener(new TwitterConnectionListener(callback));
             stream.addListener(new TwitterCommentsListener(callback, null, service));
 
             return new net.socialhub.model.service.addition
@@ -1317,6 +1322,7 @@ public class TwitterAction extends AccountActionImpl {
     // Classes
     // ============================================================== //
 
+    // コメントに対するコールバック設定
     static class TwitterCommentsListener extends StatusAdapter {
 
         private EventCallback listener;
@@ -1366,6 +1372,36 @@ public class TwitterAction extends AccountActionImpl {
                     ((DeleteCommentCallback) listener).onDelete(event);
                 }
             }
+        }
+    }
+
+    // 通信に対するコールバック設定
+    static class TwitterConnectionListener implements ConnectionLifeCycleListener {
+
+        private EventCallback listener;
+
+        TwitterConnectionListener(
+                EventCallback listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void onConnect() {
+            if (listener instanceof ConnectCallback) {
+                ((ConnectCallback) listener).onConnect();
+            }
+        }
+
+        @Override
+        public void onDisconnect() {
+            if (listener instanceof DisconnectCallback) {
+                ((DisconnectCallback) listener).onDisconnect();
+            }
+        }
+
+        @Override
+        public void onCleanUp() {
+
         }
     }
 

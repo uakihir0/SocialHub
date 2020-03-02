@@ -10,6 +10,7 @@ import mastodon4j.entity.Results;
 import mastodon4j.entity.Status;
 import mastodon4j.entity.request.StatusUpdate;
 import mastodon4j.entity.share.Response;
+import mastodon4j.streaming.LifeCycleListener;
 import mastodon4j.streaming.PublicStream;
 import mastodon4j.streaming.PublicStreamListener;
 import mastodon4j.streaming.UserStream;
@@ -45,9 +46,11 @@ import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.service.action.RequestAction;
-import net.socialhub.service.action.callback.DeleteCommentCallback;
 import net.socialhub.service.action.callback.EventCallback;
-import net.socialhub.service.action.callback.UpdateCommentCallback;
+import net.socialhub.service.action.callback.comment.DeleteCommentCallback;
+import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
+import net.socialhub.service.action.callback.lifecycle.ConnectCallback;
+import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 
@@ -839,8 +842,9 @@ public class MastodonAction extends AccountActionImpl {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
 
-            UserStream stream = mastodon.streaming().userStream()
-                    .register(new MastodonCommentsListener(callback, service));
+            UserStream stream = mastodon.streaming().userStream().register(
+                    new MastodonCommentsListener(callback, service),
+                    new MastodonConnectionListener(callback));
             return new MastodonStream(stream);
         });
     }
@@ -960,8 +964,9 @@ public class MastodonAction extends AccountActionImpl {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
 
-            PublicStream stream = mastodon.streaming().publicStream(true)
-                    .register(new MastodonCommentsListener(callback, service));
+            PublicStream stream = mastodon.streaming().publicStream(true).register(
+                    new MastodonCommentsListener(callback, service),
+                    new MastodonConnectionListener(callback));
             return new MastodonStream(stream);
         });
     }
@@ -976,8 +981,9 @@ public class MastodonAction extends AccountActionImpl {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
 
-            PublicStream stream = mastodon.streaming().publicStream(false)
-                    .register(new MastodonCommentsListener(callback, service));
+            PublicStream stream = mastodon.streaming().publicStream(false).register(
+                    new MastodonCommentsListener(callback, service),
+                    new MastodonConnectionListener(callback));
             return new MastodonStream(stream);
         });
     }
@@ -1031,6 +1037,7 @@ public class MastodonAction extends AccountActionImpl {
     // Classes
     // ============================================================== //
 
+    // コメントに対してのコールバック設定
     static class MastodonCommentsListener implements
             UserStreamListener,
             PublicStreamListener {
@@ -1059,6 +1066,31 @@ public class MastodonAction extends AccountActionImpl {
             if (listener instanceof DeleteCommentCallback) {
                 DeleteCommentEvent event = new DeleteCommentEvent(id);
                 ((DeleteCommentCallback) listener).onDelete(event);
+            }
+        }
+    }
+
+    // 通信に対してのコールバック設定
+    static class MastodonConnectionListener implements LifeCycleListener {
+
+        private EventCallback listener;
+
+        MastodonConnectionListener(
+                EventCallback listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void onConnect() {
+            if (listener instanceof ConnectCallback) {
+                ((ConnectCallback) listener).onConnect();
+            }
+        }
+
+        @Override
+        public void onDisconnect() {
+            if (listener instanceof DisconnectCallback) {
+                ((DisconnectCallback) listener).onDisconnect();
             }
         }
     }

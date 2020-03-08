@@ -35,7 +35,7 @@ public abstract class AccountActionImpl implements AccountAction {
      * Get User me with cache.
      * キャッシュ付きで自分のユーザーを取得
      */
-    protected User getUserMeWithCache() {
+    public User getUserMeWithCache() {
         return (me != null) ? me : getUserMe();
     }
 

@@ -653,6 +653,34 @@ public class TwitterMapper {
     // ============================================================== //
 
     /**
+     * Get Accounts to reply on this tweet text.
+     * 返信対象のアカウントをテキストの一覧を取得
+     */
+    public static List<String> getRepliesScreenNames(String text) {
+        Pattern p = Pattern.compile("(^@\\w+)|(\\s@\\w+)");
+        List<String> results = new ArrayList<>();
+        String target = text;
+
+        while (true) {
+            Matcher m = p.matcher(target);
+
+            // 発見した場合
+            if (m.find()) {
+                String name = m.group().trim();
+                target = target.replaceAll(name, "");
+                results.add(name);
+                continue;
+            }
+            break;
+        }
+
+        return results
+                .stream()
+                .distinct()
+                .collect(toList());
+    }
+
+    /**
      * デフォルトアイコンサイズを取得
      */
     private static String getDefaultIconSize(twitter4j.User user) {

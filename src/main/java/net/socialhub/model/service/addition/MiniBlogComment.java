@@ -3,6 +3,7 @@ package net.socialhub.model.service.addition;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Poll;
 import net.socialhub.model.service.Reaction;
 import net.socialhub.model.service.Service;
 
@@ -28,6 +29,9 @@ public abstract class MiniBlogComment extends Comment {
 
     /** Reply To ID */
     private Identify replyTo;
+
+    /** 投票 */
+    private Poll poll;
 
     public MiniBlogComment(Service service) {
         super(service);
@@ -141,6 +145,14 @@ public abstract class MiniBlogComment extends Comment {
 
     public void setShared(boolean shared) {
         isShared = shared;
+    }
+
+    public Poll getPoll() {
+        return poll;
+    }
+
+    public void setPoll(Poll poll) {
+        this.poll = poll;
     }
     //endregion
 }

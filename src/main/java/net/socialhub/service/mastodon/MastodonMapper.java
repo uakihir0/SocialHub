@@ -4,6 +4,7 @@ import mastodon4j.entity.Account;
 import mastodon4j.entity.Attachment;
 import mastodon4j.entity.Field;
 import mastodon4j.entity.Mention;
+import mastodon4j.entity.Poll.Option;
 import mastodon4j.entity.Status;
 import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.MediaType;
@@ -25,12 +26,15 @@ import net.socialhub.model.service.Media;
 import net.socialhub.model.service.Notification;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Poll;
 import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.mastodon.MastodonComment;
+import net.socialhub.model.service.addition.mastodon.MastodonPoll;
 import net.socialhub.model.service.addition.mastodon.MastodonUser;
 import net.socialhub.model.service.paging.BorderPaging;
+import net.socialhub.model.service.support.PollOption;
 import net.socialhub.model.service.support.ReactionCandidate;
 
 import java.text.ParseException;
@@ -41,8 +45,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 public class MastodonMapper {
 
@@ -57,6 +62,9 @@ public class MastodonMapper {
             mastodon4j.entity.History.class, //
             mastodon4j.entity.Mention.class, //
             mastodon4j.entity.Tag.class);
+
+    /** 時間のパーサーオブジェクト */
+    private static SimpleDateFormat dateParser = null;
 
     // ============================================================== //
     // Single Object Mapper
@@ -78,13 +86,7 @@ public class MastodonMapper {
         model.setCoverImageUrl(account.getHeaderStatic());
 
         // 絵文字の追加
-        model.setEmojis(new ArrayList<>());
-        if (account.getEmojis() != null) {
-            model.getEmojis().addAll(
-                    Stream.of(account.getEmojis())
-                            .map(MastodonMapper::emoji)
-                            .collect(Collectors.toList()));
-        }
+        model.setEmojis(emojis(account.getEmojis()));
 
         // ユーザー説明分の設定
         model.setDescription(AttributedString.xhtml(account.getNote(), XML_RULE));
@@ -137,13 +139,11 @@ public class MastodonMapper {
             Service service) {
 
         MastodonComment model = new MastodonComment(service);
-        SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
-        format.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         try {
             model.setId(status.getId());
             model.setUser(user(status.getAccount(), service));
-            model.setCreateAt(format.parse(status.getCreatedAt()));
+            model.setCreateAt(getDateParser().parse(status.getCreatedAt()));
             model.setApplication(application(status.getApplication()));
             model.setPossiblySensitive(status.isSensitive());
             model.setVisibility(status.getVisibility());
@@ -162,13 +162,7 @@ public class MastodonMapper {
             } else {
 
                 // 絵文字の追加
-                model.setEmojis(new ArrayList<>());
-                if (status.getEmojis() != null) {
-                    model.getEmojis().addAll(
-                            Stream.of(status.getEmojis())
-                                    .map(MastodonMapper::emoji)
-                                    .collect(Collectors.toList()));
-                }
+                model.setEmojis(emojis(status.getEmojis()));
 
                 // 注釈の設定
                 model.setSpoilerText(AttributedString.plain(status.getSpoilerText()));
@@ -199,6 +193,9 @@ public class MastodonMapper {
 
                 // メディアの設定
                 model.setMedias(medias(status.getMediaAttachments()));
+
+                // 投票の設定
+                model.setPoll(poll(status.getPoll(), service));
             }
             return model;
 
@@ -249,6 +246,64 @@ public class MastodonMapper {
     }
 
     /**
+     * 投票マッピング
+     */
+    public static Poll poll(
+            mastodon4j.entity.Poll poll,
+            Service service) {
+
+        if (poll == null) {
+            return null;
+        }
+
+        try {
+            MastodonPoll model = new MastodonPoll(service);
+
+            model.setId(poll.getId());
+            model.setVoted(poll.isVoted());
+            model.setMultiple(poll.isMultiple());
+            model.setExpired(poll.isExpired());
+
+            // 通行期限
+            if (poll.getExpiresAt() != null) {
+                model.setExpireAt(getDateParser().parse(poll.getExpiresAt()));
+            }
+
+            // 絵文字の追加
+            model.setEmojis(emojis(poll.getEmojis()));
+
+            // 投票候補の追加
+            List<PollOption> options = new ArrayList<>();
+            model.setOptions(options);
+
+            long index = 0;
+            for (Option option : poll.getOptions()) {
+                PollOption op = new PollOption();
+                options.add(op);
+
+                // 投票のインデックスを記録
+                op.setIndex(index);
+                index += 1;
+
+                op.setTitle(option.getTitle());
+                op.setCount(option.getVotesCount());
+
+                // 投票済みかどうかを確認
+                if (poll.getOwnVotes() != null) {
+                    op.setVoted(Stream.of(poll.getOwnVotes())
+                            .anyMatch(e -> (e.equals(op.getIndex()))));
+                }
+            }
+            return model;
+
+        } catch (ParseException e) {
+            logger.error(e);
+            throw new IllegalStateException(e);
+        }
+    }
+
+
+    /**
      * アプリケーションマッピング
      */
     public static Application application(
@@ -262,6 +317,7 @@ public class MastodonMapper {
         app.setWebsite(application.getWebsite());
         return app;
     }
+
 
     /**
      * チャンネルマッピング
@@ -370,7 +426,7 @@ public class MastodonMapper {
         Pageable<Comment> model = new Pageable<>();
         model.setEntities(statuses.stream().map(e -> comment(e, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
-                .collect(Collectors.toList()));
+                .collect(toList()));
 
         model.setPaging(beMastodonPaging(BorderPaging.fromPaging(paging)));
         return model;
@@ -387,7 +443,7 @@ public class MastodonMapper {
         Pageable<User> model = new Pageable<>();
         model.setEntities(Stream.of(accounts)
                 .map(a -> user(a, service))
-                .collect(Collectors.toList()));
+                .collect(toList()));
 
         model.setPaging(beMastodonPaging(BorderPaging.fromPaging(paging)));
         return model;
@@ -403,7 +459,7 @@ public class MastodonMapper {
         Pageable<Channel> model = new Pageable<>();
         model.setEntities(Stream.of(lists)
                 .map(e -> channel(e, service))
-                .collect(Collectors.toList()));
+                .collect(toList()));
         return model;
     }
 
@@ -418,7 +474,7 @@ public class MastodonMapper {
         Pageable<Notification> model = new Pageable<>();
         model.setEntities(Stream.of(notifications)
                 .map(a -> notification(a, service))
-                .collect(Collectors.toList()));
+                .collect(toList()));
 
         model.setPaging(beMastodonPaging(BorderPaging.fromPaging(paging)));
         return model;
@@ -434,6 +490,20 @@ public class MastodonMapper {
         model.setCode(emoji.getShortcode());
         model.setUrl(emoji.getStaticUrl());
         return model;
+    }
+
+    /**
+     * 絵文字マッピング
+     */
+    public static List<Emoji> emojis(
+            mastodon4j.entity.Emoji[] emojis) {
+
+        if (emojis == null) {
+            return new ArrayList<>();
+        }
+        return Stream.of(emojis)
+                .map(MastodonMapper::emoji)
+                .collect(toList());
     }
 
     /**
@@ -457,5 +527,17 @@ public class MastodonMapper {
         bp.setSinceInclude(false);
         bp.setIdUnit(4L);
         return bp;
+    }
+
+    // ============================================================== //
+    // Support
+    // ============================================================== //
+
+    public static SimpleDateFormat getDateParser() {
+        if (dateParser == null) {
+            dateParser = new SimpleDateFormat(DATE_FORMAT);
+            dateParser.setTimeZone(TimeZone.getTimeZone("UTC"));
+        }
+        return dateParser;
     }
 }

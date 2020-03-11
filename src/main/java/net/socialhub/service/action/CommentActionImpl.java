@@ -77,6 +77,14 @@ public class CommentActionImpl implements CommentAction {
      * {@inheritDoc}
      */
     @Override
+    public void delete() {
+        action.deleteComment(comment);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Context getContext() {
         return action.getCommentContext(comment);
     }

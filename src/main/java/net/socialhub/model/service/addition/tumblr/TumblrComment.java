@@ -14,7 +14,7 @@ public class TumblrComment extends Comment {
 
     private Long noteCount;
 
-    private Boolean isLiked;
+    private boolean isLiked;
 
     public TumblrComment(Service service) {
         super(service);
@@ -41,6 +41,18 @@ public class TumblrComment extends Comment {
         return reactions;
     }
 
+    @Override
+    public void applyReaction(Reaction reaction) {
+        if (reaction.getName().startsWith("like")) {
+            if (reaction.getReacting() && !isLiked) {
+                isLiked = true;
+            }
+            if (!reaction.getReacting() && isLiked) {
+                isLiked = false;
+            }
+        }
+    }
+
     //region // Getter&Setter
     public String getReblogKey() {
         return reblogKey;
@@ -58,11 +70,11 @@ public class TumblrComment extends Comment {
         this.noteCount = noteCount;
     }
 
-    public Boolean getLiked() {
+    public boolean getLiked() {
         return isLiked;
     }
 
-    public void setLiked(Boolean liked) {
+    public void setLiked(boolean liked) {
         isLiked = liked;
     }
     //endregion

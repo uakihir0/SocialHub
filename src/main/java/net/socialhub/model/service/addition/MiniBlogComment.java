@@ -1,5 +1,6 @@
 package net.socialhub.model.service.addition;
 
+import net.socialhub.define.ReactionType;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Identify;
@@ -69,7 +70,7 @@ public abstract class MiniBlogComment extends Comment {
 
     @Override
     public void applyReaction(Reaction reaction) {
-        if (reaction.getName().startsWith("like")) {
+        if (ReactionType.Like.getCode().contains(reaction.getName())) {
             if (reaction.getReacting() && !isLiked) {
                 likeCount = (likeCount == null) ? 1 : likeCount + 1;
                 isLiked = true;
@@ -79,7 +80,8 @@ public abstract class MiniBlogComment extends Comment {
                 isLiked = false;
             }
         }
-        if (reaction.getName().startsWith("share")) {
+
+        if (ReactionType.Share.getCode().contains(reaction.getName())) {
             if (reaction.getReacting() && !isShared) {
                 shareCount = (shareCount == null) ? 1 : shareCount + 1;
                 isShared = true;

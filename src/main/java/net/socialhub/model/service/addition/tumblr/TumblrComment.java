@@ -1,5 +1,6 @@
 package net.socialhub.model.service.addition.tumblr;
 
+import net.socialhub.define.ReactionType;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Reaction;
 import net.socialhub.model.service.Service;
@@ -43,7 +44,7 @@ public class TumblrComment extends Comment {
 
     @Override
     public void applyReaction(Reaction reaction) {
-        if (reaction.getName().startsWith("like")) {
+        if (ReactionType.Like.getCode().contains(reaction.getName())) {
             if (reaction.getReacting() && !isLiked) {
                 isLiked = true;
             }

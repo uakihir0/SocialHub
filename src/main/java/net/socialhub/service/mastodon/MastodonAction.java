@@ -58,7 +58,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -895,10 +894,11 @@ public class MastodonAction extends AccountActionImpl {
             Service service = getAccount().getService();
             Range range = getRange(paging);
 
-            Response<mastodon4j.entity.Notification[]> notifications = //
-                    mastodon.notifications() //
-                            .getNotifications(range, Collections.singletonList( //
-                                    MastodonNotificationType.MENTION.getCode()),
+            Response<mastodon4j.entity.Notification[]> notifications =
+                    mastodon.notifications()
+                            .getNotifications(range, Arrays.asList(
+                                    MastodonNotificationType.MENTION.getCode(),
+                                    MastodonNotificationType.POLL.getCode()),
                                     null);
 
             return MastodonMapper.notifications(

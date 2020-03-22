@@ -2,16 +2,13 @@ buildscript {
     repositories {
         mavenCentral()
     }
-
-    dependencies {
-        classpath files('tool/j2objc-gradle-0.7.1.jar')
-    }
 }
 
 plugins {
     id 'java'
     id 'idea'
     id 'maven'
+    id 'net.socialhub.j2objccontrib.j2objcgradle' version '0.7.2'
 }
 
 apply plugin: 'net.socialhub.j2objccontrib.j2objcgradle'

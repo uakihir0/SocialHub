@@ -849,6 +849,23 @@ public class MastodonAction extends AccountActionImpl {
     }
 
     // ============================================================== //
+    // Poll
+    // ============================================================== //
+
+    /**
+     * Vote on a poll
+     * 投票する
+     */
+    public void votePoll(Identify id, List<Integer> choices) {
+        proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+
+            long[] array = choices.stream().mapToLong(e -> e).toArray();
+            mastodon.votePoll((Long) id.getId(), array);
+        });
+    }
+
+    // ============================================================== //
     // Other
     // ============================================================== //
 

@@ -264,6 +264,9 @@ public class MastodonMapper {
             model.setMultiple(poll.isMultiple());
             model.setExpired(poll.isExpired());
 
+            model.setVotesCount(poll.getVotesCount());
+            model.setVotersCount(poll.getVotersCount());
+
             // 通行期限
             if (poll.getExpiresAt() != null) {
                 model.setExpireAt(getDateParser().parse(poll.getExpiresAt()));

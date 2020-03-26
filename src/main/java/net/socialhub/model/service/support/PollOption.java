@@ -15,6 +15,17 @@ public class PollOption {
     /** 認証ユーザーが投票したかどうか？ */
     private boolean isVoted = false;
 
+    /**
+     * 投票の反映
+     */
+    public void applyVote() {
+        isVoted = true;
+        if (count == null) {
+            count = 0L;
+        }
+        count++;
+    }
+
     // region
     public Long getIndex() {
         return index;

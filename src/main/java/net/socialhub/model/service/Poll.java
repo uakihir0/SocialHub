@@ -36,6 +36,28 @@ public class Poll extends Identify {
     /** 投票選択肢 */
     private List<PollOption> options;
 
+    /**
+     * 投票の反映
+     */
+    public void applyVote(List<Integer> choices) {
+        if (choices == null || choices.size() == 0) {
+            return;
+        }
+
+        isVoted = true;
+        if (votersCount != null) {
+            votersCount++;
+        }
+        if (votesCount != null) {
+            votesCount += choices.size();
+        }
+        choices.forEach((i) -> {
+            if (options.size() > i) {
+                options.get(i).applyVote();
+            }
+        });
+    }
+
     // region
     public Date getExpireAt() {
         return expireAt;

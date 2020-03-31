@@ -37,8 +37,7 @@ public class MisskeyComment extends MiniBlogComment {
     public String getWebUrl() {
         MisskeyUser user = (MisskeyUser) getUser();
         String host = user.getAccountIdentify().split("@")[2];
-        String identify = user.getAccountIdentify().split("@")[1];
-        return "https://" + host + "/@" + identify + "/" + getId().toString();
+        return "https://" + host + "/notes/" + getId().toString();
     }
 
     @Override

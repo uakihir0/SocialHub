@@ -42,7 +42,8 @@ public class MisskeyMapper {
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     /** J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
-    private final static List<Class<?>> ClassLoader = Arrays.asList();
+    private final static List<Class<?>> ClassLoader = Arrays.asList(
+            misskey4j.entity.Choice.class);
 
     /** 時間のパーサーオブジェクト */
     private static SimpleDateFormat dateParser = null;

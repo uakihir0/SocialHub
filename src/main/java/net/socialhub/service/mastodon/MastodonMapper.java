@@ -58,9 +58,9 @@ public class MastodonMapper {
     private static final XmlConvertRule XML_RULE = xmlConvertRule();
 
     /** J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
-    private final static List<Class<?>> ClassLoader = Arrays.asList( //
-            mastodon4j.entity.History.class, //
-            mastodon4j.entity.Mention.class, //
+    private final static List<Class<?>> ClassLoader = Arrays.asList(
+            mastodon4j.entity.History.class,
+            mastodon4j.entity.Mention.class,
             mastodon4j.entity.Tag.class);
 
     /** 時間のパーサーオブジェクト */

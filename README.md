@@ -10,11 +10,11 @@ SocialHub is a multi social network service's API library written in **Java**, a
 * [**Slack**](https://slack.com/) ( use [library](https://github.com/uakihir0/jslack) based on [jslack](https://github.com/seratch/jslack) )
 * [**Mastodon**](https://github.com/tootsuite/mastodon) ( use [library](https://github.com/uakihir0/mastodon4j) based on [mastodon4j](https://github.com/hecateball/mastodon4j) )
 * [**Tumblr**](https://www.tumblr.com/) ( use [library](https://github.com/uakihir0/jumblr) based on [jumblr](https://github.com/tumblr/jumblr) )
+* [**Misskey**](https://join.misskey.page/ja/) ( use [library](https://github.com/uakihir0/misskey4j) )
 
 ### Work in Progress
 
 * [**Facebook**](https://www.facebook.com/) ( use [library](https://github.com/uakihir0/facebook4j) based on [facebook4j](https://github.com/roundrop/facebook4j) )
-* [**Misskey**](https://join.misskey.page/ja/) ( making misskey4j now )
 
 ### Future Works
 

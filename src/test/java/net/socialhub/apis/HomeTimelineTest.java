@@ -70,6 +70,36 @@ public class HomeTimelineTest extends AbstractTimelineTest {
     }
 
     @Test
+    public void testHomeTimelineMisskey_New() {
+
+        Paging paging = new Paging();
+        paging.setCount(10L);
+
+        Account account = SocialAuthUtil.getMisskeyAccount();
+
+        Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
+        Pageable<Comment> news = account.action().getHomeTimeLine(comments.newPage());
+
+        printTimeline("New", news);
+        printTimeline("Now", comments);
+    }
+
+    @Test
+    public void testHomeTimelineMisskey_Past() {
+
+        Paging paging = new Paging();
+        paging.setCount(10L);
+
+        Account account = SocialAuthUtil.getMisskeyAccount();
+
+        Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
+        Pageable<Comment> pasts = account.action().getHomeTimeLine(comments.pastPage());
+
+        printTimeline("Now", comments);
+        printTimeline("Past", pasts);
+    }
+
+    @Test
     public void testHomeTimelineSlack_New() {
 
         Paging paging = new Paging();

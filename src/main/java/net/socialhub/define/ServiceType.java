@@ -11,8 +11,10 @@ public enum ServiceType {
     Facebook,
     Slack,
     Tumblr,
-    Discord,
-    Instagram,
-    GooglePlus,
-    LinkedIn,
+    Misskey,
+
+    /* Future Work */
+    // Discord,
+    // Instagram,
+    // LinkedIn,
 }

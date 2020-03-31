@@ -60,6 +60,14 @@ public class TestProperty {
         public static final String Token = "";
     }
 
+    public static class MisskeyProperty {
+
+        public static final String Host = "";
+        public static final String ClientId = "";
+        public static final String ClientSecret = "";
+        public static final String AccessToken = "";
+    }
+
     public static class MastodonInstancesProperty {
 
         public static final String AccessToken = "";

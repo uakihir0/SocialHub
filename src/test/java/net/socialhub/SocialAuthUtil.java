@@ -1,8 +1,10 @@
 package net.socialhub;
 
+import misskey4j.Misskey;
 import net.socialhub.model.Account;
 import net.socialhub.service.facebook.FacebookAuth;
 import net.socialhub.service.mastodon.MastodonAuth;
+import net.socialhub.service.misskey.MisskeyAuth;
 import net.socialhub.service.slack.SlackAuth;
 import net.socialhub.service.tumblr.TumblrAuth;
 import net.socialhub.service.twitter.TwitterAuth;
@@ -37,6 +39,18 @@ public class SocialAuthUtil {
 
         return auth.getAccountWithAccessToken( //
                 TestProperty.MastodonProperty.AccessToken);
+    }
+
+    public static Account getMisskeyAccount() {
+        MisskeyAuth auth = SocialHub.getMisskeyAuth( //
+                TestProperty.MisskeyProperty.Host);
+
+        auth.setClientInfo(
+                TestProperty.MisskeyProperty.ClientId,
+                TestProperty.MisskeyProperty.ClientSecret);
+
+        return auth.getAccountWithAccessToken( //
+                TestProperty.MisskeyProperty.AccessToken);
     }
 
     public static Account getTumblrAccount() {

@@ -6,6 +6,7 @@ import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.MiniBlogUser;
 import net.socialhub.model.service.addition.mastodon.MastodonUser;
+import net.socialhub.model.service.addition.misskey.MisskeyUser;
 import net.socialhub.model.service.addition.tumblr.TumblrUser;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -47,6 +48,22 @@ public class GetUserMeTest extends AbstractApiTest {
     }
 
     @Test
+    public void testGetUserMisskey() {
+
+        Account account = SocialAuthUtil.getMisskeyAccount();
+        User user = account.action().getUserMe();
+        System.out.println(user.getName());
+        System.out.println(((MiniBlogUser) user).getWebUrl());
+
+        if (user instanceof MisskeyUser) {
+            MisskeyUser misskeyUser = (MisskeyUser) user;
+            for (AttributedFiled filed : misskeyUser.getFields()) {
+                System.out.println(filed.getName() + ":" + filed.getValue());
+            }
+        }
+    }
+
+    @Test
     public void testGetUserMeTumblr() {
         // System.setProperty("javax.net.debug","all");
 
@@ -55,7 +72,7 @@ public class GetUserMeTest extends AbstractApiTest {
         System.out.println(user.getName());
         System.out.println(user.getCoverImageUrl());
 
-        if (user instanceof TumblrUser){
+        if (user instanceof TumblrUser) {
             System.out.println(((TumblrUser) user).getBlogUrl());
         }
     }

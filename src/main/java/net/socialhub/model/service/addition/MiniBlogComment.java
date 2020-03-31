@@ -46,7 +46,7 @@ public abstract class MiniBlogComment extends Comment {
     @Override
     public Comment getDisplayComment() {
         return (getText() == null && getSharedComment() != null) //
-                ? this.getSharedComment() : this;
+                ? getSharedComment() : this;
     }
 
     @Override

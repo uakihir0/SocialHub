@@ -6,6 +6,7 @@ import net.socialhub.service.Supports;
 import net.socialhub.service.Utils;
 import net.socialhub.service.facebook.FacebookAuth;
 import net.socialhub.service.mastodon.MastodonAuth;
+import net.socialhub.service.misskey.MisskeyAuth;
 import net.socialhub.service.slack.SlackAuth;
 import net.socialhub.service.tumblr.TumblrAuth;
 import net.socialhub.service.twitter.TwitterAuth;
@@ -57,6 +58,14 @@ public final class SocialHub {
      */
     public static TumblrAuth getTumblrAuth(String consumerKey, String consumerSecret) {
         return new TumblrAuth(consumerKey, consumerSecret);
+    }
+
+    /**
+     * Get Misskey Authentication Model
+     * Misskey の認証オブジェクトを取得
+     */
+    public static MisskeyAuth getMisskeyAuth(String host) {
+        return new MisskeyAuth(host);
     }
 
     /**

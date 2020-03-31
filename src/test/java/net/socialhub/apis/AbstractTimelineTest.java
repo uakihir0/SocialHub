@@ -55,7 +55,9 @@ public class AbstractTimelineTest extends AbstractApiTest {
             System.out.println("M Preview > " + m.getPreviewUrl());
         }
         for (Reaction m : dc.getReactions()) {
-            System.out.println("Reaction > " + m.getEmoji() + " : " + m.getCount());
+            if (m.getCount() > 0) {
+                System.out.println("Reaction > " + m.getName() + " : " + m.getCount());
+            }
         }
     }
 

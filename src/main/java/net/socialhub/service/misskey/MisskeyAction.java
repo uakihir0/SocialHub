@@ -294,6 +294,9 @@ public class MisskeyAction extends AccountActionImpl {
         if (paging != null) {
             if (paging.getCount() != null) {
                 builder.limit(paging.getCount());
+                if (paging.getCount() > 100) {
+                    builder.limit(100L);
+                }
             }
             if (paging instanceof MisskeyPaging) {
                 MisskeyPaging mp = (MisskeyPaging) paging;

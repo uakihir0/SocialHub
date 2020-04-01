@@ -55,6 +55,11 @@ public class Service implements Serializable {
         return (ServiceType.Tumblr == type);
     }
 
+    /** Is Misskey Account ? */
+    public boolean isMisskey() {
+        return (ServiceType.Misskey == type);
+    }
+
     //region // Getter&Setter
     public Account getAccount() {
         return account;

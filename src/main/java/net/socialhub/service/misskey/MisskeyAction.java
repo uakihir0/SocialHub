@@ -5,6 +5,7 @@ import misskey4j.api.request.blocks.BlocksCreateRequest;
 import misskey4j.api.request.blocks.BlocksDeleteRequest;
 import misskey4j.api.request.following.FollowingCreateRequest;
 import misskey4j.api.request.following.FollowingDeleteRequest;
+import misskey4j.api.request.i.INotificationsRequest;
 import misskey4j.api.request.i.IRequest;
 import misskey4j.api.request.mutes.MutesCreateRequest;
 import misskey4j.api.request.mutes.MutesDeleteRequest;
@@ -14,6 +15,7 @@ import misskey4j.api.request.users.UsersFollowersRequest;
 import misskey4j.api.request.users.UsersFollowingsRequest;
 import misskey4j.api.request.users.UsersRelationRequest;
 import misskey4j.api.request.users.UsersShowRequest;
+import misskey4j.api.response.i.INotificationsResponse;
 import misskey4j.api.response.i.IResponse;
 import misskey4j.api.response.notes.NotesTimelineResponse;
 import misskey4j.api.response.users.UsersFollowersResponse;
@@ -21,6 +23,9 @@ import misskey4j.api.response.users.UsersFollowingsResponse;
 import misskey4j.api.response.users.UsersRelationResponse;
 import misskey4j.api.response.users.UsersShowResponse;
 import misskey4j.entity.Follow;
+import misskey4j.entity.Note;
+import misskey4j.entity.Notification;
+import misskey4j.entity.contant.NotificationType;
 import misskey4j.entity.share.Response;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
@@ -37,6 +42,7 @@ import net.socialhub.model.service.addition.misskey.MisskeyPaging;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
@@ -281,6 +287,33 @@ public class MisskeyAction extends AccountActionImpl {
                     misskey.notes().timeline(builder.build());
 
             return MisskeyMapper.timeLine(response.get(),
+                    misskey.getHost(), service, paging);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Pageable<Comment> getMentionTimeLine(Paging paging) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            INotificationsRequest.INotificationsRequestBuilder builder =
+                    INotificationsRequest.builder();
+            setPaging(builder, paging);
+
+            builder.markAsRead(true);
+            builder.includeTypes(singletonList(NotificationType.REPLY.code()));
+
+            Response<INotificationsResponse[]> response =
+                    misskey.accounts().iNotifications(builder.build());
+
+            return MisskeyMapper.timeLine(
+                    Stream.of(response.get())
+                            .map(Notification::getNote)
+                            .filter(Objects::nonNull)
+                            .toArray(Note[]::new),
                     misskey.getHost(), service, paging);
         });
     }

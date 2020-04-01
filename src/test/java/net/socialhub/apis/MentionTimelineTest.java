@@ -20,5 +20,17 @@ public class MentionTimelineTest extends AbstractTimelineTest {
         Pageable<Comment> comments = account.action().getMentionTimeLine(paging);
         printTimeline("Now", comments);
     }
+
+    @Test
+    public void testHomeTimelineMisskey() {
+
+        Paging paging = new Paging();
+        paging.setCount(10L);
+
+        Account account = SocialAuthUtil.getMisskeyAccount();
+
+        Pageable<Comment> comments = account.action().getMentionTimeLine(paging);
+        printTimeline("Now", comments);
+    }
 }
 

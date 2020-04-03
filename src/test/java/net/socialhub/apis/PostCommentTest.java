@@ -41,6 +41,19 @@ public class PostCommentTest extends AbstractApiTest {
         account.action().postComment(req);
     }
 
+    @Test
+    @Ignore
+    public void testPostWithMediaMisskey() {
+
+        Account account = SocialAuthUtil.getMisskeyAccount();
+        InputStream stream = getClass().getResourceAsStream("/image/icon.png");
+
+        CommentForm req = new CommentForm() //
+                .addImage(convertFile(stream), "icon.png") //
+                .text("SocialHub Test");
+
+        account.action().postComment(req);
+    }
 
     @Test
     @Ignore

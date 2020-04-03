@@ -3,21 +3,28 @@ package net.socialhub.service.misskey;
 import misskey4j.Misskey;
 import misskey4j.api.request.blocks.BlocksCreateRequest;
 import misskey4j.api.request.blocks.BlocksDeleteRequest;
+import misskey4j.api.request.files.FilesCreateRequest;
 import misskey4j.api.request.following.FollowingCreateRequest;
 import misskey4j.api.request.following.FollowingDeleteRequest;
 import misskey4j.api.request.i.INotificationsRequest;
 import misskey4j.api.request.i.IRequest;
 import misskey4j.api.request.mutes.MutesCreateRequest;
 import misskey4j.api.request.mutes.MutesDeleteRequest;
+import misskey4j.api.request.notes.NotesCreateRequest;
+import misskey4j.api.request.notes.NotesSearchRequest;
 import misskey4j.api.request.notes.NotesTimelineRequest;
+import misskey4j.api.request.notes.UsersNotesRequest;
 import misskey4j.api.request.protocol.PagingBuilder;
 import misskey4j.api.request.users.UsersFollowersRequest;
 import misskey4j.api.request.users.UsersFollowingsRequest;
 import misskey4j.api.request.users.UsersRelationRequest;
 import misskey4j.api.request.users.UsersShowRequest;
+import misskey4j.api.response.files.FilesCreateResponse;
 import misskey4j.api.response.i.INotificationsResponse;
 import misskey4j.api.response.i.IResponse;
+import misskey4j.api.response.notes.NotesSearchResponse;
 import misskey4j.api.response.notes.NotesTimelineResponse;
+import misskey4j.api.response.notes.UsersNotesResponse;
 import misskey4j.api.response.users.UsersFollowersResponse;
 import misskey4j.api.response.users.UsersFollowingsResponse;
 import misskey4j.api.response.users.UsersRelationResponse;
@@ -30,7 +37,9 @@ import misskey4j.entity.share.Response;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotImplimentedException;
+import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.error.SocialHubException;
+import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Pageable;
@@ -41,8 +50,16 @@ import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.misskey.MisskeyPaging;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+import net.socialhub.utils.HandlingUtil;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
@@ -315,6 +332,135 @@ public class MisskeyAction extends AccountActionImpl {
                             .filter(Objects::nonNull)
                             .toArray(Note[]::new),
                     misskey.getHost(), service, paging);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Pageable<Comment> getUserCommentTimeLine(Identify id, Paging paging) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            UsersNotesRequest.UsersNotesRequestBuilder builder =
+                    UsersNotesRequest.builder();
+
+            builder.userId((String) id.getId());
+            setPaging(builder, paging);
+
+            Response<UsersNotesResponse[]> response =
+                    misskey.notes().users(builder.build());
+
+            return MisskeyMapper.timeLine(response.get(),
+                    misskey.getHost(), service, paging);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getUserLikeTimeLine(Identify id, Paging paging) {
+        throw new NotSupportedException("Not supported on Misskey.");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Pageable<Comment> getUserMediaTimeLine(Identify id, Paging paging) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            UsersNotesRequest.UsersNotesRequestBuilder builder =
+                    UsersNotesRequest.builder();
+
+            builder.userId((String) id.getId());
+            builder.excludeNsfw(true);
+            setPaging(builder, paging);
+
+            Response<UsersNotesResponse[]> response =
+                    misskey.notes().users(builder.build());
+
+            return MisskeyMapper.timeLine(response.get(),
+                    misskey.getHost(), service, paging);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getSearchTimeLine(String query, Paging paging) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            NotesSearchRequest.NotesSearchRequestBuilder builder =
+                    NotesSearchRequest.builder();
+
+            builder.query(query);
+            setPaging(builder, paging);
+
+            Response<NotesSearchResponse[]> response =
+                    misskey.notes().search(builder.build());
+
+            return MisskeyMapper.timeLine(response.get(),
+                    misskey.getHost(), service, paging);
+        });
+    }
+
+    // ============================================================== //
+    // Comment
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void postComment(CommentForm req) {
+        proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            ExecutorService pool = Executors.newCachedThreadPool();
+
+            NotesCreateRequest.NotesCreateRequestBuilder builder =
+                    NotesCreateRequest.builder();
+
+            // 文言の追加
+            builder.text(req.getText());
+
+            // 返信の処理
+            if (req.getTargetId() != null) {
+                builder.replyId((String) req.getTargetId());
+            }
+
+            // 画像の処理
+            if (req.getImages() != null && !req.getImages().isEmpty()) {
+                List<String> fileIds = new ArrayList<>();
+                builder.fileIds(fileIds);
+
+                // 画像を並列でアップロードする
+                List<Future<String>> medias = req.getImages() //
+                        .stream().map(image -> pool.submit(() -> {
+                            InputStream input = new ByteArrayInputStream(image.getData());
+                            Response<FilesCreateResponse> response = misskey.files()
+                                    .create(FilesCreateRequest.builder()
+                                            .isSensitive(req.isSensitive())
+                                            .name(image.getName())
+                                            .stream(input)
+                                            .force(true)
+                                            .build());
+
+                            return response.get().getId();
+                        })).collect(toList());
+
+                fileIds.addAll(medias.stream().map( //
+                        (e) -> HandlingUtil.runtime(e::get)) //
+                        .collect(toList()));
+            }
+
+            misskey.notes().create(builder.build());
         });
     }
 

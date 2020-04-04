@@ -1,6 +1,8 @@
 package net.socialhub.service.misskey;
 
 import misskey4j.Misskey;
+import misskey4j.api.request.UsersListsListRequest;
+import misskey4j.api.request.UsersListsShowRequest;
 import misskey4j.api.request.blocks.BlocksCreateRequest;
 import misskey4j.api.request.blocks.BlocksDeleteRequest;
 import misskey4j.api.request.favorites.FavoritesCreateRequest;
@@ -11,15 +13,19 @@ import misskey4j.api.request.following.FollowingDeleteRequest;
 import misskey4j.api.request.i.IFavoritesRequest;
 import misskey4j.api.request.i.INotificationsRequest;
 import misskey4j.api.request.i.IRequest;
+import misskey4j.api.request.messages.MessagingHistoryRequest;
 import misskey4j.api.request.meta.MetaRequest;
 import misskey4j.api.request.mutes.MutesCreateRequest;
 import misskey4j.api.request.mutes.MutesDeleteRequest;
 import misskey4j.api.request.notes.NoteUnrenoteRequest;
+import misskey4j.api.request.notes.NotesChildrenRequest;
+import misskey4j.api.request.notes.NotesConversationRequest;
 import misskey4j.api.request.notes.NotesCreateRequest;
 import misskey4j.api.request.notes.NotesDeleteRequest;
 import misskey4j.api.request.notes.NotesSearchRequest;
 import misskey4j.api.request.notes.NotesShowRequest;
 import misskey4j.api.request.notes.NotesTimelineRequest;
+import misskey4j.api.request.notes.NotesUserListTimelineRequest;
 import misskey4j.api.request.notes.UsersNotesRequest;
 import misskey4j.api.request.protocol.PagingBuilder;
 import misskey4j.api.request.reactions.ReactionsCreateRequest;
@@ -28,20 +34,27 @@ import misskey4j.api.request.users.UsersFollowersRequest;
 import misskey4j.api.request.users.UsersFollowingsRequest;
 import misskey4j.api.request.users.UsersRelationRequest;
 import misskey4j.api.request.users.UsersShowRequest;
+import misskey4j.api.response.UsersListsListResponse;
+import misskey4j.api.response.UsersListsShowResponse;
 import misskey4j.api.response.files.FilesCreateResponse;
 import misskey4j.api.response.i.IFavoritesResponse;
 import misskey4j.api.response.i.INotificationsResponse;
 import misskey4j.api.response.i.IResponse;
+import misskey4j.api.response.messages.MessagingHistoryResponse;
 import misskey4j.api.response.meta.MetaResponse;
+import misskey4j.api.response.notes.NotesChildrenResponse;
+import misskey4j.api.response.notes.NotesConversationResponse;
 import misskey4j.api.response.notes.NotesSearchResponse;
 import misskey4j.api.response.notes.NotesShowResponse;
 import misskey4j.api.response.notes.NotesTimelineResponse;
+import misskey4j.api.response.notes.NotesUserListTimelineResponse;
 import misskey4j.api.response.notes.UsersNotesResponse;
 import misskey4j.api.response.users.UsersFollowersResponse;
 import misskey4j.api.response.users.UsersFollowingsResponse;
 import misskey4j.api.response.users.UsersRelationResponse;
 import misskey4j.api.response.users.UsersShowResponse;
 import misskey4j.entity.Follow;
+import misskey4j.entity.Message;
 import misskey4j.entity.Note;
 import misskey4j.entity.Notification;
 import misskey4j.entity.contant.NotificationType;
@@ -53,23 +66,31 @@ import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
+import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Context;
 import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.Service;
+import net.socialhub.model.service.Thread;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.misskey.MisskeyPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+import net.socialhub.utils.CollectionUtil;
 import net.socialhub.utils.HandlingUtil;
+import net.socialhub.utils.MapperUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -662,6 +683,205 @@ public class MisskeyAction extends AccountActionImpl {
             this.reactionCandidate = MisskeyMapper.reactionCandidates(
                     response.get().getEmojis());
             return this.reactionCandidate;
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Context getCommentContext(Identify id) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+            ExecutorService pool = Executors.newCachedThreadPool();
+
+            String displayId = (String) ((id instanceof Comment) ? //
+                    ((Comment) id).getDisplayComment().getId() : id.getId());
+
+            Future<Response<NotesConversationResponse[]>> conversationFuture =
+                    pool.submit(() -> misskey.notes().conversation(
+                            NotesConversationRequest.builder()
+                                    .noteId(displayId)
+                                    .limit(100L)
+                                    .build()));
+
+            Future<Response<NotesChildrenResponse[]>> childrenFuture =
+                    pool.submit(() -> misskey.notes().children(
+                            NotesChildrenRequest.builder()
+                                    .noteId(displayId)
+                                    .limit(100L)
+                                    .build()));
+
+            Response<NotesConversationResponse[]> conversation = conversationFuture.get();
+            Response<NotesChildrenResponse[]> children = childrenFuture.get();
+
+            Context context = new Context();
+
+            context.setAncestors(Arrays.stream(conversation.get()) //
+                    .map(e -> MisskeyMapper.comment(e, misskey.getHost(), service)) //
+                    .collect(toList()));
+
+            context.setDescendants(Arrays.stream(children.get()) //
+                    .map(e -> MisskeyMapper.comment(e, misskey.getHost(), service)) //
+                    .collect(toList()));
+
+            MapperUtil.sortContext(context);
+            return context;
+        });
+    }
+
+    // ============================================================== //
+    // Channel (List) API
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Channel> getChannels(Identify id, Paging paging) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            if (id != null) {
+                User me = getUserMeWithCache();
+                if (!me.getId().equals(id.getId())) {
+                    throw new NotSupportedException(
+                            "Sorry, authenticated user only.");
+                }
+            }
+
+            // リスト一覧はページングには非対応
+            Response<UsersListsListResponse[]> response =
+                    misskey.lists().list(UsersListsListRequest.builder().build());
+
+            return MisskeyMapper.channels(response.get(), service);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getChannelTimeLine(Identify id, Paging paging) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            NotesUserListTimelineRequest.NotesUserListTimelineRequestBuilder builder =
+                    NotesUserListTimelineRequest.builder();
+
+            setPaging(builder, paging);
+            builder.listId((String) id.getId());
+
+            Response<NotesUserListTimelineResponse[]> response =
+                    misskey.notes().userListTimeline(builder.build());
+
+            return MisskeyMapper.timeLine(response.get(),
+                    misskey.getHost(), service, paging);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<User> getChannelUsers(Identify id, Paging paging) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            Response<UsersListsShowResponse> list =
+                    misskey.lists().show(
+                            UsersListsShowRequest.builder()
+                                    .listId((String) id.getId())
+                                    .build());
+
+            Response<UsersShowResponse[]> users =
+                    misskey.users().show(
+                            UsersShowRequest.builder()
+                                    .userIds(list.get().getUserIds())
+                                    .build());
+
+            return MisskeyMapper.users(
+                    Stream.of(users.get()).collect(toList()),
+                    misskey.getHost(), service, null);
+        });
+    }
+
+    // ============================================================== //
+    // Message API
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Thread> getMessageThread(Paging paging) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+            ExecutorService pool = Executors.newCachedThreadPool();
+
+            Future<Response<MessagingHistoryResponse[]>> groupsFuture =
+                    pool.submit(() -> misskey.messages().history(
+                            MessagingHistoryRequest.builder()
+                                    .limit(100L)
+                                    .group(true)
+                                    .build()));
+
+            Future<Response<MessagingHistoryResponse[]>> messagesFuture =
+                    pool.submit(() -> misskey.messages().history(
+                            MessagingHistoryRequest.builder()
+                                    .limit(100L)
+                                    .group(false)
+                                    .build()));
+
+            Response<MessagingHistoryResponse[]> groups = groupsFuture.get();
+            Response<MessagingHistoryResponse[]> messages = messagesFuture.get();
+
+
+            // ユーザーの一覧を取得
+            Map<String, User> userMap = new HashMap<>();
+            List<String> userIds = Stream.of(groups.get())
+                    .flatMap(e -> e.getGroup().getUserIds().stream())
+                    .distinct().collect(toList());
+
+            CollectionUtil.partitionList(userIds, 100).forEach((ids) -> {
+                Response<UsersShowResponse[]> users =
+                        misskey.users().show(
+                                UsersShowRequest.builder()
+                                        .userIds(ids)
+                                        .build());
+
+                for (misskey4j.entity.User user : users.get()) {
+                    User model = MisskeyMapper.user(user, misskey.getHost(), service);
+                    userMap.put(user.getId(), model);
+                }
+            });
+
+
+            List<Thread> threads = new ArrayList<>();
+            User me = getUserMeWithCache();
+
+            for (Message group : groups.get()) {
+                threads.add(MisskeyMapper.thread(group,
+                        misskey.getHost(), me, userMap, service));
+            }
+            for (Message message : messages.get()) {
+                threads.add(MisskeyMapper.thread(message,
+                        misskey.getHost(), me, userMap, service));
+            }
+
+            paging.setHasPast(false);
+            paging.setHasNext(false);
+
+            Pageable<Thread> results = new Pageable<>();
+            results.setEntities(threads);
+            results.setPaging(paging);
+            return results;
+
         });
     }
 

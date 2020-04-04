@@ -2,6 +2,7 @@ package net.socialhub.service.misskey;
 
 import misskey4j.entity.Field;
 import misskey4j.entity.File;
+import misskey4j.entity.Message;
 import misskey4j.entity.Note;
 import misskey4j.entity.Relation;
 import net.socialhub.define.EmojiType;
@@ -10,6 +11,7 @@ import net.socialhub.define.MediaType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Emoji;
 import net.socialhub.model.service.Media;
@@ -18,9 +20,11 @@ import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Reaction;
 import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.Service;
+import net.socialhub.model.service.Thread;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.misskey.MisskeyComment;
 import net.socialhub.model.service.addition.misskey.MisskeyPaging;
+import net.socialhub.model.service.addition.misskey.MisskeyThread;
 import net.socialhub.model.service.addition.misskey.MisskeyUser;
 import net.socialhub.model.service.support.ReactionCandidate;
 
@@ -28,6 +32,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -238,12 +243,82 @@ public class MisskeyMapper {
             }
             return media;
         }
-
         return null;
     }
 
+    /**
+     * チャンネルマッピング
+     */
+    public static Channel channel(
+            misskey4j.entity.List list,
+            Service service) {
+        try {
+
+            Channel model = new Channel(service);
+
+            model.setId(list.getId());
+            model.setName(list.getName());
+            model.setCreateAt(getDateParser().parse(list.getCreatedAt()));
+            model.setPublic(false);
+
+            return model;
+
+        } catch (ParseException e) {
+            logger.error(e);
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public static Thread thread(
+            Message message,
+            String host,
+            User me,
+            Map<String, User> userMap,
+            Service service) {
+
+        try {
+            // 「名前: コメント内容」のフォーマットで説明文を作成
+            String description = message.getUser().getName()
+                    + ": " + message.getText();
+
+            MisskeyThread thread = new MisskeyThread(service);
+            thread.setLastUpdate(getDateParser().parse(message.getCreatedAt()));
+            thread.setDescription(description);
+
+            // ユーザー個人チャットの場合
+            if (message.getUser() != null) {
+                User user = user(message.getUser(), host, service);
+                thread.setUsers(Collections.singletonList(user));
+                thread.setId(message.getUserId());
+                thread.setGroup(false);
+            }
+
+            // グループ向けチャットの場合
+            if (message.getGroup() != null) {
+                thread.setUsers(message.getGroup().getUserIds().stream()
+                        .map(userMap::get).filter(Objects::nonNull).collect(toList()));
+                thread.setId(message.getGroupId());
+                thread.setGroup(true);
+            }
+
+            // 自分が含まれていない場合は追加
+            if (thread.getUsers().stream()
+                    .noneMatch(e -> e.getId().equals(me.getId()))) {
+                List<User> users = new ArrayList<>(thread.getUsers());
+                thread.setUsers(users);
+                users.add(me);
+            }
+
+            return thread;
+
+        } catch (ParseException e) {
+            logger.error(e);
+            throw new IllegalStateException(e);
+        }
+    }
+
     // ============================================================== //
-    // List Object Mapper
+    // List Object Mappers
     // ============================================================== //
 
     /**
@@ -352,6 +427,20 @@ public class MisskeyMapper {
                 .map(MisskeyMapper::media)
                 .filter(Objects::nonNull)
                 .collect(toList());
+    }
+
+    /**
+     * チャンネルマッピング
+     */
+    public static Pageable<Channel> channels(
+            misskey4j.entity.List[] lists,
+            Service service) {
+
+        Pageable<Channel> model = new Pageable<>();
+        model.setEntities(Stream.of(lists)
+                .map(e -> channel(e, service))
+                .collect(toList()));
+        return model;
     }
 
     /**

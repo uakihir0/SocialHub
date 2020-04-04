@@ -34,6 +34,16 @@ public class GetContextTest extends AbstractApiTest {
     }
 
     @Test
+    public void testMisskeyGetContext() {
+        String id = "";
+        Identify identify = new Identify(null, id);
+
+        Account account = SocialAuthUtil.getMisskeyAccount();
+        Context context = account.action().getCommentContext(identify);
+        printContext(context);
+    }
+
+    @Test
     @Ignore
     public void testSlackGetContext() {
         String id = "";
@@ -51,23 +61,18 @@ public class GetContextTest extends AbstractApiTest {
         System.out.println("========================");
         System.out.println("> Before");
         System.out.println("========================");
-
-        for (Comment comment : context.getAncestors()) {
-            System.out.println(">ID: " + comment.getId());
-            Comment display = comment.getDisplayComment();
-            System.out.println(">Text: " + display.getText());
-            System.out.println(">Date: " + display.getCreateAt());
-        }
+        context.getAncestors().forEach(this::printComment);
 
         System.out.println("========================");
         System.out.println("> After");
         System.out.println("========================");
+        context.getDescendants().forEach(this::printComment);
+    }
 
-        for (Comment comment : context.getDescendants()) {
-            System.out.println(">ID: " + comment.getId());
-            Comment display = comment.getDisplayComment();
-            System.out.println(">Text: " + display.getText());
-            System.out.println(">Date: " + display.getCreateAt());
-        }
+    private void printComment(Comment comment){
+        System.out.println(">ID: " + comment.getId());
+        Comment display = comment.getDisplayComment();
+        System.out.println(">Text: " + display.getText().getDisplayText());
+        System.out.println(">Date: " + display.getCreateAt());
     }
 }

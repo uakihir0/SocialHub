@@ -32,6 +32,17 @@ public class ReactionCandidateTest extends AbstractApiTest {
     }
 
     @Test
+    public void testReactionCandidatesMisskey() {
+
+        Account account = SocialAuthUtil.getMisskeyAccount();
+        List<ReactionCandidate> candidates = account.action().getReactionCandidates();
+
+        for (ReactionCandidate candidate : candidates) {
+            printReactionCandidate(candidate);
+        }
+    }
+
+    @Test
     public void testReactionCandidatesSlack() {
 
         Account account = SocialAuthUtil.getSlackAccount();

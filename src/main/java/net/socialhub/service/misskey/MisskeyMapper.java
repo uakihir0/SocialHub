@@ -121,7 +121,6 @@ public class MisskeyMapper {
     public static Comment comment(
             Note note,
             String host,
-            boolean inRenote,
             Service service) {
 
         MisskeyComment model = new MisskeyComment(service);
@@ -144,7 +143,7 @@ public class MisskeyMapper {
             // リツイートの場合は内部を展開
             if (note.getRenote() != null) {
                 model.setSharedComment(comment(
-                        note.getRenote(), host, true, service));
+                        note.getRenote(), host, service));
             }
 
             // 注釈の設定
@@ -273,7 +272,7 @@ public class MisskeyMapper {
             Paging paging) {
 
         Pageable<Comment> model = new Pageable<>();
-        model.setEntities(Stream.of(notes).map(e -> comment(e, host, false, service)) //
+        model.setEntities(Stream.of(notes).map(e -> comment(e, host, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(toList()));
 

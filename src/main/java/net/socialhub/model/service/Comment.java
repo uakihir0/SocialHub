@@ -102,6 +102,16 @@ public class Comment extends Identify {
         throw new NotImplimentedException();
     }
 
+    /**
+     * Only shared content comment.
+     * 共有されたコメント情報のみの場合
+     */
+    public boolean isOnlyShared() {
+        return ((sharedComment != null)
+                && ((text == null) || (text.getDisplayText().isEmpty()))
+                && ((medias == null) || (medias.size() == 0)));
+    }
+
     //region // Getter&Setter
     public AttributedString getText() {
         return text;

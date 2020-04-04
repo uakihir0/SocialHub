@@ -4,6 +4,8 @@ import misskey4j.entity.Field;
 import misskey4j.entity.File;
 import misskey4j.entity.Note;
 import misskey4j.entity.Relation;
+import net.socialhub.define.EmojiType;
+import net.socialhub.define.EmojiVariationType;
 import net.socialhub.define.MediaType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedFiled;
@@ -20,6 +22,7 @@ import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.misskey.MisskeyComment;
 import net.socialhub.model.service.addition.misskey.MisskeyPaging;
 import net.socialhub.model.service.addition.misskey.MisskeyUser;
+import net.socialhub.model.service.support.ReactionCandidate;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -349,6 +352,46 @@ public class MisskeyMapper {
                 .map(MisskeyMapper::media)
                 .filter(Objects::nonNull)
                 .collect(toList());
+    }
+
+    /**
+     * リアクション候補マッピング
+     * (Misskey のリアクション一覧には Like or Share は省く)
+     */
+    public static List<ReactionCandidate> reactionCandidates(
+            List<misskey4j.entity.Emoji> emojis) {
+
+        List<ReactionCandidate> candidates = new ArrayList<>();
+
+        // Misskey はカスタムが先
+        emojis.forEach(emoji -> {
+            ReactionCandidate candidate = new ReactionCandidate();
+            candidates.add(candidate);
+
+            candidate.setCategory(emoji.getCategory());
+            candidate.setIconUrl(emoji.getUrl());
+            candidate.setName(emoji.getName());
+        });
+
+        for (EmojiType emoji : EmojiType.values()) {
+            ReactionCandidate candidate = new ReactionCandidate();
+            candidates.add(candidate);
+
+            candidate.setCategory(emoji.getCategory().getCode());
+            candidate.setEmoji(emoji.getEmoji());
+            candidate.setName(emoji.getName());
+        }
+
+        for (EmojiVariationType emoji : EmojiVariationType.values()) {
+            ReactionCandidate candidate = new ReactionCandidate();
+            candidates.add(candidate);
+
+            candidate.setCategory(emoji.getCategory().getCode());
+            candidate.setEmoji(emoji.getEmoji());
+            candidate.setName(emoji.getName());
+        }
+
+        return candidates;
     }
 
     // ============================================================== //

@@ -3,26 +3,38 @@ package net.socialhub.service.misskey;
 import misskey4j.Misskey;
 import misskey4j.api.request.blocks.BlocksCreateRequest;
 import misskey4j.api.request.blocks.BlocksDeleteRequest;
+import misskey4j.api.request.favorites.FavoritesCreateRequest;
+import misskey4j.api.request.favorites.FavoritesDeleteRequest;
 import misskey4j.api.request.files.FilesCreateRequest;
 import misskey4j.api.request.following.FollowingCreateRequest;
 import misskey4j.api.request.following.FollowingDeleteRequest;
+import misskey4j.api.request.i.IFavoritesRequest;
 import misskey4j.api.request.i.INotificationsRequest;
 import misskey4j.api.request.i.IRequest;
+import misskey4j.api.request.meta.MetaRequest;
 import misskey4j.api.request.mutes.MutesCreateRequest;
 import misskey4j.api.request.mutes.MutesDeleteRequest;
+import misskey4j.api.request.notes.NoteUnrenoteRequest;
 import misskey4j.api.request.notes.NotesCreateRequest;
+import misskey4j.api.request.notes.NotesDeleteRequest;
 import misskey4j.api.request.notes.NotesSearchRequest;
+import misskey4j.api.request.notes.NotesShowRequest;
 import misskey4j.api.request.notes.NotesTimelineRequest;
 import misskey4j.api.request.notes.UsersNotesRequest;
 import misskey4j.api.request.protocol.PagingBuilder;
+import misskey4j.api.request.reactions.ReactionsCreateRequest;
+import misskey4j.api.request.reactions.ReactionsDeleteRequest;
 import misskey4j.api.request.users.UsersFollowersRequest;
 import misskey4j.api.request.users.UsersFollowingsRequest;
 import misskey4j.api.request.users.UsersRelationRequest;
 import misskey4j.api.request.users.UsersShowRequest;
 import misskey4j.api.response.files.FilesCreateResponse;
+import misskey4j.api.response.i.IFavoritesResponse;
 import misskey4j.api.response.i.INotificationsResponse;
 import misskey4j.api.response.i.IResponse;
+import misskey4j.api.response.meta.MetaResponse;
 import misskey4j.api.response.notes.NotesSearchResponse;
+import misskey4j.api.response.notes.NotesShowResponse;
 import misskey4j.api.response.notes.NotesTimelineResponse;
 import misskey4j.api.response.notes.UsersNotesResponse;
 import misskey4j.api.response.users.UsersFollowersResponse;
@@ -34,6 +46,7 @@ import misskey4j.entity.Note;
 import misskey4j.entity.Notification;
 import misskey4j.entity.contant.NotificationType;
 import misskey4j.entity.share.Response;
+import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotImplimentedException;
@@ -48,6 +61,7 @@ import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.misskey.MisskeyPaging;
+import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.utils.HandlingUtil;
@@ -70,6 +84,9 @@ public class MisskeyAction extends AccountActionImpl {
     private static Logger logger = Logger.getLogger(MisskeyAction.class);
 
     private ServiceAuth<Misskey> auth;
+
+    /** Reaction Candidate Cache */
+    private List<ReactionCandidate> reactionCandidate;
 
     // ============================================================== //
     // Account
@@ -362,7 +379,33 @@ public class MisskeyAction extends AccountActionImpl {
      */
     @Override
     public Pageable<Comment> getUserLikeTimeLine(Identify id, Paging paging) {
-        throw new NotSupportedException("Not supported on Misskey.");
+        if (id != null) {
+
+            // 自分の分しか取得できないので id が自分でない場合は例外
+            if (id.getId().equals(getUserMeWithCache().getId())) {
+
+                Misskey misskey = auth.getAccessor();
+                Service service = getAccount().getService();
+
+
+                IFavoritesRequest.IFavoritesRequestBuilder builder =
+                        IFavoritesRequest.builder();
+
+                setPaging(builder, paging);
+                Response<IFavoritesResponse[]> response =
+                        misskey.accounts().iFavorites(builder.build());
+
+                return MisskeyMapper.timeLine(
+                        Stream.of(response.get())
+                                .map(IFavoritesResponse::getNote)
+                                .filter(Objects::nonNull)
+                                .toArray(Note[]::new),
+                        misskey.getHost(), service, paging);
+            }
+        }
+
+        throw new NotSupportedException( //
+                "Sorry, user favorites timeline is only support only verified account on Misskey.");
     }
 
     /**
@@ -461,6 +504,164 @@ public class MisskeyAction extends AccountActionImpl {
             }
 
             misskey.notes().create(builder.build());
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Comment getComment(Identify id) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            Response<NotesShowResponse> response =
+                    misskey.notes().show(NotesShowRequest.builder()
+                            .noteId((String) id.getId())
+                            .build());
+
+            return MisskeyMapper.comment(response.get(),
+                    misskey.getHost(), service);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void likeComment(Identify id) {
+        proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            misskey.favorites().create(FavoritesCreateRequest.builder()
+                    .noteId((String) id.getId())
+                    .build());
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unlikeComment(Identify id) {
+        proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            misskey.favorites().delete(FavoritesDeleteRequest.builder()
+                    .noteId((String) id.getId())
+                    .build());
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void shareComment(Identify id) {
+        proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            misskey.notes().create(NotesCreateRequest.builder()
+                    .renoteId((String) id.getId())
+                    .build());
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unshareComment(Identify id) {
+        proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            misskey.notes().unrenote(NoteUnrenoteRequest.builder()
+                    .noteId((String) id.getId())
+                    .build());
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void reactionComment(Identify id, String reaction) {
+        if (reaction != null && !reaction.isEmpty()) {
+            String type = reaction.toLowerCase();
+
+            if (MastodonReactionType.Favorite.getCode().contains(type)) {
+                likeComment(id);
+                return;
+            }
+            if (MastodonReactionType.Reblog.getCode().contains(type)) {
+                retweetComment(id);
+                return;
+            }
+
+            Misskey misskey = auth.getAccessor();
+            misskey.reactions().create(ReactionsCreateRequest.builder()
+                    .noteId((String) id.getId())
+                    .reaction(reaction)
+                    .build());
+        }
+        throw new NotSupportedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unreactionComment(Identify id, String reaction) {
+        if (reaction != null && !reaction.isEmpty()) {
+            String type = reaction.toLowerCase();
+
+            if (MastodonReactionType.Favorite.getCode().contains(type)) {
+                unlikeComment(id);
+                return;
+            }
+            if (MastodonReactionType.Reblog.getCode().contains(type)) {
+                unretweetComment(id);
+                return;
+            }
+
+            // ユーザーごとにリアクションは一つのみ
+            Misskey misskey = auth.getAccessor();
+            misskey.reactions().delete(ReactionsDeleteRequest.builder()
+                    .noteId((String) id.getId())
+                    .build());
+        }
+        throw new NotSupportedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteComment(Identify id) {
+        proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            misskey.notes().delete(NotesDeleteRequest.builder()
+                    .noteId((String) id.getId())
+                    .build());
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ReactionCandidate> getReactionCandidates() {
+        if (this.reactionCandidate != null) {
+            return this.reactionCandidate;
+        }
+
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Response<MetaResponse> response =
+                    misskey.meta().meta(MetaRequest.builder()
+                            .detail(true)
+                            .build());
+
+            this.reactionCandidate = MisskeyMapper.reactionCandidates(
+                    response.get().getEmojis());
+            return this.reactionCandidate;
         });
     }
 

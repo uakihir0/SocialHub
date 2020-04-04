@@ -21,7 +21,6 @@ public class ReactionCandidate {
 
     private List<String> aliases;
 
-
     /**
      * Get All Names
      * エイリアスの返却処理

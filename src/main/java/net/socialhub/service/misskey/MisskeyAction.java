@@ -10,10 +10,13 @@ import misskey4j.api.request.favorites.FavoritesDeleteRequest;
 import misskey4j.api.request.files.FilesCreateRequest;
 import misskey4j.api.request.following.FollowingCreateRequest;
 import misskey4j.api.request.following.FollowingDeleteRequest;
+import misskey4j.api.request.hashtags.HashtagsTrendRequest;
 import misskey4j.api.request.i.IFavoritesRequest;
 import misskey4j.api.request.i.INotificationsRequest;
 import misskey4j.api.request.i.IRequest;
 import misskey4j.api.request.messages.MessagingHistoryRequest;
+import misskey4j.api.request.messages.MessagingMessagesCreateRequest;
+import misskey4j.api.request.messages.MessagingMessagesRequest;
 import misskey4j.api.request.meta.MetaRequest;
 import misskey4j.api.request.mutes.MutesCreateRequest;
 import misskey4j.api.request.mutes.MutesDeleteRequest;
@@ -27,6 +30,7 @@ import misskey4j.api.request.notes.NotesShowRequest;
 import misskey4j.api.request.notes.NotesTimelineRequest;
 import misskey4j.api.request.notes.NotesUserListTimelineRequest;
 import misskey4j.api.request.notes.UsersNotesRequest;
+import misskey4j.api.request.polls.PollsVoteRequest;
 import misskey4j.api.request.protocol.PagingBuilder;
 import misskey4j.api.request.reactions.ReactionsCreateRequest;
 import misskey4j.api.request.reactions.ReactionsDeleteRequest;
@@ -37,10 +41,12 @@ import misskey4j.api.request.users.UsersShowRequest;
 import misskey4j.api.response.UsersListsListResponse;
 import misskey4j.api.response.UsersListsShowResponse;
 import misskey4j.api.response.files.FilesCreateResponse;
+import misskey4j.api.response.hashtags.HashtagsTrendResponse;
 import misskey4j.api.response.i.IFavoritesResponse;
 import misskey4j.api.response.i.INotificationsResponse;
 import misskey4j.api.response.i.IResponse;
 import misskey4j.api.response.messages.MessagingHistoryResponse;
+import misskey4j.api.response.messages.MessagingMessagesResponse;
 import misskey4j.api.response.meta.MetaResponse;
 import misskey4j.api.response.notes.NotesChildrenResponse;
 import misskey4j.api.response.notes.NotesConversationResponse;
@@ -60,12 +66,14 @@ import misskey4j.entity.Notification;
 import misskey4j.entity.contant.NotificationType;
 import misskey4j.entity.share.Response;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
+import net.socialhub.define.service.misskey.MisskeyFormKey;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
+import net.socialhub.model.request.MediaForm;
 import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Context;
@@ -75,11 +83,17 @@ import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.Thread;
+import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.misskey.MisskeyPaging;
+import net.socialhub.model.service.addition.misskey.MisskeyPoll;
+import net.socialhub.model.service.addition.misskey.MisskeyThread;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
+import net.socialhub.service.action.RequestAction;
+import net.socialhub.service.action.callback.EventCallback;
+import net.socialhub.service.action.specific.MicroBlogAction;
 import net.socialhub.utils.CollectionUtil;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
@@ -100,7 +114,7 @@ import java.util.stream.Stream;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
-public class MisskeyAction extends AccountActionImpl {
+public class MisskeyAction extends AccountActionImpl implements MicroBlogAction {
 
     private static Logger logger = Logger.getLogger(MisskeyAction.class);
 
@@ -349,6 +363,7 @@ public class MisskeyAction extends AccountActionImpl {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Pageable<Comment> getMentionTimeLine(Paging paging) {
         return proceed(() -> {
             Misskey misskey = auth.getAccessor();
@@ -376,6 +391,7 @@ public class MisskeyAction extends AccountActionImpl {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Pageable<Comment> getUserCommentTimeLine(Identify id, Paging paging) {
         return proceed(() -> {
             Misskey misskey = auth.getAccessor();
@@ -432,6 +448,7 @@ public class MisskeyAction extends AccountActionImpl {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Pageable<Comment> getUserMediaTimeLine(Identify id, Paging paging) {
         return proceed(() -> {
             Misskey misskey = auth.getAccessor();
@@ -883,6 +900,203 @@ public class MisskeyAction extends AccountActionImpl {
             return results;
 
         });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getMessageTimeLine(Identify id, Paging paging) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+            boolean isGroup = (id instanceof MisskeyThread)
+                    && ((MisskeyThread) id).isGroup();
+
+            MessagingMessagesRequest.MessagingMessagesRequestBuilder builder =
+                    MessagingMessagesRequest.builder();
+            setPaging(builder, paging);
+
+            builder.markAsRead(true);
+            builder.userId(isGroup ? null : (String) id.getId());
+            builder.groupId(isGroup ? (String) id.getId() : null);
+
+            Response<MessagingMessagesResponse[]> response =
+                    misskey.messages().messages(builder.build());
+
+            return MisskeyMapper.messages(response.get(),
+                    misskey.getHost(), service, paging);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void postMessage(CommentForm req) {
+        proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+
+            // グループへの投稿かどうかを取得
+            boolean isGroup = req.getParams()
+                    .get(MisskeyFormKey.MESSAGE_TYPE)
+                    .equals(MisskeyFormKey.MESSAGE_TYPE_GROUP);
+
+            MessagingMessagesCreateRequest.MessagingMessagesCreateRequestBuilder builder =
+                    MessagingMessagesCreateRequest.builder();
+
+            // 画像の処理
+            if ((req.getImages() != null) && !req.getImages().isEmpty()) {
+
+                // ファイルは一つまで添付可能
+                if (req.getImages().size() > 1) {
+                    throw new SocialHubException("Only support one file to send message in Misskey.");
+                }
+
+                // ファイルのアップロードを実行
+                MediaForm media = req.getImages().get(0);
+                InputStream input = new ByteArrayInputStream(media.getData());
+                Response<FilesCreateResponse> response = misskey.files()
+                        .create(FilesCreateRequest.builder()
+                                .isSensitive(req.isSensitive())
+                                .name(media.getName())
+                                .stream(input)
+                                .force(true)
+                                .build());
+
+                builder.fileId(response.get().getId());
+            }
+
+            builder.userId(isGroup ? null : (String) req.getTargetId());
+            builder.groupId(isGroup ? (String) req.getTargetId() : null);
+
+            builder.text(req.getText());
+            misskey.messages().messagesCreate(builder.build());
+        });
+    }
+
+    // ============================================================== //
+    // Poll
+    // ============================================================== //
+
+    /**
+     * Vote on a poll
+     * 投票する
+     */
+    public void votePoll(Identify id, List<Integer> choices) {
+
+        // MisskeyPoll 以外のオブジェクトは例外
+        if (!(id instanceof MisskeyPoll)) {
+            throw new SocialHubException("Not support default identify object in Misskey.");
+        }
+
+        proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            for (Integer choice : choices) {
+                misskey.polls().pollsVote(
+                        PollsVoteRequest.builder()
+                                .noteId(((MisskeyPoll) id).getNoteId())
+                                .choice(choice)
+                                .build());
+            }
+        });
+    }
+
+    // ============================================================== //
+    // Other
+    // ============================================================== //
+
+    /**
+     * Get Misskey Trends
+     * Misskey におけるトレンドを取得
+     */
+    public List<Trend> getTrends(Integer limit) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+
+            Response<HashtagsTrendResponse[]> response = misskey
+                    .hashtags().trend(HashtagsTrendRequest.builder().build());
+
+            return Stream.of(response.get())
+                    .map(MisskeyMapper::trend)
+                    .collect(toList());
+        });
+    }
+
+    /**
+     * Get Notifications
+     * 通知を取得
+     */
+    public Pageable<net.socialhub.model.service.Notification> getNotification(Paging paging) {
+
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            INotificationsRequest.INotificationsRequestBuilder builder =
+                    INotificationsRequest.builder();
+            setPaging(builder, paging);
+
+            builder.markAsRead(true);
+            builder.includeTypes(Arrays.asList(
+                    NotificationType.FOLLOW.code(),
+                    NotificationType.REACTION.code(),
+                    NotificationType.REMOTE.code()));
+
+            Response<INotificationsResponse[]> response =
+                    misskey.accounts().iNotifications(builder.build());
+
+            return MisskeyMapper.notifications(response.get(),
+                    misskey.getHost(), service, paging);
+        });
+    }
+
+    // ============================================================== //
+    // Another TimeLines
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getLocalTimeLine(Paging paging) {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getFederationTimeLine(Paging paging) {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public net.socialhub.model.service.Stream setLocalLineStream(EventCallback callback) {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public net.socialhub.model.service.Stream setFederationLineStream(EventCallback callback) {
+        return null;
+    }
+
+    // ============================================================== //
+    // Request
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RequestAction request() {
+        return new MisskeyRequest(getAccount());
     }
 
     // ============================================================== //

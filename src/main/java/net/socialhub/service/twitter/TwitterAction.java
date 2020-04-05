@@ -1085,6 +1085,7 @@ public class TwitterAction extends AccountActionImpl {
      * filter ストリームで誤魔化して使用
      * 鍵アカウントの情報は取得不可)
      */
+    @Override
     public net.socialhub.model.service.Stream
     setHomeTimeLineStream(EventCallback callback) {
         return proceed(() -> {

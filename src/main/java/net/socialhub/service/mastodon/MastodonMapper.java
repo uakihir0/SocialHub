@@ -344,12 +344,9 @@ public class MastodonMapper {
             mastodon4j.entity.Notification notification,
             Service service) {
 
-        SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
-        format.setTimeZone(TimeZone.getTimeZone("UTC"));
-
         try {
             Notification model = new Notification(service);
-            model.setCreateAt(format.parse(notification.getCreatedAt()));
+            model.setCreateAt(getDateParser().parse(notification.getCreatedAt()));
             model.setId(notification.getId());
 
             MastodonNotificationType type =

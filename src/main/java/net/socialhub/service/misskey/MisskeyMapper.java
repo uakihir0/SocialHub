@@ -1,5 +1,6 @@
 package net.socialhub.service.misskey;
 
+import misskey4j.entity.Choice;
 import misskey4j.entity.Field;
 import misskey4j.entity.File;
 import misskey4j.entity.Message;
@@ -8,6 +9,8 @@ import misskey4j.entity.Relation;
 import net.socialhub.define.EmojiType;
 import net.socialhub.define.EmojiVariationType;
 import net.socialhub.define.MediaType;
+import net.socialhub.define.service.misskey.MisskeyNotificationType;
+import net.socialhub.define.service.misskey.MisskeyVisibility;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
@@ -15,17 +18,22 @@ import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Emoji;
 import net.socialhub.model.service.Media;
+import net.socialhub.model.service.Notification;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
+import net.socialhub.model.service.Poll;
 import net.socialhub.model.service.Reaction;
 import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.Thread;
+import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.misskey.MisskeyComment;
 import net.socialhub.model.service.addition.misskey.MisskeyPaging;
+import net.socialhub.model.service.addition.misskey.MisskeyPoll;
 import net.socialhub.model.service.addition.misskey.MisskeyThread;
 import net.socialhub.model.service.addition.misskey.MisskeyUser;
+import net.socialhub.model.service.support.PollOption;
 import net.socialhub.model.service.support.ReactionCandidate;
 
 import java.text.ParseException;
@@ -34,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,6 +50,8 @@ import java.util.Optional;
 import java.util.TimeZone;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 public class MisskeyMapper {
@@ -167,6 +178,9 @@ public class MisskeyMapper {
             // メディアの設定
             model.setMedias(medias(note.getFiles()));
 
+            // 投票の設定
+            model.setPoll(poll(note, note.getPoll(), service));
+
             // リアクションの設定
             model.setReactions(reactions(
                     note.getReactions(),
@@ -269,6 +283,49 @@ public class MisskeyMapper {
         }
     }
 
+    /**
+     * 通知マッピング
+     */
+    public static Notification notification(
+            misskey4j.entity.Notification notification,
+            String host,
+            Service service) {
+
+        try {
+            Notification model = new Notification(service);
+            model.setCreateAt(getDateParser().parse(notification.getCreatedAt()));
+            model.setId(notification.getId());
+
+            MisskeyNotificationType type =
+                    MisskeyNotificationType.of(notification.getType());
+
+            // 存在する場合のみ設定
+            if (type != null) {
+                model.setType(type.getCode());
+            }
+
+            // ステータス情報
+            if (notification.getNote() != null) {
+                model.setComments(Collections.singletonList(
+                        comment(notification.getNote(), host, service)));
+            }
+
+            // ユーザー情報
+            if (notification.getUser() != null) {
+                model.setUsers(Collections.singletonList(
+                        user(notification.getUser(), host, service)));
+            }
+            return model;
+
+        } catch (ParseException e) {
+            logger.error(e);
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * メッセージスレッドマッピング
+     */
     public static Thread thread(
             Message message,
             String host,
@@ -288,7 +345,7 @@ public class MisskeyMapper {
             // ユーザー個人チャットの場合
             if (message.getUser() != null) {
                 User user = user(message.getUser(), host, service);
-                thread.setUsers(Collections.singletonList(user));
+                thread.setUsers(singletonList(user));
                 thread.setId(message.getUserId());
                 thread.setGroup(false);
             }
@@ -315,6 +372,102 @@ public class MisskeyMapper {
             logger.error(e);
             throw new IllegalStateException(e);
         }
+    }
+
+    /**
+     * メッセージマッピング
+     */
+    public static Comment message(
+            Message message,
+            String host,
+            Service service) {
+
+        MisskeyComment model = new MisskeyComment(service);
+
+        try {
+            model.setId(message.getId());
+            model.setUser(user(message.getUser(), host, service));
+            model.setCreateAt(getDateParser().parse(message.getCreatedAt()));
+            model.setVisibility(MisskeyVisibility.Message);
+            model.setShareCount(0L);
+            model.setReplyCount(0L);
+
+            // 本文の設定
+            model.setText(AttributedString.plain(message.getText()));
+            model.getText().addEmojiElement(model.getEmojis());
+
+            // メディアの設定
+            model.setMedias(emptyList());
+            if (message.getFile() != null) {
+                model.setMedias(medias(singletonList(message.getFile())));
+            }
+
+            return model;
+
+        } catch (ParseException e) {
+            logger.error(e);
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * 投票オブジェクトマッピング
+     */
+    public static Poll poll(
+            Note note,
+            misskey4j.entity.Poll poll,
+            Service service) {
+
+        if (poll == null) {
+            return null;
+        }
+
+        try {
+            MisskeyPoll model = new MisskeyPoll(service);
+            model.setNoteId(note.getId());
+
+            Date expiredAt = getDateParser().parse(poll.getExpiresAt());
+            model.setExpired(expiredAt.before(new Date()));
+            model.setExpireAt(expiredAt);
+
+            model.setMultiple(poll.getMultiple());
+            model.setVoted(poll.getChoices().stream().anyMatch(Choice::getVoted));
+            model.setVotesCount(poll.getChoices().stream().mapToLong(Choice::getVotes).sum());
+            model.setVotersCount(null);
+
+            long index = 0;
+            List<PollOption> options = new ArrayList<>();
+            for (Choice choice : poll.getChoices()) {
+                PollOption option = new PollOption();
+                options.add(option);
+
+                option.setCount(choice.getVotes());
+                option.setVoted(choice.getVoted());
+                option.setTitle(choice.getText());
+                option.setIndex(index);
+                index++;
+            }
+
+            model.setOptions(options);
+            return model;
+
+        } catch (ParseException e) {
+            logger.error(e);
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * トレンドマッピング
+     */
+    public static Trend trend(
+            misskey4j.entity.Trend trend) {
+
+        Trend model = new Trend();
+        model.setName("#" + trend.getTag());
+        model.setQuery("#" + trend.getTag());
+        model.setVolume(trend.getUsersCount().intValue());
+        return model;
     }
 
     // ============================================================== //
@@ -351,6 +504,24 @@ public class MisskeyMapper {
 
         Pageable<Comment> model = new Pageable<>();
         model.setEntities(Stream.of(notes).map(e -> comment(e, host, service)) //
+                .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
+                .collect(toList()));
+
+        model.setPaging(MisskeyPaging.fromPaging(paging));
+        return model;
+    }
+
+    /**
+     * メッセージマッピング
+     */
+    public static Pageable<Comment> messages(
+            Message[] messages,
+            String host,
+            Service service,
+            Paging paging) {
+
+        Pageable<Comment> model = new Pageable<>();
+        model.setEntities(Stream.of(messages).map(e -> message(e, host, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(toList()));
 
@@ -440,6 +611,24 @@ public class MisskeyMapper {
         model.setEntities(Stream.of(lists)
                 .map(e -> channel(e, service))
                 .collect(toList()));
+        return model;
+    }
+
+    /**
+     * 通知マッピング
+     */
+    public static Pageable<Notification> notifications(
+            misskey4j.entity.Notification[] notifications,
+            String host,
+            Service service,
+            Paging paging) {
+
+        Pageable<Notification> model = new Pageable<>();
+        model.setEntities(Stream.of(notifications)
+                .map(a -> notification(a, host, service))
+                .collect(toList()));
+
+        model.setPaging(MisskeyPaging.fromPaging(paging));
         return model;
     }
 

@@ -8,6 +8,7 @@ public enum MisskeyVisibility {
     Home("home"),
     Followers("followers"),
     Specified("specified"),
+    Message("message"),
     ;
 
     private String code;

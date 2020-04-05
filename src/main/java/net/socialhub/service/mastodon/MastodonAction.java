@@ -51,6 +51,7 @@ import net.socialhub.service.action.callback.comment.DeleteCommentCallback;
 import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
 import net.socialhub.service.action.callback.lifecycle.ConnectCallback;
 import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
+import net.socialhub.service.action.specific.MicroBlogAction;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 
@@ -94,7 +95,7 @@ import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
 import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
 import static net.socialhub.define.action.UsersActionType.SearchUsers;
 
-public class MastodonAction extends AccountActionImpl {
+public class MastodonAction extends AccountActionImpl implements MicroBlogAction {
 
     private static Logger logger = Logger.getLogger(MastodonAction.class);
 
@@ -317,6 +318,7 @@ public class MastodonAction extends AccountActionImpl {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Pageable<Comment> getMentionTimeLine(Paging paging) {
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
@@ -343,6 +345,7 @@ public class MastodonAction extends AccountActionImpl {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Pageable<Comment> getUserCommentTimeLine(Identify id, Paging paging) {
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
@@ -387,6 +390,7 @@ public class MastodonAction extends AccountActionImpl {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Pageable<Comment> getUserMediaTimeLine(Identify id, Paging paging) {
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
@@ -870,9 +874,9 @@ public class MastodonAction extends AccountActionImpl {
     // ============================================================== //
 
     /**
-     * Get Mastodon Trends
-     * Mastodon におけるトレンドを取得
+     * {@inheritDoc}
      */
+    @Override
     public List<Trend> getTrends(Integer limit) {
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
@@ -902,9 +906,9 @@ public class MastodonAction extends AccountActionImpl {
     }
 
     /**
-     * Get Notifications
-     * 通知を取得
+     * {@inheritDoc}
      */
+    @Override
     public Pageable<Notification> getNotification(Paging paging) {
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
@@ -940,9 +944,9 @@ public class MastodonAction extends AccountActionImpl {
     // ============================================================== //
 
     /**
-     * Return Local Timeline
-     * サーバーのローカルタイムライン
+     * {@inheritDoc}
      */
+    @Override
     public Pageable<Comment> getLocalTimeLine(Paging paging) {
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
@@ -956,9 +960,9 @@ public class MastodonAction extends AccountActionImpl {
     }
 
     /**
-     * Return Federation TimeLine
-     * 連合タイムラインを返却
+     * {@inheritDoc}
      */
+    @Override
     public Pageable<Comment> getFederationTimeLine(Paging paging) {
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
@@ -972,9 +976,9 @@ public class MastodonAction extends AccountActionImpl {
     }
 
     /**
-     * Set Local Timeline Stream
-     * ローカルタイムラインのイベントを取得
+     * {@inheritDoc}
      */
+    @Override
     public net.socialhub.model.service.Stream
     setLocalLineStream(EventCallback callback) {
         return proceed(() -> {
@@ -989,9 +993,9 @@ public class MastodonAction extends AccountActionImpl {
     }
 
     /**
-     * Set Federation Timeline Stream
-     * 連合タイムラインのイベントを取得
+     * {@inheritDoc}
      */
+    @Override
     public net.socialhub.model.service.Stream
     setFederationLineStream(EventCallback callback) {
         return proceed(() -> {

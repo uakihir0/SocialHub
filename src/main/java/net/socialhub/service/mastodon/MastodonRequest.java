@@ -2,7 +2,7 @@ package net.socialhub.service.mastodon;
 
 import com.google.gson.Gson;
 import net.socialhub.define.action.TimeLineActionType;
-import net.socialhub.define.action.service.MastodonActionType;
+import net.socialhub.define.action.service.MicroBlogActionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.Comment;
@@ -13,14 +13,15 @@ import net.socialhub.model.service.User;
 import net.socialhub.service.action.RequestActionImpl;
 import net.socialhub.service.action.request.CommentsRequest;
 import net.socialhub.service.action.request.CommentsRequestImpl;
+import net.socialhub.service.action.specific.MicroBlogRequestAction;
 
 import java.util.Comparator;
 
 import static net.socialhub.define.action.TimeLineActionType.MessageTimeLine;
-import static net.socialhub.define.action.service.MastodonActionType.FederationTimeLine;
-import static net.socialhub.define.action.service.MastodonActionType.LocalTimeLine;
+import static net.socialhub.define.action.service.MicroBlogActionType.FederationTimeLine;
+import static net.socialhub.define.action.service.MicroBlogActionType.LocalTimeLine;
 
-public class MastodonRequest extends RequestActionImpl {
+public class MastodonRequest extends RequestActionImpl implements MicroBlogRequestAction {
 
     private Logger log = Logger.getLogger(MastodonRequest.class);
 
@@ -33,8 +34,9 @@ public class MastodonRequest extends RequestActionImpl {
     // ============================================================== //
 
     /**
-     * Get Local TimeLine
+     * {@inheritDoc}
      */
+    @Override
     public CommentsRequest getLocalTimeLine() {
         MastodonAction action = (MastodonAction) account.action();
         CommentsRequestImpl request = getCommentsRequest(
@@ -46,8 +48,9 @@ public class MastodonRequest extends RequestActionImpl {
     }
 
     /**
-     * Get Federation TimeLine
+     * {@inheritDoc}
      */
+    @Override
     public CommentsRequest getFederationTimeLine() {
         MastodonAction action = (MastodonAction) account.action();
         CommentsRequestImpl request = getCommentsRequest(
@@ -171,8 +174,8 @@ public class MastodonRequest extends RequestActionImpl {
             String action = params.get("action");
 
             // Mastodon
-            if (isTypeIncluded(MastodonActionType.values(), action)) {
-                switch (MastodonActionType.valueOf(action)) {
+            if (isTypeIncluded(MicroBlogActionType.values(), action)) {
+                switch (MicroBlogActionType.valueOf(action)) {
 
                     case LocalTimeLine:
                         return getLocalTimeLine();

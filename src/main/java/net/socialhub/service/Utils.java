@@ -2,6 +2,7 @@ package net.socialhub.service;
 
 import net.socialhub.define.ServiceType;
 import net.socialhub.service.mastodon.MastodonUtil;
+import net.socialhub.service.misskey.MisskeyUtil;
 import net.socialhub.service.slack.SlackUtil;
 import net.socialhub.service.twitter.TwitterUtil;
 
@@ -15,6 +16,7 @@ public class Utils {
     public Utils() {
         utils.put(ServiceType.Twitter, new TwitterUtil());
         utils.put(ServiceType.Mastodon, new MastodonUtil());
+        utils.put(ServiceType.Misskey, new MisskeyUtil());
         utils.put(ServiceType.Slack, new SlackUtil());
     }
 

@@ -15,7 +15,7 @@ import java.util.List;
  * Action for DistributedBlog
  * (Mastodon, Misskey...)
  */
-public interface MicroBlogAction {
+public interface MicroBlogAccountAction {
 
     // ============================================================== //
     // Others

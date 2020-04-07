@@ -9,6 +9,6 @@ public class MastodonUtil implements Utils.ServiceUtils {
      */
     @Override
     public float getCommentLengthLevel(String text) {
-        return ((float) text.length() / 500.f);
+        return (((float) text.length()) / 500.f);
     }
 }

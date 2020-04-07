@@ -15,7 +15,7 @@ import mastodon4j.streaming.PublicStream;
 import mastodon4j.streaming.PublicStreamListener;
 import mastodon4j.streaming.UserStream;
 import mastodon4j.streaming.UserStreamListener;
-import net.socialhub.define.action.service.MastodonActionType;
+import net.socialhub.define.action.service.MicroBlogActionType;
 import net.socialhub.define.service.mastodon.MastodonNotificationType;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.define.service.mastodon.MastodonVisibility;
@@ -51,7 +51,7 @@ import net.socialhub.service.action.callback.comment.DeleteCommentCallback;
 import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
 import net.socialhub.service.action.callback.lifecycle.ConnectCallback;
 import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
-import net.socialhub.service.action.specific.MicroBlogAction;
+import net.socialhub.service.action.specific.MicroBlogAccountAction;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 
@@ -95,7 +95,7 @@ import static net.socialhub.define.action.UsersActionType.GetFollowerUsers;
 import static net.socialhub.define.action.UsersActionType.GetFollowingUsers;
 import static net.socialhub.define.action.UsersActionType.SearchUsers;
 
-public class MastodonAction extends AccountActionImpl implements MicroBlogAction {
+public class MastodonAction extends AccountActionImpl implements MicroBlogAccountAction {
 
     private static Logger logger = Logger.getLogger(MastodonAction.class);
 
@@ -954,7 +954,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAction
             Range range = getRange(paging);
 
             Response<Status[]> status = mastodon.getPublicTimeline(true, false, range);
-            service.getRateLimit().addInfo(MastodonActionType.LocalTimeLine, status);
+            service.getRateLimit().addInfo(MicroBlogActionType.LocalTimeLine, status);
             return MastodonMapper.timeLine(status.get(), service, paging);
         });
     }
@@ -970,7 +970,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAction
             Range range = getRange(paging);
 
             Response<Status[]> status = mastodon.getPublicTimeline(false, false, range);
-            service.getRateLimit().addInfo(MastodonActionType.FederationTimeLine, status);
+            service.getRateLimit().addInfo(MicroBlogActionType.FederationTimeLine, status);
             return MastodonMapper.timeLine(status.get(), service, paging);
         });
     }

@@ -106,7 +106,7 @@ import net.socialhub.service.action.callback.EventCallback;
 import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
 import net.socialhub.service.action.callback.lifecycle.ConnectCallback;
 import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
-import net.socialhub.service.action.specific.MicroBlogAction;
+import net.socialhub.service.action.specific.MicroBlogAccountAction;
 import net.socialhub.utils.CollectionUtil;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
@@ -127,7 +127,7 @@ import java.util.stream.Stream;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
-public class MisskeyAction extends AccountActionImpl implements MicroBlogAction {
+public class MisskeyAction extends AccountActionImpl implements MicroBlogAccountAction {
 
     private static Logger logger = Logger.getLogger(MisskeyAction.class);
 

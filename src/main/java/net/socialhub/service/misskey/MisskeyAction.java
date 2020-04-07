@@ -25,6 +25,8 @@ import misskey4j.api.request.notes.NotesChildrenRequest;
 import misskey4j.api.request.notes.NotesConversationRequest;
 import misskey4j.api.request.notes.NotesCreateRequest;
 import misskey4j.api.request.notes.NotesDeleteRequest;
+import misskey4j.api.request.notes.NotesGlobalTimelineRequest;
+import misskey4j.api.request.notes.NotesLocalTimelineRequest;
 import misskey4j.api.request.notes.NotesSearchRequest;
 import misskey4j.api.request.notes.NotesShowRequest;
 import misskey4j.api.request.notes.NotesTimelineRequest;
@@ -50,6 +52,8 @@ import misskey4j.api.response.messages.MessagingMessagesResponse;
 import misskey4j.api.response.meta.MetaResponse;
 import misskey4j.api.response.notes.NotesChildrenResponse;
 import misskey4j.api.response.notes.NotesConversationResponse;
+import misskey4j.api.response.notes.NotesGlobalTimelineResponse;
+import misskey4j.api.response.notes.NotesLocalTimelineResponse;
 import misskey4j.api.response.notes.NotesSearchResponse;
 import misskey4j.api.response.notes.NotesShowResponse;
 import misskey4j.api.response.notes.NotesTimelineResponse;
@@ -65,6 +69,11 @@ import misskey4j.entity.Note;
 import misskey4j.entity.Notification;
 import misskey4j.entity.contant.NotificationType;
 import misskey4j.entity.share.Response;
+import misskey4j.stream.MisskeyStream;
+import misskey4j.stream.callback.ClosedCallback;
+import misskey4j.stream.callback.ErrorCallback;
+import misskey4j.stream.callback.NoteCallback;
+import misskey4j.stream.callback.OpenedCallback;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.define.service.misskey.MisskeyFormKey;
 import net.socialhub.logger.Logger;
@@ -88,11 +97,15 @@ import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.misskey.MisskeyPaging;
 import net.socialhub.model.service.addition.misskey.MisskeyPoll;
 import net.socialhub.model.service.addition.misskey.MisskeyThread;
+import net.socialhub.model.service.event.UpdateCommentEvent;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.service.action.RequestAction;
 import net.socialhub.service.action.callback.EventCallback;
+import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
+import net.socialhub.service.action.callback.lifecycle.ConnectCallback;
+import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
 import net.socialhub.service.action.specific.MicroBlogAction;
 import net.socialhub.utils.CollectionUtil;
 import net.socialhub.utils.HandlingUtil;
@@ -1052,6 +1065,35 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAction 
     }
 
     // ============================================================== //
+    // Stream
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public net.socialhub.model.service.Stream
+    setHomeTimeLineStream(EventCallback callback) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            MisskeyCommentsListener commentsListener =
+                    new MisskeyCommentsListener(callback, service, misskey.getHost());
+            MisskeyConnectionListener connectionListener =
+                    new MisskeyConnectionListener(callback);
+
+            MisskeyStream stream = misskey.stream();
+            stream.setOpenedCallback(connectionListener);
+            stream.setClosedCallback(connectionListener);
+            stream.setErrorCallback(connectionListener);
+
+            return new net.socialhub.model.service.addition.misskey.MisskeyStream(
+                    stream, (s) -> s.homeTimeLine(commentsListener));
+        });
+    }
+
+    // ============================================================== //
     // Another TimeLines
     // ============================================================== //
 
@@ -1060,7 +1102,20 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAction 
      */
     @Override
     public Pageable<Comment> getLocalTimeLine(Paging paging) {
-        return null;
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            NotesLocalTimelineRequest.NotesLocalTimelineRequestBuilder builder =
+                    NotesLocalTimelineRequest.builder();
+
+            setPaging(builder, paging);
+            Response<NotesLocalTimelineResponse[]> response =
+                    misskey.notes().localTimeline(builder.build());
+
+            return MisskeyMapper.timeLine(response.get(),
+                    misskey.getHost(), service, paging);
+        });
     }
 
     /**
@@ -1068,23 +1123,70 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAction 
      */
     @Override
     public Pageable<Comment> getFederationTimeLine(Paging paging) {
-        return null;
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            NotesGlobalTimelineRequest.NotesGlobalTimelineRequestBuilder builder =
+                    NotesGlobalTimelineRequest.builder();
+
+            setPaging(builder, paging);
+            Response<NotesGlobalTimelineResponse[]> response =
+                    misskey.notes().globalTimeline(builder.build());
+
+            return MisskeyMapper.timeLine(response.get(),
+                    misskey.getHost(), service, paging);
+        });
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public net.socialhub.model.service.Stream setLocalLineStream(EventCallback callback) {
-        return null;
+    public net.socialhub.model.service.Stream
+    setLocalLineStream(EventCallback callback) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            MisskeyCommentsListener commentsListener =
+                    new MisskeyCommentsListener(callback, service, misskey.getHost());
+            MisskeyConnectionListener connectionListener =
+                    new MisskeyConnectionListener(callback);
+
+            MisskeyStream stream = misskey.stream();
+            stream.setOpenedCallback(connectionListener);
+            stream.setClosedCallback(connectionListener);
+            stream.setErrorCallback(connectionListener);
+
+            return new net.socialhub.model.service.addition.misskey.MisskeyStream(
+                    stream, (s) -> s.localTimeline(commentsListener));
+        });
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public net.socialhub.model.service.Stream setFederationLineStream(EventCallback callback) {
-        return null;
+    public net.socialhub.model.service.Stream
+    setFederationLineStream(EventCallback callback) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            MisskeyCommentsListener commentsListener =
+                    new MisskeyCommentsListener(callback, service, misskey.getHost());
+            MisskeyConnectionListener connectionListener =
+                    new MisskeyConnectionListener(callback);
+
+            MisskeyStream stream = misskey.stream();
+            stream.setOpenedCallback(connectionListener);
+            stream.setClosedCallback(connectionListener);
+            stream.setErrorCallback(connectionListener);
+
+            return new net.socialhub.model.service.addition.misskey.MisskeyStream(
+                    stream, (s) -> s.globalTimeline(commentsListener));
+        });
     }
 
     // ============================================================== //
@@ -1120,6 +1222,73 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAction 
                 if (mp.getSinceId() != null) {
                     builder.sinceId(mp.getSinceId());
                 }
+            }
+        }
+    }
+
+    // ============================================================== //
+    // Classes
+    // ============================================================== //
+
+    // コメントに対してのコールバック設定
+    static class MisskeyCommentsListener implements
+            NoteCallback {
+
+        private EventCallback listener;
+        private Service service;
+        private String host;
+
+        MisskeyCommentsListener(
+                EventCallback listener,
+                Service service,
+                String host) {
+            this.listener = listener;
+            this.service = service;
+            this.host = host;
+        }
+
+        @Override
+        public void onNoteUpdate(Note note) {
+            if (listener instanceof UpdateCommentCallback) {
+                Comment comment = MisskeyMapper.comment(note, host, service);
+                UpdateCommentEvent event = new UpdateCommentEvent(comment);
+                ((UpdateCommentCallback) listener).onUpdate(event);
+            }
+        }
+    }
+
+    // 通信に対してのコールバック設定
+    static class MisskeyConnectionListener implements
+            OpenedCallback,
+            ClosedCallback,
+            ErrorCallback {
+
+        private EventCallback listener;
+
+        MisskeyConnectionListener(
+                EventCallback listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void onOpened() {
+            if (listener instanceof ConnectCallback) {
+                ((ConnectCallback) listener).onConnect();
+            }
+        }
+
+        @Override
+        public void onClosed(int code, String reason, boolean remote) {
+            if (listener instanceof DisconnectCallback) {
+                ((DisconnectCallback) listener).onDisconnect();
+            }
+        }
+
+        @Override
+        public void onError(Exception e) {
+            logger.debug("WebSocket Error: ", e);
+            if (listener instanceof DisconnectCallback) {
+                ((DisconnectCallback) listener).onDisconnect();
             }
         }
     }

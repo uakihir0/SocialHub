@@ -11,6 +11,7 @@ import net.socialhub.service.action.callback.comment.DeleteCommentCallback;
 import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
 import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
 import net.socialhub.service.mastodon.MastodonAction;
+import net.socialhub.service.misskey.MisskeyAction;
 import net.socialhub.service.twitter.TwitterAction;
 import org.junit.Test;
 
@@ -22,6 +23,30 @@ public class CommentStreamTest extends AbstractApiTest {
         Account account = SocialAuthUtil.getMastodonAccount();
         Stream stream = ((MastodonAction) account.action())
                 .setFederationLineStream(new StreamCallback());
+
+        stream.open();
+        Thread.sleep(1000 * 10);
+        stream.close();
+    }
+
+    @Test
+    public void testFederationTimeLineStream_Misskey() throws Exception {
+
+        Account account = SocialAuthUtil.getMisskeyAccount();
+        Stream stream = ((MisskeyAction) account.action())
+                .setFederationLineStream(new StreamCallback());
+
+        stream.open();
+        Thread.sleep(1000 * 10);
+        stream.close();
+    }
+
+    @Test
+    public void testHomeTimeLineStream_Misskey() throws Exception {
+
+        Account account = SocialAuthUtil.getMisskeyAccount();
+        Stream stream = ((MisskeyAction) account.action())
+                .setHomeTimeLineStream(new StreamCallback());
 
         stream.open();
         Thread.sleep(1000 * 10);

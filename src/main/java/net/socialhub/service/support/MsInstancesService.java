@@ -19,7 +19,7 @@ import static net.socialhub.utils.HandlingUtil.ignore;
  * Wrapper Client for (Mastodon) Instances
  * https://instances.social/
  */
-public class InstancesService {
+public class MsInstancesService {
 
     private MastodonInstances action;
 
@@ -28,7 +28,7 @@ public class InstancesService {
      */
     private boolean isRemoveAdult = true;
 
-    public InstancesService(String accessToken) {
+    public MsInstancesService(String accessToken) {
         this.action = new MastodonInstances(accessToken);
     }
 

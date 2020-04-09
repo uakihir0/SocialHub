@@ -195,7 +195,6 @@ public class MisskeyMapper {
         }
     }
 
-
     /**
      * ユーザー関係
      */
@@ -426,9 +425,16 @@ public class MisskeyMapper {
             MisskeyPoll model = new MisskeyPoll(service);
             model.setNoteId(note.getId());
 
-            Date expiredAt = getDateParser().parse(poll.getExpiresAt());
-            model.setExpired(expiredAt.before(new Date()));
-            model.setExpireAt(expiredAt);
+            if (poll.getExpiresAt() != null) {
+                Date expiredAt = getDateParser().parse(poll.getExpiresAt());
+                model.setExpired(expiredAt.before(new Date()));
+                model.setExpireAt(expiredAt);
+
+            } else {
+                // 無期限の投票の場合
+                model.setExpired(false);
+                model.setExpireAt(null);
+            }
 
             model.setMultiple(poll.getMultiple());
             model.setVoted(poll.getChoices().stream().anyMatch(Choice::getVoted));
@@ -491,7 +497,6 @@ public class MisskeyMapper {
         model.setPaging(MisskeyPaging.fromPaging(paging));
         return model;
     }
-
 
     /**
      * タイムラインマッピング

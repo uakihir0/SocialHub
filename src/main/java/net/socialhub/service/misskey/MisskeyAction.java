@@ -1077,18 +1077,19 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
         return proceed(() -> {
             Misskey misskey = auth.getAccessor();
             Service service = getAccount().getService();
+            MisskeyStream stream = misskey.stream();
 
             MisskeyCommentsListener commentsListener =
-                    new MisskeyCommentsListener(callback, service, misskey.getHost());
+                    new MisskeyCommentsListener(callback,
+                            service, misskey.getHost());
             MisskeyConnectionListener connectionListener =
-                    new MisskeyConnectionListener(callback);
+                    new MisskeyConnectionListener(callback,
+                            () -> stream.homeTimeLine(commentsListener));
 
-            MisskeyStream stream = misskey.stream();
             stream.setOpenedCallback(connectionListener);
             stream.setClosedCallback(connectionListener);
 
-            return new net.socialhub.model.service.addition.misskey.MisskeyStream(
-                    stream, (s) -> s.homeTimeLine(commentsListener));
+            return new net.socialhub.model.service.addition.misskey.MisskeyStream(stream);
         });
     }
 
@@ -1147,18 +1148,19 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
         return proceed(() -> {
             Misskey misskey = auth.getAccessor();
             Service service = getAccount().getService();
+            MisskeyStream stream = misskey.stream();
 
             MisskeyCommentsListener commentsListener =
-                    new MisskeyCommentsListener(callback, service, misskey.getHost());
+                    new MisskeyCommentsListener(callback,
+                            service, misskey.getHost());
             MisskeyConnectionListener connectionListener =
-                    new MisskeyConnectionListener(callback);
+                    new MisskeyConnectionListener(callback,
+                            () -> stream.localTimeline(commentsListener));
 
-            MisskeyStream stream = misskey.stream();
             stream.setOpenedCallback(connectionListener);
             stream.setClosedCallback(connectionListener);
 
-            return new net.socialhub.model.service.addition.misskey.MisskeyStream(
-                    stream, (s) -> s.localTimeline(commentsListener));
+            return new net.socialhub.model.service.addition.misskey.MisskeyStream(stream);
         });
     }
 
@@ -1171,18 +1173,19 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
         return proceed(() -> {
             Misskey misskey = auth.getAccessor();
             Service service = getAccount().getService();
+            MisskeyStream stream = misskey.stream();
 
             MisskeyCommentsListener commentsListener =
-                    new MisskeyCommentsListener(callback, service, misskey.getHost());
+                    new MisskeyCommentsListener(callback,
+                            service, misskey.getHost());
             MisskeyConnectionListener connectionListener =
-                    new MisskeyConnectionListener(callback);
+                    new MisskeyConnectionListener(callback,
+                            () -> stream.globalTimeline(commentsListener));
 
-            MisskeyStream stream = misskey.stream();
             stream.setOpenedCallback(connectionListener);
             stream.setClosedCallback(connectionListener);
 
-            return new net.socialhub.model.service.addition.misskey.MisskeyStream(
-                    stream, (s) -> s.globalTimeline(commentsListener));
+            return new net.socialhub.model.service.addition.misskey.MisskeyStream(stream);
         });
     }
 
@@ -1261,16 +1264,22 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             ErrorCallback {
 
         private EventCallback listener;
+        private Runnable command;
 
         MisskeyConnectionListener(
-                EventCallback listener) {
+                EventCallback listener,
+                Runnable command) {
             this.listener = listener;
+            this.command = command;
         }
 
         @Override
         public void onOpened() {
             if (listener instanceof ConnectCallback) {
                 ((ConnectCallback) listener).onConnect();
+            }
+            if (command != null) {
+                command.run();
             }
         }
 

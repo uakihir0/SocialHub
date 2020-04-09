@@ -1086,7 +1086,6 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             MisskeyStream stream = misskey.stream();
             stream.setOpenedCallback(connectionListener);
             stream.setClosedCallback(connectionListener);
-            stream.setErrorCallback(connectionListener);
 
             return new net.socialhub.model.service.addition.misskey.MisskeyStream(
                     stream, (s) -> s.homeTimeLine(commentsListener));
@@ -1157,7 +1156,6 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             MisskeyStream stream = misskey.stream();
             stream.setOpenedCallback(connectionListener);
             stream.setClosedCallback(connectionListener);
-            stream.setErrorCallback(connectionListener);
 
             return new net.socialhub.model.service.addition.misskey.MisskeyStream(
                     stream, (s) -> s.localTimeline(commentsListener));
@@ -1182,7 +1180,6 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             MisskeyStream stream = misskey.stream();
             stream.setOpenedCallback(connectionListener);
             stream.setClosedCallback(connectionListener);
-            stream.setErrorCallback(connectionListener);
 
             return new net.socialhub.model.service.addition.misskey.MisskeyStream(
                     stream, (s) -> s.globalTimeline(commentsListener));
@@ -1287,9 +1284,6 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
         @Override
         public void onError(Exception e) {
             logger.debug("WebSocket Error: ", e);
-            if (listener instanceof DisconnectCallback) {
-                ((DisconnectCallback) listener).onDisconnect();
-            }
         }
     }
 

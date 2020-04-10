@@ -45,7 +45,7 @@ dependencies {
     compile('org.scribe:scribe:1.3.3')
 
     // J2ObjC Common Library
-    compile('com.github.uakihir0:JLogger:1.3')
+    compile('com.github.uakihir0:JLogger:1.4')
     compile('com.github.uakihir0:JHttpClient:1.1.5')
     compile("com.github.uakihir0:Java-WebSocket:1.4.1.1")
 
@@ -59,7 +59,7 @@ dependencies {
     compile('com.github.uakihir0:msinstance4j:0.0.3')
     compile('com.github.uakihir0:mastodon4j:0.2.36')
     compile('com.github.uakihir0:jumblr:0.0.13.10')
-    compile('com.github.uakihir0:misskey4j:0.1.17')
+    compile('com.github.uakihir0:misskey4j:0.1.18')
 
     // Test
     testCompile('junit:junit:4.12')

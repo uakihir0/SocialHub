@@ -1284,7 +1284,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
         }
 
         @Override
-        public void onClosed(int code, String reason, boolean remote) {
+        public void onClosed(boolean remote) {
             if (listener instanceof DisconnectCallback) {
                 ((DisconnectCallback) listener).onDisconnect();
             }

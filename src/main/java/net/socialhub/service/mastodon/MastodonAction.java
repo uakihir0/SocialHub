@@ -857,9 +857,9 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
     // ============================================================== //
 
     /**
-     * Vote on a poll
-     * 投票する
+     * {@inheritDoc}
      */
+    @Override
     public void votePoll(Identify id, List<Integer> choices) {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();

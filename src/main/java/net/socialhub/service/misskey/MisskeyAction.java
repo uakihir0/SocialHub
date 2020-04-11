@@ -368,7 +368,11 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Response<NotesTimelineResponse[]> response =
                     misskey.notes().timeline(builder.build());
 
-            return MisskeyMapper.timeLine(response.get(),
+            return MisskeyMapper.timeLine(
+                    Stream.of(response.get())
+                            // Remove featured notes.
+                            .filter(e -> e.getFeaturedId() == null)
+                            .toArray(Note[]::new),
                     misskey.getHost(), service, paging);
         });
     }
@@ -993,9 +997,9 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
     // ============================================================== //
 
     /**
-     * Vote on a poll
-     * 投票する
+     * {@inheritDoc}
      */
+    @Override
     public void votePoll(Identify id, List<Integer> choices) {
 
         // MisskeyPoll 以外のオブジェクトは例外
@@ -1020,9 +1024,9 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
     // ============================================================== //
 
     /**
-     * Get Misskey Trends
-     * Misskey におけるトレンドを取得
+     * {@inheritDoc}
      */
+    @Override
     public List<Trend> getTrends(Integer limit) {
         return proceed(() -> {
             Misskey misskey = auth.getAccessor();
@@ -1037,9 +1041,9 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
     }
 
     /**
-     * Get Notifications
-     * 通知を取得
+     * {@inheritDoc}
      */
+    @Override
     public Pageable<net.socialhub.model.service.Notification> getNotification(Paging paging) {
 
         return proceed(() -> {

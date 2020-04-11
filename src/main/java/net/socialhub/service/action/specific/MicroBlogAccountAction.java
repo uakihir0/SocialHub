@@ -1,6 +1,7 @@
 package net.socialhub.service.action.specific;
 
 import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Notification;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
@@ -32,6 +33,12 @@ public interface MicroBlogAccountAction {
      * 通知を取得
      */
     Pageable<Notification> getNotification(Paging paging);
+
+    /**
+     * Vote on a poll
+     * 投票する
+     */
+    void votePoll(Identify id, List<Integer> choices);
 
     // ============================================================== //
     // Another TimeLines

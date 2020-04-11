@@ -29,6 +29,7 @@ import net.socialhub.model.service.Thread;
 import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.misskey.MisskeyComment;
+import net.socialhub.model.service.addition.misskey.MisskeyNotification;
 import net.socialhub.model.service.addition.misskey.MisskeyPaging;
 import net.socialhub.model.service.addition.misskey.MisskeyPoll;
 import net.socialhub.model.service.addition.misskey.MisskeyThread;
@@ -287,13 +288,19 @@ public class MisskeyMapper {
      */
     public static Notification notification(
             misskey4j.entity.Notification notification,
+            List<ReactionCandidate> reactions,
             String host,
             Service service) {
 
         try {
-            Notification model = new Notification(service);
+            MisskeyNotification model = new MisskeyNotification(service);
             model.setCreateAt(getDateParser().parse(notification.getCreatedAt()));
+            model.setReaction(notification.getReaction());
             model.setId(notification.getId());
+
+            reactions.stream()
+                    .filter(e -> e.getAllNames().contains(notification.getReaction()))
+                    .findFirst().ifPresent(c -> model.setIconUrl(c.getIconUrl()));
 
             MisskeyNotificationType type =
                     MisskeyNotificationType.of(notification.getType());
@@ -624,13 +631,14 @@ public class MisskeyMapper {
      */
     public static Pageable<Notification> notifications(
             misskey4j.entity.Notification[] notifications,
+            List<ReactionCandidate> reactions,
             String host,
             Service service,
             Paging paging) {
 
         Pageable<Notification> model = new Pageable<>();
         model.setEntities(Stream.of(notifications)
-                .map(a -> notification(a, host, service))
+                .map(a -> notification(a, reactions, host, service))
                 .collect(toList()));
 
         model.setPaging(MisskeyPaging.fromPaging(paging));
@@ -653,7 +661,7 @@ public class MisskeyMapper {
 
             candidate.setCategory(emoji.getCategory());
             candidate.setIconUrl(emoji.getUrl());
-            candidate.setName(emoji.getName());
+            candidate.setName(":" + emoji.getName() + ":");
         });
 
         for (EmojiType emoji : EmojiType.values()) {
@@ -662,7 +670,7 @@ public class MisskeyMapper {
 
             candidate.setCategory(emoji.getCategory().getCode());
             candidate.setEmoji(emoji.getEmoji());
-            candidate.setName(emoji.getName());
+            candidate.setName(emoji.getEmoji());
         }
 
         for (EmojiVariationType emoji : EmojiVariationType.values()) {
@@ -671,7 +679,7 @@ public class MisskeyMapper {
 
             candidate.setCategory(emoji.getCategory().getCode());
             candidate.setEmoji(emoji.getEmoji());
-            candidate.setName(emoji.getName());
+            candidate.setName(emoji.getEmoji());
         }
 
         return candidates;

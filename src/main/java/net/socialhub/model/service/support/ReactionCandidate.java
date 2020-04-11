@@ -26,8 +26,13 @@ public class ReactionCandidate {
      * エイリアスの返却処理
      */
     public List<String> getAllNames() {
-        return (aliases != null) ? //
-                aliases : Collections.singletonList(name);
+        if (aliases != null) {
+            List<String> results = new ArrayList<>(aliases);
+            results.add(name);
+            return results;
+        }
+
+        return Collections.singletonList(name);
     }
 
     /**

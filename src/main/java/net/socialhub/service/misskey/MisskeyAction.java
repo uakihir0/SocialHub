@@ -1045,10 +1045,13 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
      */
     @Override
     public Pageable<net.socialhub.model.service.Notification> getNotification(Paging paging) {
-
         return proceed(() -> {
             Misskey misskey = auth.getAccessor();
             Service service = getAccount().getService();
+            ExecutorService pool = Executors.newCachedThreadPool();
+
+            Future<List<ReactionCandidate>> reactionFuture =
+                    pool.submit(this::getReactionCandidates);
 
             INotificationsRequest.INotificationsRequestBuilder builder =
                     INotificationsRequest.builder();
@@ -1060,11 +1063,15 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                     NotificationType.REACTION.code(),
                     NotificationType.REMOTE.code()));
 
-            Response<INotificationsResponse[]> response =
-                    misskey.accounts().iNotifications(builder.build());
+            Future<Response<INotificationsResponse[]>> responseFuture =
+                    pool.submit(() -> misskey.accounts()
+                            .iNotifications(builder.build()));
+
+            List<ReactionCandidate> reaction = reactionFuture.get();
+            Response<INotificationsResponse[]> response = responseFuture.get();
 
             return MisskeyMapper.notifications(response.get(),
-                    misskey.getHost(), service, paging);
+                    reaction,  misskey.getHost(), service, paging);
         });
     }
 

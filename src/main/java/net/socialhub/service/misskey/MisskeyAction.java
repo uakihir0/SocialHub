@@ -99,6 +99,7 @@ import net.socialhub.model.service.addition.misskey.MisskeyPaging;
 import net.socialhub.model.service.addition.misskey.MisskeyPoll;
 import net.socialhub.model.service.addition.misskey.MisskeyThread;
 import net.socialhub.model.service.event.UpdateCommentEvent;
+import net.socialhub.model.service.paging.OffsetPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
@@ -360,18 +361,24 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                         builder.limit(100L);
                     }
                 }
+                if (paging instanceof OffsetPaging) {
+                    OffsetPaging of = ((OffsetPaging) paging);
+                    if (of.getOffset() != null) {
+                        builder.offset(of.getOffset());
+                    }
+                }
             }
 
             builder.query(query);
             Response<UsersSearchResponse[]> response =
                     misskey.users().search(builder.build());
 
-            return MisskeyMapper.users(
-                    Stream.of(response.get())
-                            .collect(toList()),
-                    misskey.getHost(),
-                    service,
-                    paging);
+            Pageable<User> results = MisskeyMapper.users(
+                    Stream.of(response.get()).collect(toList()),
+                    misskey.getHost(), service, paging);
+
+            results.setPaging(OffsetPaging.fromPaging(paging));
+            return results;
         });
     }
 

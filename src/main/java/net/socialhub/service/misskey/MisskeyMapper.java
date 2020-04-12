@@ -314,10 +314,6 @@ public class MisskeyMapper {
                     .filter(e -> e.getAllNames().contains(notification.getReaction()))
                     .findFirst().ifPresent(c -> model.setIconUrl(c.getIconUrl()));
 
-            List<ReactionCandidate> customs = reactions.stream()
-                    .filter(e -> e.getIconUrl() != null)
-                    .collect(toList());
-
             MisskeyNotificationType type =
                     MisskeyNotificationType.of(notification.getType());
 
@@ -330,12 +326,6 @@ public class MisskeyMapper {
             if (notification.getNote() != null) {
                 model.setComments(Collections.singletonList(
                         comment(notification.getNote(), host, service)));
-
-                if (notification.getNote().getText() != null) {
-                    model.getComments().get(0).getText().addEmojiElement(customs.stream()
-                            .filter(e -> notification.getNote().getText().contains(e.getName()))
-                            .map(MisskeyMapper::emoji).collect(toList()));
-                }
             }
 
             // ユーザー情報

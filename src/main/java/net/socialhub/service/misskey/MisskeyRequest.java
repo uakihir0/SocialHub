@@ -148,7 +148,7 @@ public class MisskeyRequest extends RequestActionImpl implements MicroBlogReques
                     case FederationTimeLine:
                         return getFederationTimeLine();
                     default:
-                        log.debug("invalid mastodon action type: " + action);
+                        log.debug("invalid misskey action type: " + action);
                         return null;
                 }
             }

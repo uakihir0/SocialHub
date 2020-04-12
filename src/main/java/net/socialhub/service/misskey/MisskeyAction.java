@@ -39,6 +39,7 @@ import misskey4j.api.request.reactions.ReactionsDeleteRequest;
 import misskey4j.api.request.users.UsersFollowersRequest;
 import misskey4j.api.request.users.UsersFollowingsRequest;
 import misskey4j.api.request.users.UsersRelationRequest;
+import misskey4j.api.request.users.UsersSearchRequest;
 import misskey4j.api.request.users.UsersShowRequest;
 import misskey4j.api.response.UsersListsListResponse;
 import misskey4j.api.response.UsersListsShowResponse;
@@ -62,6 +63,7 @@ import misskey4j.api.response.notes.UsersNotesResponse;
 import misskey4j.api.response.users.UsersFollowersResponse;
 import misskey4j.api.response.users.UsersFollowingsResponse;
 import misskey4j.api.response.users.UsersRelationResponse;
+import misskey4j.api.response.users.UsersSearchResponse;
 import misskey4j.api.response.users.UsersShowResponse;
 import misskey4j.entity.Follow;
 import misskey4j.entity.Message;
@@ -78,7 +80,6 @@ import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.define.service.misskey.MisskeyFormKey;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
-import net.socialhub.model.error.NotImplimentedException;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
@@ -345,7 +346,33 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
      */
     @Override
     public Pageable<User> searchUsers(String query, Paging paging) {
-        throw new NotImplimentedException();
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            UsersSearchRequest.UsersSearchRequestBuilder builder =
+                    UsersSearchRequest.builder();
+
+            if (paging != null) {
+                if (paging.getCount() != null) {
+                    builder.limit(paging.getCount());
+                    if (paging.getCount() > 100) {
+                        builder.limit(100L);
+                    }
+                }
+            }
+
+            builder.query(query);
+            Response<UsersSearchResponse[]> response =
+                    misskey.users().search(builder.build());
+
+            return MisskeyMapper.users(
+                    Stream.of(response.get())
+                            .collect(toList()),
+                    misskey.getHost(),
+                    service,
+                    paging);
+        });
     }
 
     // ============================================================== //
@@ -475,7 +502,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                     UsersNotesRequest.builder();
 
             builder.userId((String) id.getId());
-            builder.excludeNsfw(true);
+            builder.withFiles(true);
             setPaging(builder, paging);
 
             Response<UsersNotesResponse[]> response =
@@ -1071,7 +1098,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Response<INotificationsResponse[]> response = responseFuture.get();
 
             return MisskeyMapper.notifications(response.get(),
-                    reaction,  misskey.getHost(), service, paging);
+                    reaction, misskey.getHost(), service, paging);
         });
     }
 

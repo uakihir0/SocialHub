@@ -27,6 +27,7 @@ import misskey4j.api.request.notes.NotesCreateRequest;
 import misskey4j.api.request.notes.NotesDeleteRequest;
 import misskey4j.api.request.notes.NotesGlobalTimelineRequest;
 import misskey4j.api.request.notes.NotesLocalTimelineRequest;
+import misskey4j.api.request.notes.NotesMentionsRequest;
 import misskey4j.api.request.notes.NotesSearchRequest;
 import misskey4j.api.request.notes.NotesShowRequest;
 import misskey4j.api.request.notes.NotesTimelineRequest;
@@ -55,6 +56,7 @@ import misskey4j.api.response.notes.NotesChildrenResponse;
 import misskey4j.api.response.notes.NotesConversationResponse;
 import misskey4j.api.response.notes.NotesGlobalTimelineResponse;
 import misskey4j.api.response.notes.NotesLocalTimelineResponse;
+import misskey4j.api.response.notes.NotesMentionsResponse;
 import misskey4j.api.response.notes.NotesSearchResponse;
 import misskey4j.api.response.notes.NotesShowResponse;
 import misskey4j.api.response.notes.NotesTimelineResponse;
@@ -68,7 +70,6 @@ import misskey4j.api.response.users.UsersShowResponse;
 import misskey4j.entity.Follow;
 import misskey4j.entity.Message;
 import misskey4j.entity.Note;
-import misskey4j.entity.Notification;
 import misskey4j.entity.contant.NotificationType;
 import misskey4j.entity.share.Response;
 import misskey4j.stream.MisskeyStream;
@@ -127,6 +128,7 @@ import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 
 public class MisskeyAction extends AccountActionImpl implements MicroBlogAccountAction {
@@ -420,21 +422,14 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Misskey misskey = auth.getAccessor();
             Service service = getAccount().getService();
 
-            INotificationsRequest.INotificationsRequestBuilder builder =
-                    INotificationsRequest.builder();
+            NotesMentionsRequest.NotesMentionsRequestBuilder builder =
+                    NotesMentionsRequest.builder();
             setPaging(builder, paging);
 
-            builder.markAsRead(true);
-            builder.includeTypes(singletonList(NotificationType.REPLY.code()));
+            Response<NotesMentionsResponse[]> response =
+                    misskey.notes().mentions(builder.build());
 
-            Response<INotificationsResponse[]> response =
-                    misskey.accounts().iNotifications(builder.build());
-
-            return MisskeyMapper.timeLine(
-                    Stream.of(response.get())
-                            .map(Notification::getNote)
-                            .filter(Objects::nonNull)
-                            .toArray(Note[]::new),
+            return MisskeyMapper.timeLine(response.get(),
                     misskey.getHost(), service, paging);
         });
     }
@@ -784,19 +779,74 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Response<NotesConversationResponse[]> conversation = conversationFuture.get();
             Response<NotesChildrenResponse[]> children = childrenFuture.get();
 
-            Context context = new Context();
+            // Children の後に続くコメント類を取得
+            ArrayList<Note> descendants = Stream.of(children.get())
+                    .collect(toCollection(ArrayList::new));
 
-            context.setAncestors(Arrays.stream(conversation.get()) //
+            getMoreReplies(misskey, pool, descendants, descendants.stream()
+                    .filter(this::hasMoreReactionPossibility)
+                    .map(Note::getId).collect(toList()));
+
+            // コンテキストの組み立て
+            Context context = new Context();
+            context.setAncestors(Stream.of(conversation.get()) //
                     .map(e -> MisskeyMapper.comment(e, misskey.getHost(), service)) //
                     .collect(toList()));
 
-            context.setDescendants(Arrays.stream(children.get()) //
+            context.setDescendants(descendants.stream() //
                     .map(e -> MisskeyMapper.comment(e, misskey.getHost(), service)) //
                     .collect(toList()));
 
             MapperUtil.sortContext(context);
             return context;
         });
+    }
+
+    // さらなる返信を探して notes に追加
+    private void getMoreReplies(
+            Misskey misskey,
+            ExecutorService pool,
+            ArrayList<Note> notes,
+            List<String> nextIds) throws Exception {
+
+        // No more replies to get (or limit)
+        if ((notes.size() >= 100) || (nextIds.size() == 0)) {
+            return;
+        }
+
+        List<Note> results = new ArrayList<>();
+        List<Future<Response<NotesChildrenResponse[]>>> futures = new ArrayList<>();
+
+        // 各 NextID 毎に検索
+        for (String nextId : nextIds) {
+            futures.add(pool.submit(() ->
+                    misskey.notes().children(
+                            NotesChildrenRequest.builder()
+                                    .noteId(nextId)
+                                    .limit(100L)
+                                    .build())));
+        }
+
+        // 各リクエストの結果を統合
+        for (Future<Response<NotesChildrenResponse[]>> future : futures) {
+
+            results.addAll(Stream.of(future.get())
+                    .map(Response::get).flatMap(Stream::of)
+                    .filter(e -> notes.stream().noneMatch(n -> n.getId().equals(e.getId())))
+                    .collect(toList()));
+        }
+
+        List<String> ids = results.stream()
+                .filter(this::hasMoreReactionPossibility)
+                .map(Note::getId).collect(toList());
+
+        notes.addAll(results);
+        getMoreReplies(misskey, pool, notes, ids);
+    }
+
+    // このノートには更にリアクションが付く可能性があるかどうか？
+    private boolean hasMoreReactionPossibility(Note note) {
+        return (note.getRepliesCount() > 0) || (note.getRenoteCount() > 0);
     }
 
     // ============================================================== //

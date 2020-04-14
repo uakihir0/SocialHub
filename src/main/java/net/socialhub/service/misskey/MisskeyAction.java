@@ -87,7 +87,6 @@ import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Context;
 import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.Notification;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
@@ -1180,13 +1179,14 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                     new MisskeyCommentsListener(callback,
                             service, misskey.getHost());
             MisskeyConnectionListener connectionListener =
-                    new MisskeyConnectionListener(callback);
+                    new MisskeyConnectionListener(callback, () ->
+                            stream.homeTimeLine(commentsListener));
 
             stream.setOpenedCallback(connectionListener);
             stream.setClosedCallback(connectionListener);
 
-            return new net.socialhub.model.service.addition.misskey.MisskeyStream(
-                    stream, () -> stream.homeTimeLine(commentsListener));
+            return new net.socialhub.model.service.addition.misskey.MisskeyStream(stream);
+
         });
     }
 
@@ -1251,13 +1251,14 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                     new MisskeyCommentsListener(callback,
                             service, misskey.getHost());
             MisskeyConnectionListener connectionListener =
-                    new MisskeyConnectionListener(callback);
+                    new MisskeyConnectionListener(callback, () ->
+                            stream.localTimeline(commentsListener));
 
             stream.setOpenedCallback(connectionListener);
             stream.setClosedCallback(connectionListener);
 
-            return new net.socialhub.model.service.addition.misskey.MisskeyStream(
-                    stream, () -> stream.localTimeline(commentsListener));
+            return new net.socialhub.model.service.addition.misskey.MisskeyStream(stream);
+
         });
     }
 
@@ -1276,13 +1277,13 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                     new MisskeyCommentsListener(callback,
                             service, misskey.getHost());
             MisskeyConnectionListener connectionListener =
-                    new MisskeyConnectionListener(callback);
+                    new MisskeyConnectionListener(callback, () ->
+                            stream.globalTimeline(commentsListener));
 
             stream.setOpenedCallback(connectionListener);
             stream.setClosedCallback(connectionListener);
 
-            return new net.socialhub.model.service.addition.misskey.MisskeyStream(
-                    stream, () -> stream.globalTimeline(commentsListener));
+            return new net.socialhub.model.service.addition.misskey.MisskeyStream(stream);
         });
     }
 
@@ -1361,16 +1362,22 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             ErrorCallback {
 
         private EventCallback listener;
+        private Runnable runnable;
 
         MisskeyConnectionListener(
-                EventCallback listener) {
+                EventCallback listener,
+                Runnable runnable) {
             this.listener = listener;
+            this.runnable = runnable;
         }
 
         @Override
         public void onOpened() {
             if (listener instanceof ConnectCallback) {
                 ((ConnectCallback) listener).onConnect();
+            }
+            if (runnable != null) {
+                runnable.run();
             }
         }
 

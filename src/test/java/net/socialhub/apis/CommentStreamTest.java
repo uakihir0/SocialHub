@@ -37,7 +37,7 @@ public class CommentStreamTest extends AbstractApiTest {
                 .setFederationLineStream(new StreamCallback());
 
         stream.open();
-        Thread.sleep(1000 * 10);
+        Thread.sleep(1000 * 100);
         stream.close();
     }
 

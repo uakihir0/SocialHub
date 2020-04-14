@@ -39,9 +39,17 @@ public class MisskeyPaging extends Paging {
 
         if (entities.size() > 0) {
             T first = entities.get(0);
-
             pg.setUntilId(null);
-            pg.setSinceId((String) first.getId());
+
+            // Comment の場合はページング用 ID を使用
+            if (first instanceof MisskeyComment) {
+                MisskeyComment mc = (MisskeyComment) first;
+                pg.setSinceId(mc.getIdForPaging());
+
+            } else {
+                // 他のオブジェクトはそのままのを使用
+                pg.setSinceId((String) first.getId());
+            }
         }
         return pg;
     }
@@ -55,9 +63,17 @@ public class MisskeyPaging extends Paging {
 
         if (entities.size() > 0) {
             T last = entities.get(entities.size() - 1);
-
-            pg.setUntilId((String) last.getId());
             pg.setSinceId(null);
+
+            // Comment の場合はページング用 ID を使用
+            if (last instanceof MisskeyComment) {
+                MisskeyComment mc = (MisskeyComment) last;
+                pg.setUntilId(mc.getIdForPaging());
+
+            } else {
+                // 他のオブジェクトはそのままのを使用
+                pg.setUntilId((String) last.getId());
+            }
         }
         return pg;
     }

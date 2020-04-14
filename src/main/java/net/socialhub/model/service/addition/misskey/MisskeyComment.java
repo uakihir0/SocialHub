@@ -14,6 +14,9 @@ import java.util.List;
 
 public class MisskeyComment extends MiniBlogComment {
 
+    /** ID for Paging */
+    private String pagingId;
+
     /** Warning text (Mastodon only) */
     private AttributedString spoilerText;
 
@@ -75,7 +78,15 @@ public class MisskeyComment extends MiniBlogComment {
         return results;
     }
 
+    public String getIdForPaging() {
+        return (pagingId != null) ? pagingId : (String) getId();
+    }
+
     // region // Getter&Setter
+    public void setPagingId(String pagingId) {
+        this.pagingId = pagingId;
+    }
+
     public AttributedString getSpoilerText() {
         return spoilerText;
     }

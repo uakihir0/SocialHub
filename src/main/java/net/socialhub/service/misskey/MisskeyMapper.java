@@ -197,6 +197,19 @@ public class MisskeyMapper {
     }
 
     /**
+     * 通知メンションマッピング
+     */
+    public static Comment mention(
+            misskey4j.entity.Notification notification,
+            String host,
+            Service service) {
+
+        Comment comment = comment(notification.getNote(), host, service);
+        ((MisskeyComment) comment).setPagingId(notification.getId());
+        return comment;
+    }
+
+    /**
      * ユーザー関係
      */
     public static Relationship relationship(
@@ -528,6 +541,24 @@ public class MisskeyMapper {
 
         Pageable<Comment> model = new Pageable<>();
         model.setEntities(Stream.of(notes).map(e -> comment(e, host, service)) //
+                .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
+                .collect(toList()));
+
+        model.setPaging(MisskeyPaging.fromPaging(paging));
+        return model;
+    }
+
+    /**
+     * 通知メンションマッピング
+     */
+    public static Pageable<Comment> mentions(
+            misskey4j.entity.Notification[] notifications,
+            String host,
+            Service service,
+            Paging paging) {
+
+        Pageable<Comment> model = new Pageable<>();
+        model.setEntities(Stream.of(notifications).map(n -> mention(n, host, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(toList()));
 

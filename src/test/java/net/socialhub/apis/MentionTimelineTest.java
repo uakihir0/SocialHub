@@ -10,7 +10,7 @@ import org.junit.Test;
 public class MentionTimelineTest extends AbstractTimelineTest {
 
     @Test
-    public void testHomeTimelineMastodon() {
+    public void testMentionTimelineMastodon() {
 
         Paging paging = new Paging();
         paging.setCount(10L);
@@ -22,7 +22,7 @@ public class MentionTimelineTest extends AbstractTimelineTest {
     }
 
     @Test
-    public void testHomeTimelineMisskey() {
+    public void testMentionTimelineMisskey() {
 
         Paging paging = new Paging();
         paging.setCount(10L);

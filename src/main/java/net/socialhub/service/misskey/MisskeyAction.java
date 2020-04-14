@@ -27,7 +27,6 @@ import misskey4j.api.request.notes.NotesCreateRequest;
 import misskey4j.api.request.notes.NotesDeleteRequest;
 import misskey4j.api.request.notes.NotesGlobalTimelineRequest;
 import misskey4j.api.request.notes.NotesLocalTimelineRequest;
-import misskey4j.api.request.notes.NotesMentionsRequest;
 import misskey4j.api.request.notes.NotesSearchRequest;
 import misskey4j.api.request.notes.NotesShowRequest;
 import misskey4j.api.request.notes.NotesTimelineRequest;
@@ -56,7 +55,6 @@ import misskey4j.api.response.notes.NotesChildrenResponse;
 import misskey4j.api.response.notes.NotesConversationResponse;
 import misskey4j.api.response.notes.NotesGlobalTimelineResponse;
 import misskey4j.api.response.notes.NotesLocalTimelineResponse;
-import misskey4j.api.response.notes.NotesMentionsResponse;
 import misskey4j.api.response.notes.NotesSearchResponse;
 import misskey4j.api.response.notes.NotesShowResponse;
 import misskey4j.api.response.notes.NotesTimelineResponse;
@@ -89,6 +87,7 @@ import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Context;
 import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Notification;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
@@ -422,14 +421,17 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Misskey misskey = auth.getAccessor();
             Service service = getAccount().getService();
 
-            NotesMentionsRequest.NotesMentionsRequestBuilder builder =
-                    NotesMentionsRequest.builder();
+            INotificationsRequest.INotificationsRequestBuilder builder =
+                    INotificationsRequest.builder();
             setPaging(builder, paging);
 
-            Response<NotesMentionsResponse[]> response =
-                    misskey.notes().mentions(builder.build());
+            builder.markAsRead(true);
+            builder.includeTypes(singletonList(NotificationType.REPLY.code()));
 
-            return MisskeyMapper.timeLine(response.get(),
+            Response<INotificationsResponse[]> response =
+                    misskey.accounts().iNotifications(builder.build());
+
+            return MisskeyMapper.mentions(response.get(),
                     misskey.getHost(), service, paging);
         });
     }

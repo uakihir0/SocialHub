@@ -40,7 +40,6 @@ dependencies {
 
     // Common Library
     compile('org.apache.commons:commons-lang3:3.7')
-    compile('com.neovisionaries:nv-websocket-client:2.9')
     compile('commons-codec:commons-codec:1.11')
     compile('com.google.code.gson:gson:2.8.2')
     compile('org.scribe:scribe:1.3.3')
@@ -59,7 +58,7 @@ dependencies {
     compile('com.github.uakihir0:msinstance4j:0.0.3')
     compile('com.github.uakihir0:mastodon4j:0.2.36')
     compile('com.github.uakihir0:jumblr:0.0.13.10')
-    compile('com.github.uakihir0:misskey4j:0.1.28')
+    compile('com.github.uakihir0:misskey4j:0.2.0')
 
     // Test
     testCompile('junit:junit:4.12')

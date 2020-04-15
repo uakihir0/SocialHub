@@ -13,15 +13,11 @@ public class MisskeyStream implements Stream {
 
     @Override
     public void open() {
-        if (!stream.isOpen()) {
-            stream.connectBlocking();
-        }
+        stream.connect();
     }
 
     @Override
     public void close() {
-        if (stream.isOpen()) {
-            stream.close();
-        }
+        stream.close();
     }
 }

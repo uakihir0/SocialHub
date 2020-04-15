@@ -1,42 +1,65 @@
 package net.socialhub.model.service.support;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Color {
 
-    private Integer r;
-    private Integer g;
-    private Integer b;
-    private Integer a;
+    private int r;
+    private int g;
+    private int b;
+    private int a;
+
+    public Color(String color) {
+        Pattern p = Pattern.compile("rgb\\(([0-9]+),([0-9]+),([0-9]+)\\)");
+        Matcher m = p.matcher(color);
+
+        if (m.find()) {
+            r = Integer.parseInt(m.group(1));
+            g = Integer.parseInt(m.group(2));
+            b = Integer.parseInt(m.group(3));
+            a = 255;
+        }
+    }
+
+    /**
+     * Get JavaScript Color Format
+     * JavaScript で扱う色フォーマットに変換
+     */
+    public String toJavaScriptFormat() {
+        return "rgb(" + r + "," + g + "," + b + ")";
+    }
 
     // region
-    public Integer getR() {
+    public int getR() {
         return r;
     }
 
-    public void setR(Integer r) {
+    public void setR(int r) {
         this.r = r;
     }
 
-    public Integer getG() {
+    public int getG() {
         return g;
     }
 
-    public void setG(Integer g) {
+    public void setG(int g) {
         this.g = g;
     }
 
-    public Integer getB() {
+    public int getB() {
         return b;
     }
 
-    public void setB(Integer b) {
+    public void setB(int b) {
         this.b = b;
     }
 
-    public Integer getA() {
+    public int getA() {
         return a;
     }
 
-    public void setA(Integer a) {
+    public void setA(int a) {
         this.a = a;
     }
     // endregion

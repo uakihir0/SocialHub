@@ -60,6 +60,9 @@ public class GetUserMeTest extends AbstractApiTest {
             for (AttributedFiled filed : misskeyUser.getFields()) {
                 System.out.println(filed.getName() + ":" + filed.getValue());
             }
+            if (misskeyUser.getAvatarColor() != null) {
+                System.out.println("RGB:" + misskeyUser.getAvatarColor().toJavaScriptFormat());
+            }
         }
     }
 

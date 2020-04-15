@@ -6,6 +6,7 @@ import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Emoji;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.addition.MiniBlogUser;
+import net.socialhub.model.service.support.Color;
 
 import java.util.List;
 
@@ -28,8 +29,15 @@ public class MisskeyUser extends MiniBlogUser {
     /** Host account belong to */
     private String host;
 
-    private boolean isCat;
-    private boolean isBot;
+    private boolean isCat = false;
+    private boolean isBot = false;
+
+    /** Simple object for timeline */
+    private boolean isSimple = false;
+
+    /** Color of users */
+    private Color avatarColor;
+    private Color bannerColor;
 
     public MisskeyUser(Service service) {
         super(service);
@@ -141,6 +149,30 @@ public class MisskeyUser extends MiniBlogUser {
 
     public void setBot(boolean bot) {
         isBot = bot;
+    }
+
+    public boolean isSimple() {
+        return isSimple;
+    }
+
+    public void setSimple(boolean simple) {
+        isSimple = simple;
+    }
+
+    public Color getAvatarColor() {
+        return avatarColor;
+    }
+
+    public void setAvatarColor(Color avatarColor) {
+        this.avatarColor = avatarColor;
+    }
+
+    public Color getBannerColor() {
+        return bannerColor;
+    }
+
+    public void setBannerColor(Color bannerColor) {
+        this.bannerColor = bannerColor;
     }
     // endregion
 }

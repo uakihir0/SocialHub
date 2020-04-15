@@ -34,6 +34,7 @@ import net.socialhub.model.service.addition.misskey.MisskeyPaging;
 import net.socialhub.model.service.addition.misskey.MisskeyPoll;
 import net.socialhub.model.service.addition.misskey.MisskeyThread;
 import net.socialhub.model.service.addition.misskey.MisskeyUser;
+import net.socialhub.model.service.support.Color;
 import net.socialhub.model.service.support.PollOption;
 import net.socialhub.model.service.support.ReactionCandidate;
 
@@ -97,6 +98,11 @@ public class MisskeyMapper {
         // 絵文字の追加
         model.setEmojis(emojis(account.getEmojis()));
 
+        // 説明文字列がない場合はシンプルオブジェクトと判定
+        if (account.getDescription() == null) {
+            model.setSimple(true);
+        }
+
         // ユーザー説明分の設定
         model.setDescription(AttributedString.plain(account.getDescription()));
         model.getDescription().addEmojiElement(model.getEmojis());
@@ -113,6 +119,14 @@ public class MisskeyMapper {
         }
         if (account.getCat() != null) {
             model.setCat(account.getCat());
+        }
+
+        // 色設定
+        if (account.getAvatarColor() != null) {
+            model.setAvatarColor(new Color(account.getAvatarColor()));
+        }
+        if (account.getBannerColor() != null) {
+            model.setBannerColor(new Color(account.getBannerColor()));
         }
 
         // プロフィールページの設定

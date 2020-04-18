@@ -3,6 +3,9 @@ package net.socialhub.apis.addition;
 import net.socialhub.SocialAuthUtil;
 import net.socialhub.apis.AbstractTimelineTest;
 import net.socialhub.model.Account;
+import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Pageable;
+import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.support.TrendComment;
 import net.socialhub.model.service.support.TrendCountry;
@@ -59,6 +62,28 @@ public class TwitterActionTest extends AbstractTimelineTest {
 
         for (String search : action.getSavedSearch()) {
             System.out.println(search);
+        }
+    }
+
+    @Test
+    public void getFollowingList() {
+        Account account = SocialAuthUtil.getTwitterAccount();
+        TwitterAction action = (TwitterAction) account.action();
+        Pageable<Channel> channels = action.getUserFollowingChannel(action.getUserMe(), new Paging(200L));
+
+        for (Channel channel : channels.getEntities()) {
+            System.out.println(channel.getName());
+        }
+    }
+
+    @Test
+    public void getListedList() {
+        Account account = SocialAuthUtil.getTwitterAccount();
+        TwitterAction action = (TwitterAction) account.action();
+        Pageable<Channel> channels = action.getUserListedChannel(action.getUserMe(), new Paging(200L));
+
+        for (Channel channel : channels.getEntities()) {
+            System.out.println(channel.getName());
         }
     }
 }

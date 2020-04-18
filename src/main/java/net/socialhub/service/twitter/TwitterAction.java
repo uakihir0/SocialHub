@@ -885,14 +885,17 @@ public class TwitterAction extends AccountActionImpl {
     }
 
     /**
-     * Get user saved channels
-     * ユーザーが保存したチャンネル一覧を取得
+     * Get user following channels
+     * ユーザーがフォローしているチャンネル一覧を取得
      */
-    public Pageable<Channel> getUserSavedChannel(Identify id, Paging paging) {
+    public Pageable<Channel> getUserFollowingChannel(Identify id, Paging paging) {
         return proceed(() -> {
+            int count = getCountFromPage(paging, 20);
+            long cursor = getCursorFromPage(paging, -1L);
+
             Twitter twitter = auth.getAccessor();
             ResponseList<UserList> lists = twitter.list()
-                    .getUserLists((Long) id.getId());
+                    .getUserListSubscriptions((Long) id.getId(), count, cursor);
 
             Service service = getAccount().getService();
             return TwitterMapper.channels(lists, service, paging);
@@ -900,17 +903,17 @@ public class TwitterAction extends AccountActionImpl {
     }
 
     /**
-     * Get user subscribed channels
-     * ユーザーがサブスクライブされているチャンネル一覧を取得
+     * Get user Listed channels
+     * ユーザーが登録されているチャンネル一覧を取得
      */
-    public Pageable<Channel> getUserSubscribedChannel(Identify id, Paging paging) {
+    public Pageable<Channel> getUserListedChannel(Identify id, Paging paging) {
         return proceed(() -> {
             int count = getCountFromPage(paging, 20);
             long cursor = getCursorFromPage(paging, -1L);
 
             Twitter twitter = auth.getAccessor();
             PagableResponseList<UserList> lists = twitter.list()
-                    .getUserListSubscriptions((Long) id.getId(), count, cursor);
+                    .getUserListMemberships((Long) id.getId(), count, cursor);
 
             Service service = getAccount().getService();
             service.getRateLimit().addInfo(GetChannels, lists);

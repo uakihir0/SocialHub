@@ -362,6 +362,7 @@ public class TwitterMapper {
             Service service) {
 
         TwitterChannel channel = new TwitterChannel(service);
+        channel.setAuthor(user(list.getUser(), service));
 
         channel.setId(list.getId());
         channel.setName(list.getName());

@@ -556,6 +556,25 @@ public class TwitterMapper {
     }
 
     /**
+     * チャンネルマッピング
+     */
+    public static Pageable<Channel> channels(
+            ResponseList<UserList> lists, //
+            Service service, //
+            Paging paging) {
+
+        Pageable<Channel> model = new Pageable<>();
+        model.setEntities(lists.stream().map(e -> channel(e, service)) //
+                .collect(toList()));
+
+        Paging pg = paging.copy();
+        paging.setHasNext(false);
+        paging.setHasPast(false);
+        model.setPaging(pg);
+        return model;
+    }
+
+    /**
      * DM マッピング
      */
     public static List<Thread> message(

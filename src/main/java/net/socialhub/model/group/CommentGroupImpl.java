@@ -83,7 +83,6 @@ public class CommentGroupImpl implements CommentGroup {
                         .collect(Collectors.toList()));
 
                 comments.sort(Comparator.comparing(Comment::getCreateAt).reversed());
-                page.getPaging().setCount((long) comments.size());
                 page.setEntities(comments);
             }
         });
@@ -110,7 +109,6 @@ public class CommentGroupImpl implements CommentGroup {
                         .collect(Collectors.toList()));
 
                 comments.sort(Comparator.comparing(Comment::getCreateAt).reversed());
-                page.getPaging().setCount((long) comments.size());
                 page.setEntities(comments);
             }
         });

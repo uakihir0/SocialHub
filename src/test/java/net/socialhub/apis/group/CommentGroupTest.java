@@ -25,7 +25,9 @@ public class CommentGroupTest extends AbstractApiTest {
         System.out.println("========================");
 
         for (Comment c : comments.getComments().getEntities()) {
-            System.out.println(c.getCreateAt().getTime() + ":" + c.getService().getType() + ": " + c.getText());
+            System.out.println(c.getCreateAt().getTime()
+                    + ": " + c.getService().getType()
+                    + ": " + c.getText());
         }
 
         System.out.println("========================");
@@ -33,8 +35,9 @@ public class CommentGroupTest extends AbstractApiTest {
         System.out.println("========================");
 
         for (Comment c : pasts.getComments().getEntities()) {
-            System.out.println(c.getCreateAt().getTime() + ":" + c.getService().getType() + ": " + c.getText());
+            System.out.println(c.getCreateAt().getTime()
+                    + ": " + c.getService().getType()
+                    + ": " + c.getText());
         }
-
     }
 }

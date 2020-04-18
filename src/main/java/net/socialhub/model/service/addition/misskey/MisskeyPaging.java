@@ -37,7 +37,7 @@ public class MisskeyPaging extends Paging {
     public <T extends Identify> Paging newPage(List<T> entities) {
         MisskeyPaging pg = copy();
 
-        if (entities.size() > 0) {
+        if (!entities.isEmpty()) {
             T first = entities.get(0);
             pg.setUntilId(null);
 
@@ -61,7 +61,7 @@ public class MisskeyPaging extends Paging {
     public <T extends Identify> Paging pastPage(List<T> entities) {
         MisskeyPaging pg = copy();
 
-        if (entities.size() > 0) {
+        if (!entities.isEmpty()) {
             T last = entities.get(entities.size() - 1);
             pg.setSinceId(null);
 

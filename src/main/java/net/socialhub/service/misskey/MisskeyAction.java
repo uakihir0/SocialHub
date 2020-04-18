@@ -685,6 +685,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                     .noteId((String) id.getId())
                     .reaction(reaction)
                     .build());
+            return;
         }
         throw new NotSupportedException();
     }
@@ -711,6 +712,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             misskey.reactions().delete(ReactionsDeleteRequest.builder()
                     .noteId((String) id.getId())
                     .build());
+            return;
         }
         throw new NotSupportedException();
     }

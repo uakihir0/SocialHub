@@ -563,6 +563,11 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                 builder.replyId((String) req.getTargetId());
             }
 
+            // 引用 RT の場合はその ID を設定
+            if (req.getParams().containsKey(MisskeyFormKey.RENOTE_KEY)) {
+                builder.renoteId((String) req.getParams().get(MisskeyFormKey.RENOTE_KEY));
+            }
+
             // 画像の処理
             if (req.getImages() != null && !req.getImages().isEmpty()) {
                 List<String> fileIds = new ArrayList<>();

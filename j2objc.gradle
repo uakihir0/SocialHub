@@ -65,7 +65,7 @@ dependencies {
 
     // Test
     testCompile('junit:junit:4.12')
-    testCompile('org.jsoup:jsoup:1.13.1')
+    testImplementation('org.jsoup:jsoup:1.13.1')
 }
 
 

@@ -7,6 +7,9 @@ import net.socialhub.http.HttpClientImpl;
 import net.socialhub.http.HttpRequest;
 import net.socialhub.http.HttpResponse;
 import net.socialhub.logger.Logger;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -24,6 +27,8 @@ import static net.socialhub.http.RequestMethod.GET;
 public class EmojiGenerator {
 
     private final static String EMOJI_JSON = "https://raw.githubusercontent.com/iamcal/emoji-data/master/emoji.json";
+
+    private final static String EMOJI_FREQUENCY_JSON = "https://home.unicode.org/emoji/emoji-frequency/";
 
     @Test
     @Ignore
@@ -83,11 +88,24 @@ public class EmojiGenerator {
             }
         });
 
+        List<EmojiFrequency> frequencies = getEmojiFrequency();
 
         for (EmojiStructure model : results) {
-            System.out.println(model.getFieldName() + "(" + //
-                    "\"" + decodeUnicode(model.getUnicode()) + "\"," + //
-                    "\"" + model.getName() + "\",\"" + model.getCategory() + "\"),");
+            String decodedEmoji = decodeUnicode(model.getUnicode());
+
+            // スキントーンが含まれるもの以外は一致で確認
+            Integer level = frequencies.stream().filter(e ->
+                    (model.getName().contains("skin-tone-"))
+                            ? decodedEmoji.contains(e.getEmoji())
+                            : decodedEmoji.equals(e.getEmoji()))
+                    .map(EmojiFrequency::getLevel)
+                    .findFirst().orElse(null);
+
+            System.out.println(model.getFieldName() + "("
+                    + "\"" + decodedEmoji + "\","
+                    + "\"" + model.getName() + "\","
+                    + "\"" + model.getCategory() + "\","
+                    + level + "),");
         }
     }
 
@@ -137,6 +155,38 @@ public class EmojiGenerator {
 
         } finally {
             logger.setLogLevel(Logger.LogLevel.DEBUG);
+        }
+    }
+
+    /**
+     * Get Emoji Frequency from Unicode Site
+     */
+    private List<EmojiFrequency> getEmojiFrequency() {
+        try {
+            Document document = Jsoup.connect(EMOJI_FREQUENCY_JSON).get();
+            List<EmojiFrequency> results = new ArrayList<>();
+
+            Elements elements = document.select("table > tbody > tr");
+            elements.forEach(element -> {
+                try {
+                    Elements tds = element.select("td");
+                    String[] emojis = tds.get(1).html().split(" ");
+                    Integer level = Integer.parseInt(tds.get(0).html());
+
+                    for (String emoji : emojis) {
+                        EmojiFrequency frequency = new EmojiFrequency();
+                        frequency.setEmoji(emoji);
+                        frequency.setLevel(level);
+                        results.add(frequency);
+                    }
+
+                } catch (Exception ignore) {
+                }
+            });
+
+            return results;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -271,5 +321,31 @@ public class EmojiGenerator {
             this.unified = unified;
         }
         //endregion
+    }
+
+    /**
+     * Emoji Frequency
+     */
+    public static class EmojiFrequency {
+        private String emoji;
+        private Integer level;
+
+        // region
+        public String getEmoji() {
+            return emoji;
+        }
+
+        public void setEmoji(String emoji) {
+            this.emoji = emoji;
+        }
+
+        public Integer getLevel() {
+            return level;
+        }
+
+        public void setLevel(Integer level) {
+            this.level = level;
+        }
+        // endregion
     }
 }

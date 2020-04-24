@@ -719,6 +719,9 @@ public class MisskeyMapper {
             candidate.setCategory(emoji.getCategory());
             candidate.setIconUrl(emoji.getUrl());
             candidate.setName(":" + emoji.getName() + ":");
+
+            candidate.setSearchWord(candidate.getName());
+            candidate.setFrequentlyUsed(true);
         });
 
         for (EmojiType emoji : EmojiType.values()) {
@@ -728,6 +731,9 @@ public class MisskeyMapper {
             candidate.setCategory(emoji.getCategory().getCode());
             candidate.setEmoji(emoji.getEmoji());
             candidate.setName(emoji.getEmoji());
+
+            candidate.setSearchWord(emoji.getName());
+            candidate.setFrequentlyUsed((emoji.getLevel() != null) && (emoji.getLevel() <= 10));
         }
 
         for (EmojiVariationType emoji : EmojiVariationType.values()) {
@@ -737,6 +743,9 @@ public class MisskeyMapper {
             candidate.setCategory(emoji.getCategory().getCode());
             candidate.setEmoji(emoji.getEmoji());
             candidate.setName(emoji.getEmoji());
+
+            candidate.setSearchWord(emoji.getName());
+            candidate.setFrequentlyUsed((emoji.getLevel() != null) && (emoji.getLevel() <= 10));
         }
 
         return candidates;

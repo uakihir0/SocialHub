@@ -19,6 +19,17 @@ public class ReactionCandidate {
 
     private String category;
 
+    /**
+     * Custom Reaction or Unicode Frequent level under 10.
+     * https://home.unicode.org/the-most-frequent-emoji/
+     */
+    private boolean isFrequentlyUsed;
+
+    /**
+     * Use or search.
+     */
+    private String searchWord;
+
     private List<String> aliases;
 
     /**
@@ -91,6 +102,22 @@ public class ReactionCandidate {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public boolean isFrequentlyUsed() {
+        return isFrequentlyUsed;
+    }
+
+    public void setFrequentlyUsed(boolean frequentlyUsed) {
+        isFrequentlyUsed = frequentlyUsed;
+    }
+
+    public String getSearchWord() {
+        return searchWord;
+    }
+
+    public void setSearchWord(String searchWord) {
+        this.searchWord = searchWord;
     }
     //endregion
 }

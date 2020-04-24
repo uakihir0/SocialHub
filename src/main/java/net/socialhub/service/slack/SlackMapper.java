@@ -2,11 +2,9 @@ package net.socialhub.service.slack;
 
 import com.github.seratch.jslack.api.methods.response.bots.BotsInfoResponse;
 import com.github.seratch.jslack.api.methods.response.bots.BotsInfoResponse.Bot;
-import com.github.seratch.jslack.api.methods.response.channels.ChannelsListResponse;
 import com.github.seratch.jslack.api.methods.response.conversations.ConversationsListResponse;
 import com.github.seratch.jslack.api.methods.response.emoji.EmojiListResponse;
 import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
-import com.github.seratch.jslack.api.methods.response.users.UsersIdentityResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
 import com.github.seratch.jslack.api.model.Attachment;
 import com.github.seratch.jslack.api.model.File;
@@ -324,6 +322,9 @@ public final class SlackMapper {
             candidate.setCategory(emoji.getCategory().getCode());
             candidate.setEmoji(emoji.getEmoji());
             candidate.setName(emoji.getName());
+
+            candidate.setSearchWord(emoji.getName());
+            candidate.setFrequentlyUsed((emoji.getLevel() != null) && (emoji.getLevel() <= 10));
         }
 
         for (EmojiVariationType emoji : EmojiVariationType.values()) {
@@ -333,6 +334,9 @@ public final class SlackMapper {
             candidate.setCategory(emoji.getCategory().getCode());
             candidate.setEmoji(emoji.getEmoji());
             candidate.setName(emoji.getName());
+
+            candidate.setSearchWord(emoji.getName());
+            candidate.setFrequentlyUsed((emoji.getLevel() != null) && (emoji.getLevel() <= 10));
         }
 
         emojis.getEmoji().forEach((key, value) -> {
@@ -348,6 +352,9 @@ public final class SlackMapper {
                 candidate.setCategory(EmojiCategoryType.Custom.getCode());
                 candidate.setIconUrl(value);
                 candidate.setName(key);
+
+                candidate.setSearchWord(key);
+                candidate.setFrequentlyUsed(true);
             }
         });
 
@@ -524,7 +531,7 @@ public final class SlackMapper {
         });
     }
 
-    public static Date getFromDateString(String date){
+    public static Date getFromDateString(String date) {
         return new Date(Long.parseLong(date) * 1000L);
     }
 

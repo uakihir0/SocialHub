@@ -68,6 +68,14 @@ dependencies {
     testImplementation('org.jsoup:jsoup:1.13.1')
 }
 
+sourceSets {
+    test {
+        java {
+            srcDir 'src/test/java'
+            exclude '**/*.java'
+        }
+    }
+}
 
 j2objcConfig {
     autoConfigureDeps true

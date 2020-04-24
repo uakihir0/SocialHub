@@ -15,9 +15,10 @@ public enum EmojiCategoryType {
     TravelPlaces("Travel & Places"),
     FoodDrink("Food & Drink"),
     AnimalsNature("Animals & Nature"),
-    SmileysPeople("Smileys & People"),
+    PeopleBody("People & Body"),
     Objects("Objects"),
     SkinTones("Skin Tones"),
+    SmileysEmotion("Smileys & Emotion"),
 
     //endregion
 

@@ -25,9 +25,7 @@ public class ReactionCandidate {
      */
     private boolean isFrequentlyUsed;
 
-    /**
-     * Use or search.
-     */
+    /** Use for search */
     private String searchWord;
 
     private List<String> aliases;

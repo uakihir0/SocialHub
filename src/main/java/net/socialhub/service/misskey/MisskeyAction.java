@@ -558,6 +558,11 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
      */
     @Override
     public void postComment(CommentForm req) {
+        if (req.isMessage()) {
+            postMessage(req);
+            return;
+        }
+
         proceed(() -> {
             Misskey misskey = auth.getAccessor();
             ExecutorService pool = Executors.newCachedThreadPool();
@@ -1054,6 +1059,11 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
      */
     @Override
     public void postMessage(CommentForm req) {
+        if (!req.isMessage()) {
+            postComment(req);
+            return;
+        }
+
         proceed(() -> {
             Misskey misskey = auth.getAccessor();
 

@@ -167,16 +167,26 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
         return proceed(() -> {
             Misskey misskey = auth.getAccessor();
             Service service = getAccount().getService();
+            UsersShowResponse[] users;
 
-            Response<UsersShowResponse[]> response =
-                    misskey.users().show(UsersShowRequest.builder()
-                            .userId((String) id.getId())
-                            .build());
+            // User のアカウント名で取得する場合
+            if (((String) id.getId()).startsWith("@")) {
+                String[] elem = ((String) id.getId()).split("@");
+                String host = (elem.length > 2) ? elem[2] : misskey.getHost();
 
-            if (response.get().length != 1) {
+                users = misskey.users().show(UsersShowRequest.builder()
+                        .username(elem[1]).host(host)
+                        .build()).get();
+            } else {
+                users = misskey.users().show(UsersShowRequest.builder()
+                        .userId((String) id.getId())
+                        .build()).get();
+            }
+
+            if (users.length != 1) {
                 throw new SocialHubException("Unexpected response in Misskey's getUser.");
             }
-            return MisskeyMapper.user(response.get()[0],
+            return MisskeyMapper.user(users[0],
                     misskey.getHost(), service);
         });
     }

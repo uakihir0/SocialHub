@@ -40,7 +40,8 @@ import misskey4j.api.request.users.UsersFollowersRequest;
 import misskey4j.api.request.users.UsersFollowingsRequest;
 import misskey4j.api.request.users.UsersRelationRequest;
 import misskey4j.api.request.users.UsersSearchRequest;
-import misskey4j.api.request.users.UsersShowRequest;
+import misskey4j.api.request.users.UsersShowMultipleRequest;
+import misskey4j.api.request.users.UsersShowSingleRequest;
 import misskey4j.api.response.UsersListsListResponse;
 import misskey4j.api.response.UsersListsShowResponse;
 import misskey4j.api.response.files.FilesCreateResponse;
@@ -167,26 +168,23 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
         return proceed(() -> {
             Misskey misskey = auth.getAccessor();
             Service service = getAccount().getService();
-            UsersShowResponse[] users;
+            UsersShowResponse users;
 
             // User のアカウント名で取得する場合
             if (((String) id.getId()).startsWith("@")) {
                 String[] elem = ((String) id.getId()).split("@");
                 String host = (elem.length > 2) ? elem[2] : misskey.getHost();
 
-                users = misskey.users().show(UsersShowRequest.builder()
+                users = misskey.users().show(UsersShowSingleRequest.builder()
                         .username(elem[1]).host(host)
                         .build()).get();
             } else {
-                users = misskey.users().show(UsersShowRequest.builder()
+                users = misskey.users().show(UsersShowSingleRequest.builder()
                         .userId((String) id.getId())
                         .build()).get();
             }
 
-            if (users.length != 1) {
-                throw new SocialHubException("Unexpected response in Misskey's getUser.");
-            }
-            return MisskeyMapper.user(users[0],
+            return MisskeyMapper.user(users,
                     misskey.getHost(), service);
         });
     }
@@ -936,7 +934,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
 
             Response<UsersShowResponse[]> users =
                     misskey.users().show(
-                            UsersShowRequest.builder()
+                            UsersShowMultipleRequest.builder()
                                     .userIds(list.get().getUserIds())
                                     .build());
 
@@ -987,7 +985,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             CollectionUtil.partitionList(userIds, 100).forEach((ids) -> {
                 Response<UsersShowResponse[]> users =
                         misskey.users().show(
-                                UsersShowRequest.builder()
+                                UsersShowMultipleRequest.builder()
                                         .userIds(ids)
                                         .build());
 

@@ -1067,10 +1067,27 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
         proceed(() -> {
             Misskey misskey = auth.getAccessor();
 
-            // グループへの投稿かどうかを取得
-            boolean isGroup = req.getParams()
-                    .get(MisskeyFormKey.MESSAGE_TYPE)
-                    .equals(MisskeyFormKey.MESSAGE_TYPE_GROUP);
+            Boolean isGroup = null;
+            String targetId = null;
+
+            if (req.getTargetId() instanceof String) {
+                targetId = (String) req.getTargetId();
+
+                // パラメータからグループか取得
+                isGroup = req.getParams()
+                        .get(MisskeyFormKey.MESSAGE_TYPE)
+                        .equals(MisskeyFormKey.MESSAGE_TYPE_GROUP);
+            }
+
+            if (req.getTargetId() instanceof MisskeyThread) {
+                targetId = (String) ((Thread) req.getTargetId()).getId();
+                isGroup = ((MisskeyThread) req.getTargetId()).isGroup();
+            }
+
+            // 必須パラメータが発見できなかった場合
+            if (isGroup == null || targetId == null) {
+                throw new SocialHubException("Cannot found [targetId] or [isGroup] params.");
+            }
 
             MessagingMessagesCreateRequest.MessagingMessagesCreateRequestBuilder builder =
                     MessagingMessagesCreateRequest.builder();
@@ -1097,8 +1114,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                 builder.fileId(response.get().getId());
             }
 
-            builder.userId(isGroup ? null : (String) req.getTargetId());
-            builder.groupId(isGroup ? (String) req.getTargetId() : null);
+            builder.userId(isGroup ? null : targetId);
+            builder.groupId(isGroup ? targetId : null);
 
             builder.text(req.getText());
             misskey.messages().messagesCreate(builder.build());

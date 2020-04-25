@@ -7,5 +7,6 @@ public enum MicroBlogActionType implements ActionType {
     // TimeLine
     LocalTimeLine,
     FederationTimeLine,
+    FeaturedTimeline,
     ;
 }

@@ -25,6 +25,7 @@ import misskey4j.api.request.notes.NotesChildrenRequest;
 import misskey4j.api.request.notes.NotesConversationRequest;
 import misskey4j.api.request.notes.NotesCreateRequest;
 import misskey4j.api.request.notes.NotesDeleteRequest;
+import misskey4j.api.request.notes.NotesFeaturedRequest;
 import misskey4j.api.request.notes.NotesGlobalTimelineRequest;
 import misskey4j.api.request.notes.NotesLocalTimelineRequest;
 import misskey4j.api.request.notes.NotesSearchRequest;
@@ -54,6 +55,7 @@ import misskey4j.api.response.messages.MessagingMessagesResponse;
 import misskey4j.api.response.meta.MetaResponse;
 import misskey4j.api.response.notes.NotesChildrenResponse;
 import misskey4j.api.response.notes.NotesConversationResponse;
+import misskey4j.api.response.notes.NotesFeaturedResponse;
 import misskey4j.api.response.notes.NotesGlobalTimelineResponse;
 import misskey4j.api.response.notes.NotesLocalTimelineResponse;
 import misskey4j.api.response.notes.NotesSearchResponse;
@@ -1249,6 +1251,43 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
 
             return MisskeyMapper.timeLine(response.get(),
                     misskey.getHost(), service, paging);
+        });
+    }
+
+    /**
+     * Get Featured Timeline
+     */
+    public Pageable<Comment> getFeaturedTimeLine(Paging paging) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            NotesFeaturedRequest.NotesFeaturedRequestBuilder builder =
+                    NotesFeaturedRequest.builder();
+
+            if (paging != null) {
+                if (paging.getCount() != null) {
+                    builder.limit(paging.getCount());
+                    if (paging.getCount() > 100) {
+                        builder.limit(100L);
+                    }
+                }
+                if (paging instanceof OffsetPaging) {
+                    OffsetPaging pg = (OffsetPaging) paging;
+                    if (pg.getOffset() != null) {
+                        builder.offset(pg.getOffset());
+                    }
+                }
+            }
+
+            Response<NotesFeaturedResponse[]> response =
+                    misskey.notes().featured(builder.build());
+
+            Pageable<Comment> results = MisskeyMapper.timeLine(
+                    response.get(), misskey.getHost(), service, paging);
+
+            results.setPaging(OffsetPaging.fromPaging(paging));
+            return results;
         });
     }
 

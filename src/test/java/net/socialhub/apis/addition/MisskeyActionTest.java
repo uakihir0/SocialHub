@@ -3,6 +3,7 @@ package net.socialhub.apis.addition;
 import net.socialhub.SocialAuthUtil;
 import net.socialhub.apis.AbstractTimelineTest;
 import net.socialhub.model.Account;
+import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Notification;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
@@ -40,5 +41,18 @@ public class MisskeyActionTest extends AbstractTimelineTest {
                 System.out.println("Icon Url " + ((MisskeyNotification) notification).getIconUrl());
             }
         }
+    }
+
+    @Test
+    public void getFeaturedTimeline() {
+        Paging paging = new Paging();
+        paging.setCount(100L);
+
+        Account account = SocialAuthUtil.getMisskeyAccount();
+        MisskeyAction action = (MisskeyAction) account.action();
+
+        Pageable<Comment> comments = action.getFeaturedTimeLine(paging);
+        printTimeline("Featured", comments);
+
     }
 }

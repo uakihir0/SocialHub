@@ -13,6 +13,7 @@ import net.socialhub.service.action.request.CommentsRequest;
 import net.socialhub.service.action.request.CommentsRequestImpl;
 import net.socialhub.service.action.specific.MicroBlogRequestAction;
 
+import static net.socialhub.define.action.service.MicroBlogActionType.FeaturedTimeline;
 import static net.socialhub.define.action.service.MicroBlogActionType.FederationTimeLine;
 import static net.socialhub.define.action.service.MicroBlogActionType.LocalTimeLine;
 
@@ -54,6 +55,18 @@ public class MisskeyRequest extends RequestActionImpl implements MicroBlogReques
 
         request.setStreamFunction(action::setFederationLineStream);
         return request;
+    }
+
+
+    /**
+     * Get Featured Timeline
+     * (No Streaming)
+     */
+    public CommentsRequest getFeaturedTimeLine() {
+        MisskeyAction action = (MisskeyAction) account.action();
+        return getCommentsRequest(
+                FeaturedTimeline, action::getFeaturedTimeLine,
+                new SerializeBuilder(FeaturedTimeline));
     }
 
     // ============================================================== //
@@ -147,6 +160,8 @@ public class MisskeyRequest extends RequestActionImpl implements MicroBlogReques
                         return getLocalTimeLine();
                     case FederationTimeLine:
                         return getFederationTimeLine();
+                    case FeaturedTimeline:
+                        return getFeaturedTimeLine();
                     default:
                         log.debug("invalid misskey action type: " + action);
                         return null;

@@ -22,5 +22,18 @@ public class MessageTimelineTest extends AbstractTimelineTest {
             printTimeline("Message", comments);
         }
     }
+
+    @Test
+    public void testMessageTimelineMisskey() {
+
+        Account account = SocialAuthUtil.getMisskeyAccount();
+        Pageable<Thread> threads = account.action().getMessageThread(new Paging(50L));
+
+        if (threads.getEntities().size() > 0) {
+            Pageable<Comment> comments = account.action().getMessageTimeLine(
+                    threads.getEntities().get(0), new Paging(50L));
+            printTimeline("Message", comments);
+        }
+    }
 }
 

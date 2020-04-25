@@ -6,6 +6,7 @@ import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Thread;
 import net.socialhub.model.service.User;
+import net.socialhub.model.service.addition.misskey.MisskeyThread;
 import org.junit.Test;
 
 public class MessageThreadTest extends AbstractApiTest {
@@ -46,8 +47,12 @@ public class MessageThreadTest extends AbstractApiTest {
 
         System.out.println("===================================");
         System.out.println("ID> " + thread.getId());
+
+        if (thread instanceof MisskeyThread) {
+            System.out.println("IsGroup> " + ((MisskeyThread) thread).isGroup());
+        }
         for (User user : thread.getUsers()) {
-            System.out.println("U> " + user.getScreenName());
+            System.out.println("ScreenName> " + user.getScreenName());
         }
     }
 }

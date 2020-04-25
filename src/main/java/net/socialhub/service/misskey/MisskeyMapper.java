@@ -256,7 +256,7 @@ public class MisskeyMapper {
             ReactionCandidate candidate) {
 
         Emoji model = new Emoji();
-        model.setCode(candidate.getName());
+        model.setCode(candidate.getName().replaceAll(":", ""));
         model.setUrl(candidate.getIconUrl());
         return model;
     }
@@ -391,7 +391,10 @@ public class MisskeyMapper {
             if (message.getUser() != null) {
                 User user = user(message.getUser(), host, service);
                 thread.setUsers(singletonList(user));
-                thread.setId(message.getUserId());
+
+                thread.setId(message.getUserId().equals(me.getId())
+                        ? message.getRecipientId()
+                        : message.getUserId());
                 thread.setGroup(false);
             }
 
@@ -424,6 +427,7 @@ public class MisskeyMapper {
      */
     public static Comment message(
             Message message,
+            List<Emoji> emojis,
             String host,
             Service service) {
 
@@ -434,12 +438,13 @@ public class MisskeyMapper {
             model.setUser(user(message.getUser(), host, service));
             model.setCreateAt(getDateParser().parse(message.getCreatedAt()));
             model.setVisibility(MisskeyVisibility.Message);
+            model.setReactions(new ArrayList<>());
             model.setShareCount(0L);
             model.setReplyCount(0L);
 
             // 本文の設定
             model.setText(AttributedString.plain(message.getText()));
-            model.getText().addEmojiElement(model.getEmojis());
+            model.getText().addEmojiElement(emojis);
 
             // メディアの設定
             model.setMedias(emptyList());
@@ -587,10 +592,16 @@ public class MisskeyMapper {
             Message[] messages,
             String host,
             Service service,
+            List<ReactionCandidate> candidates,
             Paging paging) {
 
         Pageable<Comment> model = new Pageable<>();
-        model.setEntities(Stream.of(messages).map(e -> message(e, host, service)) //
+        List<Emoji> emojis = candidates.stream()
+                .filter(e -> (e.getIconUrl() != null))
+                .map(MisskeyMapper::emoji)
+                .collect(toList());
+
+        model.setEntities(Stream.of(messages).map(e -> message(e, emojis, host, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
                 .collect(toList()));
 

@@ -1043,8 +1043,9 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Response<MessagingMessagesResponse[]> response =
                     misskey.messages().messages(builder.build());
 
-            return MisskeyMapper.messages(response.get(),
-                    misskey.getHost(), service, paging);
+            return MisskeyMapper.messages(
+                    response.get(), misskey.getHost(),
+                    service, getReactionCandidates(), paging);
         });
     }
 

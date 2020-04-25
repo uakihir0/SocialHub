@@ -104,13 +104,15 @@ public class AttributedString {
      * 絵文字要素を追加
      */
     public void addEmojiElement(List<Emoji> emojis) {
-        Stream<AttributedElement> stream = elements.stream();
-        for (Emoji emoji : emojis) {
-            stream = stream
-                    .map(elem -> scanEmojis(elem, emoji))
-                    .flatMap(Collection::stream);
+        if (emojis != null && !emojis.isEmpty()) {
+            Stream<AttributedElement> stream = elements.stream();
+            for (Emoji emoji : emojis) {
+                stream = stream
+                        .map(elem -> scanEmojis(elem, emoji))
+                        .flatMap(Collection::stream);
+            }
+            elements = stream.collect(toList());
         }
-        elements = stream.collect(toList());
     }
 
     /**

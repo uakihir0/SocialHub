@@ -1287,6 +1287,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                     response.get(), misskey.getHost(), service, paging);
 
             results.setPaging(OffsetPaging.fromPaging(paging));
+            results.getPaging().setHasNew(false);
             return results;
         });
     }

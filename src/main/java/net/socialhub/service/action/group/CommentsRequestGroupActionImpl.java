@@ -9,6 +9,7 @@ import net.socialhub.model.service.Paging;
 import net.socialhub.service.action.request.CommentsRequest;
 import net.socialhub.utils.HandlingUtil;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,6 +50,7 @@ public class CommentsRequestGroupActionImpl implements CommentsRequestGroupActio
                         (entry) -> HandlingUtil.runtime(() -> entry.getValue().get())));
 
         model.setEntities(entities);
+        model.setMaxDate(new Date());
         model.setSinceDateFromEntities();
         model.setRequestGroup(requestGroup);
         return model;

@@ -123,6 +123,8 @@ public class CommentGroupImpl implements CommentGroup {
                 .filter((e) -> !e.getEntities().isEmpty()) //
                 .map((e) -> e.getEntities().get(0)) //
                 .map(Comment::getCreateAt) //
+
+                // 各リクエストの中で最も MaxDate が最新ものを取得
                 .min(Date::compareTo) //
                 .orElse(null); //
     }
@@ -136,10 +138,12 @@ public class CommentGroupImpl implements CommentGroup {
                 .filter((e) -> !e.getEntities().isEmpty()) //
                 .map((e) -> e.getEntities().get(e.getEntities().size() - 1)) //
                 .map(Comment::getCreateAt) //
+
+                // 各リクエストの中で最も SinceDate が過去ものを取得
                 .max(Date::compareTo) //
                 .orElse(null); //
 
-        // +1ms (for not include)
+        // -1ms (for not include)
         if (sinceDate != null) {
             sinceDate = new Date(sinceDate.getTime() - 1);
         }

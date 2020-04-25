@@ -30,7 +30,9 @@ public class OffsetPaging extends Paging {
      */
     @Override
     public <T extends Identify> Paging newPage(List<T> entities) {
-        return null;
+        OffsetPaging pg = copy();
+        pg.setOffset(0L);
+        return pg;
     }
 
     /**

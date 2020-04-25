@@ -3,13 +3,17 @@ package net.socialhub.apis.addition;
 import net.socialhub.SocialAuthUtil;
 import net.socialhub.apis.AbstractTimelineTest;
 import net.socialhub.model.Account;
+import net.socialhub.model.group.CommentGroup;
+import net.socialhub.model.group.CommentsRequestGroup;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Notification;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.addition.misskey.MisskeyNotification;
+import net.socialhub.service.action.RequestAction;
 import net.socialhub.service.misskey.MisskeyAction;
+import net.socialhub.service.misskey.MisskeyRequest;
 import org.junit.Test;
 
 public class MisskeyActionTest extends AbstractTimelineTest {
@@ -45,14 +49,28 @@ public class MisskeyActionTest extends AbstractTimelineTest {
 
     @Test
     public void getFeaturedTimeline() {
-        Paging paging = new Paging();
-        paging.setCount(100L);
+        
+        CommentsRequestGroup request = CommentsRequestGroup.of();
+        RequestAction r = SocialAuthUtil.getMisskeyAccount().request();
+        request.addCommentsRequests(((MisskeyRequest) r).getFeaturedTimeLine());
 
-        Account account = SocialAuthUtil.getMisskeyAccount();
-        MisskeyAction action = (MisskeyAction) account.action();
+        CommentGroup comments = request.action().getComments();
+        CommentGroup news = comments.action().getNewComments();
 
-        Pageable<Comment> comments = action.getFeaturedTimeLine(paging);
-        printTimeline("Featured", comments);
+        System.out.println("========================");
+        System.out.println("> Now");
+        System.out.println("========================");
 
+        for (Comment c : comments.getComments().getEntities()) {
+            System.out.println(c.getCreateAt().getTime() + ":" + c.getService().getType() + ": " + c.getText());
+        }
+
+        System.out.println("========================");
+        System.out.println("> New");
+        System.out.println("========================");
+
+        for (Comment c : news.getComments().getEntities()) {
+            System.out.println(c.getCreateAt().getTime() + ":" + c.getService().getType() + ": " + c.getText());
+        }
     }
 }

@@ -35,7 +35,5 @@ public class RequestGroupTest extends AbstractApiTest {
         for (Comment c : pasts.getComments().getEntities()) {
             System.out.println(c.getCreateAt().getTime() + ":" + c.getService().getType() + ": " + c.getText());
         }
-
     }
-
 }

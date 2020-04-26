@@ -52,7 +52,6 @@ import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
 import net.socialhub.service.action.callback.lifecycle.ConnectCallback;
 import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
 import net.socialhub.service.action.specific.MicroBlogAccountAction;
-import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 
 import java.io.ByteArrayInputStream;
@@ -60,9 +59,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
@@ -446,7 +442,6 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
     public void postComment(CommentForm req) {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
-            ExecutorService pool = Executors.newCachedThreadPool();
             Service service = getAccount().getService();
 
             StatusUpdate update = new StatusUpdate();
@@ -464,19 +459,16 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
             // 画像の処理
             if (req.getImages() != null && !req.getImages().isEmpty()) {
+                update.setMediaIds(new ArrayList<>());
 
-                // 画像を並列でアップロードする
-                List<Future<Long>> medias = req.getImages() //
-                        .stream().map(image -> pool.submit(() -> {
-                            InputStream input = new ByteArrayInputStream(image.getData());
-                            Response<Attachment> attachment = mastodon.media() //
-                                    .postMedia(input, image.getName(), null);
-                            return attachment.get().getId();
-                        })).collect(toList());
-
-                update.setMediaIds(medias.stream().map( //
-                        (e) -> HandlingUtil.runtime(e::get)) //
-                        .collect(toList()));
+                // Mastodon はアップロードされた順番で配置が決定
+                // -> 並列にメディアをアップロードせずに逐次上げる
+                req.getImages().forEach(image -> {
+                    InputStream input = new ByteArrayInputStream(image.getData());
+                    Response<Attachment> attachment = mastodon.media() //
+                            .postMedia(input, image.getName(), null);
+                    update.getMediaIds().add(attachment.get().getId());
+                });
             }
 
             // センシティブな内容

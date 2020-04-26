@@ -441,6 +441,7 @@ public class MisskeyMapper {
             model.setReactions(new ArrayList<>());
             model.setShareCount(0L);
             model.setReplyCount(0L);
+            model.setDirectMessage(true);
 
             // 本文の設定
             model.setText(AttributedString.plain(message.getText()));

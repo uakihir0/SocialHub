@@ -1,10 +1,10 @@
 package net.socialhub.model.service.event;
 
-public class DeleteCommentEvent {
+public class IdentifyEvent {
 
     private Object id;
 
-    public DeleteCommentEvent(Object id) {
+    public IdentifyEvent(Object id) {
         this.id = id;
     }
 

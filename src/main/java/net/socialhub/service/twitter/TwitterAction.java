@@ -22,8 +22,8 @@ import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.twitter.TwitterComment;
 import net.socialhub.model.service.addition.twitter.TwitterThread;
-import net.socialhub.model.service.event.DeleteCommentEvent;
-import net.socialhub.model.service.event.UpdateCommentEvent;
+import net.socialhub.model.service.event.IdentifyEvent;
+import net.socialhub.model.service.event.CommentEvent;
 import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
@@ -1397,7 +1397,7 @@ public class TwitterAction extends AccountActionImpl {
                 }
 
                 Comment comment = TwitterMapper.comment(status, service);
-                UpdateCommentEvent event = new UpdateCommentEvent(comment);
+                CommentEvent event = new CommentEvent(comment);
                 ((UpdateCommentCallback) listener).onUpdate(event);
             }
         }
@@ -1406,7 +1406,7 @@ public class TwitterAction extends AccountActionImpl {
         public void onDeletionNotice(StatusDeletionNotice delete) {
             if (listener instanceof DeleteCommentCallback) {
                 if (delete.getStatusId() > 0L) {
-                    DeleteCommentEvent event = new DeleteCommentEvent(delete.getStatusId());
+                    IdentifyEvent event = new IdentifyEvent(delete.getStatusId());
                     ((DeleteCommentCallback) listener).onDelete(event);
                 }
             }

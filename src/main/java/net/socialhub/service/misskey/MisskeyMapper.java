@@ -95,6 +95,12 @@ public class MisskeyMapper {
             model.setHost(host);
         }
 
+        model.setPinnedComments(emptyList());
+        if (account.getPinnedNotes() != null) {
+            model.setPinnedComments(account.getPinnedNotes().stream()
+                    .map(c -> comment(c, host, service)).collect(toList()));
+        }
+
         // 絵文字の追加
         model.setEmojis(emojis(account.getEmojis()));
 

@@ -38,8 +38,8 @@ import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.mastodon.MastodonStream;
 import net.socialhub.model.service.addition.mastodon.MastodonThread;
-import net.socialhub.model.service.event.DeleteCommentEvent;
-import net.socialhub.model.service.event.UpdateCommentEvent;
+import net.socialhub.model.service.event.IdentifyEvent;
+import net.socialhub.model.service.event.CommentEvent;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.paging.OffsetPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
@@ -1069,7 +1069,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         public void onUpdate(Status status) {
             if (listener instanceof UpdateCommentCallback) {
                 Comment comment = MastodonMapper.comment(status, service);
-                UpdateCommentEvent event = new UpdateCommentEvent(comment);
+                CommentEvent event = new CommentEvent(comment);
                 ((UpdateCommentCallback) listener).onUpdate(event);
             }
         }
@@ -1077,7 +1077,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         @Override
         public void onDelete(long id) {
             if (listener instanceof DeleteCommentCallback) {
-                DeleteCommentEvent event = new DeleteCommentEvent(id);
+                IdentifyEvent event = new IdentifyEvent(id);
                 ((DeleteCommentCallback) listener).onDelete(event);
             }
         }

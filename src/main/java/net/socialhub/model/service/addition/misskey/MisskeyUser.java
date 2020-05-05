@@ -3,6 +3,7 @@ package net.socialhub.model.service.addition.misskey;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.common.AttributedString;
 import net.socialhub.model.request.CommentForm;
+import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Emoji;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.addition.MiniBlogUser;
@@ -19,6 +20,9 @@ public class MisskeyUser extends MiniBlogUser {
 
     /** attributed filed that user input */
     private List<AttributedFiled> fields;
+
+    /** user pinned owned comments */
+    private List<Comment> pinnedComments;
 
     /** emojis which contains in name */
     private List<Emoji> emojis;
@@ -109,6 +113,14 @@ public class MisskeyUser extends MiniBlogUser {
 
     public void setFields(List<AttributedFiled> fields) {
         this.fields = fields;
+    }
+
+    public List<Comment> getPinnedComments() {
+        return pinnedComments;
+    }
+
+    public void setPinnedComments(List<Comment> pinnedComments) {
+        this.pinnedComments = pinnedComments;
     }
 
     public List<Emoji> getEmojis() {

@@ -5,8 +5,8 @@ import net.socialhub.model.Account;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Media;
 import net.socialhub.model.service.Stream;
-import net.socialhub.model.service.event.DeleteCommentEvent;
-import net.socialhub.model.service.event.UpdateCommentEvent;
+import net.socialhub.model.service.event.IdentifyEvent;
+import net.socialhub.model.service.event.CommentEvent;
 import net.socialhub.service.action.callback.comment.DeleteCommentCallback;
 import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
 import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
@@ -80,12 +80,12 @@ public class CommentStreamTest extends AbstractApiTest {
     static class StreamCallback implements UpdateCommentCallback, DeleteCommentCallback, DisconnectCallback {
 
         @Override
-        public void onDelete(DeleteCommentEvent event) {
+        public void onDelete(IdentifyEvent event) {
             System.out.println("Delete> " + event.getId());
         }
 
         @Override
-        public void onUpdate(UpdateCommentEvent event) {
+        public void onUpdate(CommentEvent event) {
             printComment(event.getComment());
         }
 

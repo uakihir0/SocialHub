@@ -2,11 +2,11 @@ package net.socialhub.model.service.event;
 
 import net.socialhub.model.service.Comment;
 
-public class UpdateCommentEvent {
+public class CommentEvent {
 
     private Comment comment;
 
-    public UpdateCommentEvent(Comment comment) {
+    public CommentEvent(Comment comment) {
         this.comment = comment;
     }
 

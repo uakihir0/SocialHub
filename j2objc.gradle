@@ -61,7 +61,7 @@ dependencies {
     compile('com.github.uakihir0:msinstance4j:0.0.3')
     compile('com.github.uakihir0:mastodon4j:0.2.38')
     compile('com.github.uakihir0:jumblr:0.0.13.10')
-    compile('com.github.uakihir0:misskey4j:0.2.4')
+    compile('com.github.uakihir0:misskey4j:0.2.5')
 
     // Test
     testCompile('junit:junit:4.12')

@@ -71,13 +71,19 @@ import misskey4j.api.response.users.UsersShowResponse;
 import misskey4j.entity.Follow;
 import misskey4j.entity.Message;
 import misskey4j.entity.Note;
+import misskey4j.entity.Notification;
 import misskey4j.entity.contant.NotificationType;
 import misskey4j.entity.share.Response;
 import misskey4j.stream.MisskeyStream;
 import misskey4j.stream.callback.ClosedCallback;
 import misskey4j.stream.callback.ErrorCallback;
+import misskey4j.stream.callback.FollowedCallback;
+import misskey4j.stream.callback.MentionCallback;
 import misskey4j.stream.callback.NoteCallback;
+import misskey4j.stream.callback.NotificationCallback;
 import misskey4j.stream.callback.OpenedCallback;
+import misskey4j.stream.callback.RenoteCallback;
+import misskey4j.stream.callback.ReplayCallback;
 import net.socialhub.define.service.mastodon.MastodonReactionType;
 import net.socialhub.define.service.misskey.MisskeyFormKey;
 import net.socialhub.logger.Logger;
@@ -100,16 +106,21 @@ import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.misskey.MisskeyPaging;
 import net.socialhub.model.service.addition.misskey.MisskeyPoll;
 import net.socialhub.model.service.addition.misskey.MisskeyThread;
-import net.socialhub.model.service.event.UpdateCommentEvent;
+import net.socialhub.model.service.event.CommentEvent;
+import net.socialhub.model.service.event.NotificationEvent;
+import net.socialhub.model.service.event.UserEvent;
 import net.socialhub.model.service.paging.OffsetPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
 import net.socialhub.service.ServiceAuth;
 import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.service.action.RequestAction;
 import net.socialhub.service.action.callback.EventCallback;
+import net.socialhub.service.action.callback.comment.MentionCommentCallback;
+import net.socialhub.service.action.callback.comment.NotificationCommentCallback;
 import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
 import net.socialhub.service.action.callback.lifecycle.ConnectCallback;
 import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
+import net.socialhub.service.action.callback.user.FollowUserCallback;
 import net.socialhub.service.action.specific.MicroBlogAccountAction;
 import net.socialhub.utils.CollectionUtil;
 import net.socialhub.utils.HandlingUtil;
@@ -1235,6 +1246,34 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public net.socialhub.model.service.Stream
+    setNotificationStream(EventCallback callback) {
+        return proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            Service service = getAccount().getService();
+            MisskeyStream stream = misskey.stream();
+
+            MisskeyNotificationListener notificationListener =
+                    new MisskeyNotificationListener(
+                            callback, getReactionCandidates(),
+                            service, misskey.getHost(),
+                            getUserMeWithCache());
+
+            MisskeyConnectionListener connectionListener =
+                    new MisskeyConnectionListener(callback, () ->
+                            stream.main(notificationListener));
+
+            stream.setOpenedCallback(connectionListener);
+            stream.setClosedCallback(connectionListener);
+
+            return new net.socialhub.model.service.addition.misskey.MisskeyStream(stream);
+        });
+    }
+
     // ============================================================== //
     // Another TimeLines
     // ============================================================== //
@@ -1432,8 +1471,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
         public void onNoteUpdate(Note note) {
             if (listener instanceof UpdateCommentCallback) {
                 Comment comment = MisskeyMapper.comment(note, host, service);
-                UpdateCommentEvent event = new UpdateCommentEvent(comment);
-                ((UpdateCommentCallback) listener).onUpdate(event);
+                ((UpdateCommentCallback) listener).onUpdate(new CommentEvent(comment));
             }
         }
     }
@@ -1474,6 +1512,85 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
         @Override
         public void onError(Exception e) {
             logger.debug("WebSocket Error: ", e);
+        }
+    }
+
+    // コメントに対してのコールバック設定
+    static class MisskeyNotificationListener implements
+            FollowedCallback,
+            RenoteCallback,
+            ReplayCallback,
+            MentionCallback,
+            NotificationCallback {
+
+        private EventCallback listener;
+        private List<ReactionCandidate> reactions;
+        private Service service;
+        private String host;
+        private User me;
+
+        MisskeyNotificationListener(
+                EventCallback listener,
+                List<ReactionCandidate> reactions,
+                Service service,
+                String host,
+                User me) {
+            this.listener = listener;
+            this.reactions = reactions;
+            this.service = service;
+            this.host = host;
+            this.me = me;
+        }
+
+        @Override
+        public void onFollowed(misskey4j.entity.User user) {
+            if (listener instanceof FollowUserCallback) {
+                User model = MisskeyMapper.user(user, host, service);
+                ((FollowUserCallback) listener).onFollow(new UserEvent(model));
+            }
+        }
+
+        @Override
+        public void onMention(Note note) {
+            // Mention と Reply が重複することを防止
+            // -> 自分に対する Reply の場合は Reply に移譲
+            if (note.getReply().getUser().getId().equals(me.getId())) {
+                return;
+            }
+
+            if (listener instanceof MentionCommentCallback) {
+                Comment model = MisskeyMapper.comment(note, host, service);
+                ((MentionCommentCallback) listener).onMention(new CommentEvent(model));
+            }
+        }
+
+        @Override
+        public void onReply(Note note) {
+            if (listener instanceof MentionCommentCallback) {
+                Comment model = MisskeyMapper.comment(note, host, service);
+                ((MentionCommentCallback) listener).onMention(new CommentEvent(model));
+            }
+        }
+
+        @Override
+        public void onNotification(Notification notification) {
+
+            // Reaction or Renote の場合のみ反応
+            // (それ以外の場合は他でカバー済)
+            if (notification.getType().equals("reaction") ||
+                    notification.getType().equals("renote")) {
+
+                if (listener instanceof NotificationCommentCallback) {
+                    net.socialhub.model.service.Notification model =
+                            MisskeyMapper.notification(notification, reactions, host, service);
+                    ((NotificationCommentCallback) listener).onNotification(new NotificationEvent(model));
+                }
+            }
+        }
+
+        @Override
+        public void onRenote(Note note) {
+            // Renote は Notification にて反応
         }
     }
 

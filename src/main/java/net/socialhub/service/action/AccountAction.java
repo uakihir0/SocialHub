@@ -347,6 +347,14 @@ public interface AccountAction {
         throw new NotImplimentedException();
     }
 
+    /**
+     * Set Notification Stream
+     * 通知のストリームイベントを設定
+     */
+    default Stream setNotificationStream(EventCallback callback) {
+        throw new NotImplimentedException();
+    }
+
     // ============================================================== //
     // Request
     // ============================================================== //

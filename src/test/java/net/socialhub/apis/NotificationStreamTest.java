@@ -12,7 +12,6 @@ import net.socialhub.model.service.event.UserEvent;
 import net.socialhub.service.action.callback.comment.MentionCommentCallback;
 import net.socialhub.service.action.callback.comment.NotificationCommentCallback;
 import net.socialhub.service.action.callback.user.FollowUserCallback;
-import net.socialhub.service.misskey.MisskeyAction;
 import org.junit.Test;
 
 public class NotificationStreamTest extends AbstractApiTest {
@@ -21,8 +20,18 @@ public class NotificationStreamTest extends AbstractApiTest {
     public void testNotificationStream_Misskey() throws Exception {
 
         Account account = SocialAuthUtil.getMisskeyAccount();
-        Stream stream = ((MisskeyAction) account.action())
-                .setNotificationStream(new StreamCallback());
+        Stream stream = account.action().setNotificationStream(new StreamCallback());
+
+        stream.open();
+        Thread.sleep(1000 * 1000);
+        stream.close();
+    }
+
+    @Test
+    public void testNotificationStream_Mastodon() throws Exception {
+
+        Account account = SocialAuthUtil.getMastodonAccount();
+        Stream stream = account.action().setNotificationStream(new StreamCallback());
 
         stream.open();
         Thread.sleep(1000 * 1000);

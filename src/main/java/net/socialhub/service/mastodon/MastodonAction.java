@@ -38,8 +38,10 @@ import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.mastodon.MastodonStream;
 import net.socialhub.model.service.addition.mastodon.MastodonThread;
-import net.socialhub.model.service.event.IdentifyEvent;
 import net.socialhub.model.service.event.CommentEvent;
+import net.socialhub.model.service.event.IdentifyEvent;
+import net.socialhub.model.service.event.NotificationEvent;
+import net.socialhub.model.service.event.UserEvent;
 import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.paging.OffsetPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
@@ -48,9 +50,12 @@ import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.service.action.RequestAction;
 import net.socialhub.service.action.callback.EventCallback;
 import net.socialhub.service.action.callback.comment.DeleteCommentCallback;
+import net.socialhub.service.action.callback.comment.MentionCommentCallback;
+import net.socialhub.service.action.callback.comment.NotificationCommentCallback;
 import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
 import net.socialhub.service.action.callback.lifecycle.ConnectCallback;
 import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
+import net.socialhub.service.action.callback.user.FollowUserCallback;
 import net.socialhub.service.action.specific.MicroBlogAccountAction;
 import net.socialhub.utils.MapperUtil;
 
@@ -838,7 +843,24 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Service service = getAccount().getService();
 
             UserStream stream = mastodon.streaming().userStream().register(
-                    new MastodonCommentsListener(callback, service),
+                    new MastodonCommentListener(callback, service),
+                    new MastodonConnectionListener(callback));
+            return new MastodonStream(stream);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public net.socialhub.model.service.Stream
+    setNotificationStream(EventCallback callback) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            UserStream stream = mastodon.streaming().userStream().register(
+                    new MastodonNotificationListener(callback, service),
                     new MastodonConnectionListener(callback));
             return new MastodonStream(stream);
         });
@@ -978,7 +1000,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Service service = getAccount().getService();
 
             PublicStream stream = mastodon.streaming().publicStream(true).register(
-                    new MastodonCommentsListener(callback, service),
+                    new MastodonCommentListener(callback, service),
                     new MastodonConnectionListener(callback));
             return new MastodonStream(stream);
         });
@@ -995,7 +1017,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Service service = getAccount().getService();
 
             PublicStream stream = mastodon.streaming().publicStream(false).register(
-                    new MastodonCommentsListener(callback, service),
+                    new MastodonCommentListener(callback, service),
                     new MastodonConnectionListener(callback));
             return new MastodonStream(stream);
         });
@@ -1051,14 +1073,14 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
     // ============================================================== //
 
     // コメントに対してのコールバック設定
-    static class MastodonCommentsListener implements
+    static class MastodonCommentListener implements
             UserStreamListener,
             PublicStreamListener {
 
         private EventCallback listener;
         private Service service;
 
-        MastodonCommentsListener(
+        MastodonCommentListener(
                 EventCallback listener,
                 Service service) {
             this.listener = listener;
@@ -1104,6 +1126,66 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         public void onDisconnect() {
             if (listener instanceof DisconnectCallback) {
                 ((DisconnectCallback) listener).onDisconnect();
+            }
+        }
+    }
+
+    // 通知に対してのコールバック設定
+    static class MastodonNotificationListener implements
+            UserStreamListener,
+            PublicStreamListener {
+
+        private EventCallback listener;
+        private Service service;
+
+        MastodonNotificationListener(
+                EventCallback listener,
+                Service service) {
+            this.listener = listener;
+            this.service = service;
+        }
+
+        @Override
+        public void onNotification(mastodon4j.entity.Notification notification) {
+
+            MastodonNotificationType type =
+                    MastodonNotificationType.of(notification.getType());
+
+            if (type == MastodonNotificationType.MENTION ||
+                    type == MastodonNotificationType.FOLLOW ||
+                    type == MastodonNotificationType.REBLOG ||
+                    type == MastodonNotificationType.FAVOURITE) {
+
+                // Mention の場合は先に処理
+                if (type == MastodonNotificationType.MENTION) {
+                    if (listener instanceof MentionCommentCallback) {
+                        Comment model = MastodonMapper.comment(notification.getStatus(), service);
+                        ((MentionCommentCallback) listener).onMention(new CommentEvent(model));
+                    }
+                    return;
+                }
+
+                Notification model = MastodonMapper.notification(notification, service);
+
+                switch (type) {
+                    case FOLLOW:
+                        if (listener instanceof FollowUserCallback) {
+                            ((FollowUserCallback) listener).onFollow(
+                                    new UserEvent(model.getUsers().get(0)));
+                        }
+                        return;
+
+                    case REBLOG:
+                    case FAVOURITE:
+                        if (listener instanceof NotificationCommentCallback) {
+                            ((NotificationCommentCallback) listener).onNotification(
+                                    new NotificationEvent(model));
+                        }
+                        return;
+
+                    default:
+                        throw new IllegalStateException();
+                }
             }
         }
     }

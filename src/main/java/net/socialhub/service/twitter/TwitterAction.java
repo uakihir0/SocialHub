@@ -1,6 +1,7 @@
 package net.socialhub.service.twitter;
 
 import net.socialhub.define.MediaType;
+import net.socialhub.define.NotificationType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.define.service.twitter.TwitterSearchBuilder;
 import net.socialhub.define.service.twitter.TwitterSearchQuery;
@@ -13,6 +14,7 @@ import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Context;
 import net.socialhub.model.service.Identify;
+import net.socialhub.model.service.Notification;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Relationship;
@@ -22,8 +24,9 @@ import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.twitter.TwitterComment;
 import net.socialhub.model.service.addition.twitter.TwitterThread;
-import net.socialhub.model.service.event.IdentifyEvent;
 import net.socialhub.model.service.event.CommentEvent;
+import net.socialhub.model.service.event.IdentifyEvent;
+import net.socialhub.model.service.event.NotificationEvent;
 import net.socialhub.model.service.paging.CursorPaging;
 import net.socialhub.model.service.paging.IndexPaging;
 import net.socialhub.model.service.support.ReactionCandidate;
@@ -35,6 +38,8 @@ import net.socialhub.service.action.AccountActionImpl;
 import net.socialhub.service.action.RequestAction;
 import net.socialhub.service.action.callback.EventCallback;
 import net.socialhub.service.action.callback.comment.DeleteCommentCallback;
+import net.socialhub.service.action.callback.comment.MentionCommentCallback;
+import net.socialhub.service.action.callback.comment.NotificationCommentCallback;
 import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
 import net.socialhub.service.action.callback.lifecycle.ConnectCallback;
 import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
@@ -75,6 +80,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static net.socialhub.define.action.OtherActionType.BlockUser;
 import static net.socialhub.define.action.OtherActionType.DeleteComment;
@@ -1148,7 +1154,7 @@ public class TwitterAction extends AccountActionImpl {
 
             TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
             stream.addConnectionLifeCycleListener(new TwitterConnectionListener(callback));
-            stream.addListener(new TwitterCommentsListener(callback, idList, service));
+            stream.addListener(new TwitterCommentListener(callback, idList, service));
 
             return new net.socialhub.model.service.addition
                     .twitter.TwitterStream(stream, (s) -> {
@@ -1169,11 +1175,39 @@ public class TwitterAction extends AccountActionImpl {
             Service service = getAccount().getService();
             TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
             stream.addConnectionLifeCycleListener(new TwitterConnectionListener(callback));
-            stream.addListener(new TwitterCommentsListener(callback, null, service));
+            stream.addListener(new TwitterCommentListener(callback, null, service));
 
             return new net.socialhub.model.service.addition
                     .twitter.TwitterStream(stream, (s) -> {
                 FilterQuery q = new FilterQuery(query);
+                s.filter(q);
+            });
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public net.socialhub.model.service.Stream
+    setNotificationStream(EventCallback callback) {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Service service = getAccount().getService();
+            List<Long> idList = new ArrayList<>();
+
+            // 自分自身を取得
+            User me = getUserMeWithCache();
+            idList.add((Long) me.getId());
+
+            TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
+            stream.addConnectionLifeCycleListener(new TwitterConnectionListener(callback));
+            stream.addListener(new TwitterNotificationListener(callback, service, me));
+
+            return new net.socialhub.model.service.addition
+                    .twitter.TwitterStream(stream, (s) -> {
+                FilterQuery q = new FilterQuery(idList.stream()
+                        .mapToLong(e -> e).toArray());
                 s.filter(q);
             });
         });
@@ -1361,13 +1395,13 @@ public class TwitterAction extends AccountActionImpl {
     // ============================================================== //
 
     // コメントに対するコールバック設定
-    static class TwitterCommentsListener extends StatusAdapter {
+    static class TwitterCommentListener extends StatusAdapter {
 
         private EventCallback listener;
         private List<Long> userIdList;
         private Service service;
 
-        TwitterCommentsListener(
+        TwitterCommentListener(
                 EventCallback listener,
                 List<Long> userIdList,
                 Service service) {
@@ -1440,6 +1474,61 @@ public class TwitterAction extends AccountActionImpl {
         @Override
         public void onCleanUp() {
 
+        }
+    }
+
+    // 通知に対するコールバック設定
+    static class TwitterNotificationListener extends StatusAdapter {
+
+        private EventCallback listener;
+        private Service service;
+        private User me;
+
+        TwitterNotificationListener(
+                EventCallback listener,
+                Service service,
+                User me) {
+            this.listener = listener;
+            this.service = service;
+            this.me = me;
+        }
+
+        @Override
+        public void onStatus(Status status) {
+
+            if (listener instanceof NotificationCommentCallback) {
+
+                // そのユーザーに対しての RT の場合
+                if ((status.getRetweetedStatus() != null) &&
+                        (status.getRetweetedStatus().getUser().getId() == (Long) me.getId())) {
+                    Comment comment = TwitterMapper.comment(status, service);
+
+                    Notification model = new Notification(service);
+                    model.setType(NotificationType.SHARE.getCode());
+                    model.setComments(singletonList(comment.getDisplayComment()));
+                    model.setUsers(singletonList(comment.getUser()));
+
+                    ((NotificationCommentCallback) listener)
+                            .onNotification(new NotificationEvent(model));
+                    return;
+                }
+            }
+
+            if (listener instanceof MentionCommentCallback) {
+                String id = me.getAccountIdentify().toLowerCase();
+
+                // リプライの場合
+                if ((status.getInReplyToUserId() > 0) ||
+                        status.getText().toLowerCase().contains(id)) {
+                    Comment comment = TwitterMapper.comment(status, service);
+                    ((MentionCommentCallback) listener).onMention(new CommentEvent(comment));
+                    return;
+                }
+            }
+        }
+
+        @Override
+        public void onDeletionNotice(StatusDeletionNotice delete) {
         }
     }
 

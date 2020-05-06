@@ -17,6 +17,17 @@ import org.junit.Test;
 public class NotificationStreamTest extends AbstractApiTest {
 
     @Test
+    public void testNotificationStream_Twitter() throws Exception {
+
+        Account account = SocialAuthUtil.getTwitterAccount();
+        Stream stream = account.action().setNotificationStream(new StreamCallback());
+
+        stream.open();
+        Thread.sleep(1000 * 1000);
+        stream.close();
+    }
+
+    @Test
     public void testNotificationStream_Misskey() throws Exception {
 
         Account account = SocialAuthUtil.getMisskeyAccount();

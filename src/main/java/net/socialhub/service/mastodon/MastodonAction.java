@@ -842,10 +842,13 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
 
+            MastodonStream model = new MastodonStream();
             UserStream stream = mastodon.streaming().userStream().register(
                     new MastodonCommentListener(callback, service),
-                    new MastodonConnectionListener(callback));
-            return new MastodonStream(stream);
+                    new MastodonConnectionListener(callback, model));
+
+            model.setStream(stream);
+            return model;
         });
     }
 
@@ -859,10 +862,13 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
 
+            MastodonStream model = new MastodonStream();
             UserStream stream = mastodon.streaming().userStream().register(
                     new MastodonNotificationListener(callback, service),
-                    new MastodonConnectionListener(callback));
-            return new MastodonStream(stream);
+                    new MastodonConnectionListener(callback, model));
+
+            model.setStream(stream);
+            return model;
         });
     }
 
@@ -999,10 +1005,13 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
 
+            MastodonStream model = new MastodonStream();
             PublicStream stream = mastodon.streaming().publicStream(true).register(
                     new MastodonCommentListener(callback, service),
-                    new MastodonConnectionListener(callback));
-            return new MastodonStream(stream);
+                    new MastodonConnectionListener(callback, model));
+
+            model.setStream(stream);
+            return model;
         });
     }
 
@@ -1016,10 +1025,13 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
 
+            MastodonStream model = new MastodonStream();
             PublicStream stream = mastodon.streaming().publicStream(false).register(
                     new MastodonCommentListener(callback, service),
-                    new MastodonConnectionListener(callback));
-            return new MastodonStream(stream);
+                    new MastodonConnectionListener(callback, model));
+
+            model.setStream(stream);
+            return model;
         });
     }
 
@@ -1109,14 +1121,18 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
     static class MastodonConnectionListener implements LifeCycleListener {
 
         private EventCallback listener;
+        private MastodonStream stream;
 
         MastodonConnectionListener(
-                EventCallback listener) {
+                EventCallback listener,
+                MastodonStream stream) {
             this.listener = listener;
+            this.stream = stream;
         }
 
         @Override
         public void onConnect() {
+            stream.setConnecting(true);
             if (listener instanceof ConnectCallback) {
                 ((ConnectCallback) listener).onConnect();
             }
@@ -1124,6 +1140,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
         @Override
         public void onDisconnect() {
+            stream.setConnecting(false);
             if (listener instanceof DisconnectCallback) {
                 ((DisconnectCallback) listener).onDisconnect();
             }

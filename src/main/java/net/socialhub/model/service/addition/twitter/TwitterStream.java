@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 public class TwitterStream implements Stream {
 
+    private boolean connecting = false;
     private twitter4j.TwitterStream stream;
     private Consumer<twitter4j.TwitterStream> open;
 
@@ -19,10 +20,17 @@ public class TwitterStream implements Stream {
     @Override
     public void open() {
         open.accept(stream);
+        connecting = true;
     }
 
     @Override
     public void close() {
         stream.cleanUp();
+        connecting = false;
+    }
+
+    @Override
+    public boolean isOpened() {
+        return connecting;
     }
 }

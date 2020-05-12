@@ -20,4 +20,9 @@ public class MisskeyStream implements Stream {
     public void close() {
         stream.close();
     }
+
+    @Override
+    public boolean isOpened() {
+        return stream.isOpen();
+    }
 }

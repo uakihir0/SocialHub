@@ -1269,6 +1269,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
 
             stream.setOpenedCallback(connectionListener);
             stream.setClosedCallback(connectionListener);
+            stream.setErrorCallback(connectionListener);
 
             return new net.socialhub.model.service.addition.misskey.MisskeyStream(stream);
         });
@@ -1378,6 +1379,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
 
             stream.setOpenedCallback(connectionListener);
             stream.setClosedCallback(connectionListener);
+            stream.setErrorCallback(connectionListener);
 
             return new net.socialhub.model.service.addition.misskey.MisskeyStream(stream);
 
@@ -1404,6 +1406,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
 
             stream.setOpenedCallback(connectionListener);
             stream.setClosedCallback(connectionListener);
+            stream.setErrorCallback(connectionListener);
 
             return new net.socialhub.model.service.addition.misskey.MisskeyStream(stream);
         });

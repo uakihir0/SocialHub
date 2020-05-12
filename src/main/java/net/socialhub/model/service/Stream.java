@@ -9,4 +9,6 @@ public interface Stream {
     void open();
 
     void close();
+
+    boolean isOpened();
 }

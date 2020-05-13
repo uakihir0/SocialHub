@@ -33,6 +33,7 @@ import misskey4j.api.request.notes.NotesShowRequest;
 import misskey4j.api.request.notes.NotesTimelineRequest;
 import misskey4j.api.request.notes.NotesUserListTimelineRequest;
 import misskey4j.api.request.notes.UsersNotesRequest;
+import misskey4j.api.request.other.ServiceWorkerRegisterRequest;
 import misskey4j.api.request.polls.PollsVoteRequest;
 import misskey4j.api.request.protocol.PagingBuilder;
 import misskey4j.api.request.reactions.ReactionsCreateRequest;
@@ -1409,6 +1410,24 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             stream.setErrorCallback(connectionListener);
 
             return new net.socialhub.model.service.addition.misskey.MisskeyStream(stream);
+        });
+    }
+
+    /**
+     * Register ServiceWorker endpoint.
+     * サービスワーカーのエンドポイントを設定
+     */
+    public void registerSubscription(
+            String endpoint, String publicKey, String authSecret) {
+
+        proceed(() -> {
+            Misskey misskey = auth.getAccessor();
+            misskey.other().serviceWorkerRegister(
+                    ServiceWorkerRegisterRequest.builder()
+                            .endpoint(endpoint)
+                            .publickey(publicKey)
+                            .auth(authSecret)
+                            .build());
         });
     }
 

@@ -3,6 +3,7 @@ package net.socialhub.service.mastodon;
 import mastodon4j.Mastodon;
 import mastodon4j.Page;
 import mastodon4j.Range;
+import mastodon4j.entity.Alert;
 import mastodon4j.entity.Attachment;
 import mastodon4j.entity.Conversation;
 import mastodon4j.entity.History;
@@ -1032,6 +1033,29 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
             model.setStream(stream);
             return model;
+        });
+    }
+
+    /**
+     * Register ServiceWorker endpoint.
+     * サービスワーカーのエンドポイントを設定
+     */
+    public void registerSubscription(
+            String endpoint, String publicKey, String authSecret) {
+
+        proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+
+            // All notification
+            Alert alert = new Alert();
+            alert.setFollow(true);
+            alert.setFavourite(true);
+            alert.setReblog(true);
+            alert.setMention(true);
+            alert.setPoll(true);
+
+            mastodon.notifications().pushSubscription(
+                    endpoint, publicKey, authSecret, alert);
         });
     }
 

@@ -9,7 +9,7 @@ public enum MisskeyNotificationType {
     FOLLOW(NotificationType.FOLLOW,
             misskey4j.entity.contant.NotificationType.FOLLOW.code()),
     RENOTE(NotificationType.SHARE,
-            misskey4j.entity.contant.NotificationType.REMOTE.code()),
+            misskey4j.entity.contant.NotificationType.RENOTE.code()),
 
     REACTION(null, misskey4j.entity.contant.NotificationType.REACTION.code()),
     MENTION(null, misskey4j.entity.contant.NotificationType.MENTION.code()),

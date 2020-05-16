@@ -12,6 +12,8 @@ public class MastodonScope {
 
     public final static String FOLLOW = "follow";
 
+    public final static String PUSH = "push";
+
     /** Full Access Scopes */
-    public final static String FULL_ACCESS = READ + " " + WRITE + " " + FOLLOW;
+    public final static String FULL_ACCESS = READ + " " + WRITE + " " + FOLLOW + " " + PUSH;
 }

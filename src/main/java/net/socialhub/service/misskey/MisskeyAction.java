@@ -1203,7 +1203,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             builder.includeTypes(Arrays.asList(
                     NotificationType.FOLLOW.code(),
                     NotificationType.REACTION.code(),
-                    NotificationType.REMOTE.code()));
+                    NotificationType.RENOTE.code()));
 
             Future<Response<INotificationsResponse[]>> responseFuture =
                     pool.submit(() -> misskey.accounts()

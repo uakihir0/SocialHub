@@ -948,6 +948,24 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         });
     }
 
+    /**
+     * Get Notification (Single)
+     * 通知情報を取得
+     */
+    public Notification getNotification(Identify identify) {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            Response<mastodon4j.entity.Notification> notification =
+                    mastodon.notifications()
+                            .getNotification((Long) identify.getId());
+
+            return MastodonMapper.notification(
+                    notification.get(), service);
+        });
+    }
+
     // ============================================================== //
     // Request
     // ============================================================== //

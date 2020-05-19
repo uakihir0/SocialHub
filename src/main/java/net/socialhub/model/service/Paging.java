@@ -45,6 +45,9 @@ public class Paging implements Serializable {
     /**
      * Get page for get newer entities
      * 新しい情報を取得するページを取得
+     *
+     * @param entities DataList it's ordered by created date time for desc.
+     *                 算出するデータリスト、先頭から最新の ID になっている想定
      */
     public <T extends Identify> Paging newPage(List<T> entities) {
         return null;
@@ -53,6 +56,9 @@ public class Paging implements Serializable {
     /**
      * Get page for get past entities
      * 遡って過去の情報を取得するページを取得
+     *
+     * @param entities DataList it's ordered by created date time for desc.
+     *                 算出するデータリスト、先頭から最新の ID になっている想定
      */
     public <T extends Identify> Paging pastPage(List<T> entities) {
         return null;

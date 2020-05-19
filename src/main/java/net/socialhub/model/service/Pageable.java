@@ -1,6 +1,7 @@
 package net.socialhub.model.service;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -50,6 +51,24 @@ public class Pageable<T extends Identify> implements Serializable {
      */
     public Paging nextPage() {
         return paging.nextPage(entities);
+    }
+
+    /**
+     * Set newest boarder identify. (for streaming)
+     */
+    public void setNewestIdentify(T identify) {
+        List<T> model = new ArrayList<>(entities);
+        model.add(0, identify);
+        setEntities(model);
+    }
+
+    /**
+     * Set oldest boarder identify.
+     */
+    public void setOldestIdentify(T identify) {
+        List<T> model = new ArrayList<>(entities);
+        model.add(identify);
+        setEntities(model);
     }
 
     /**

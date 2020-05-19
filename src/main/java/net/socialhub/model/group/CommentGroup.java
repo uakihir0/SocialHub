@@ -40,6 +40,17 @@ public interface CommentGroup {
     Date getSinceDate();
 
     /**
+     * Set Newest comment. (for streaming)
+     */
+    void setNewestComment(Comment comment);
+
+    /**
+     * Set Oldest comment.
+     */
+    void setOldestComment(Comment comment);
+
+
+    /**
      * Get Actions
      */
     CommentGroupAction action();

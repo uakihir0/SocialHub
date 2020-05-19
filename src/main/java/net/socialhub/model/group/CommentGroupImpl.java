@@ -154,6 +154,16 @@ public class CommentGroupImpl implements CommentGroup {
         return new CommentGroupActionImpl(this);
     }
 
+    @Override
+    public void setNewestComment(Comment comment) {
+        setMaxDate(comment.getCreateAt());
+    }
+
+    @Override
+    public void setOldestComment(Comment comment) {
+        setSinceDate(comment.getCreateAt());
+    }
+
     //region // Getter&Setter
     @Override
     public CommentsRequestGroup getRequestGroup() {

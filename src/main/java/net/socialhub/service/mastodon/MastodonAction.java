@@ -1077,6 +1077,27 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         });
     }
 
+    /**
+     * Get user pinned comments.
+     * ユーザーのピンされたコメントを取得
+     */
+    public List<Comment> getUserPinedComments(Identify id) {
+
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Service service = getAccount().getService();
+            Range range = new Range();
+            range.setLimit(100);
+
+            Response<Status[]> status = mastodon.accounts().getStatuses( //
+                    (Long) id.getId(), true, false, false, false, range);
+
+            return Stream.of(status.get())
+                    .map(s -> MastodonMapper.comment(s, service))
+                    .collect(toList());
+        });
+    }
+
     // ============================================================== //
     // Paging
     // ============================================================== //

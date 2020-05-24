@@ -157,11 +157,25 @@ public class CommentGroupImpl implements CommentGroup {
     @Override
     public void setNewestComment(Comment comment) {
         setMaxDate(comment.getCreateAt());
+
+        // リクエストが単数の場合
+        // -> ページネーションにも通知
+        if (entities.size() == 1) {
+            Pageable<Comment> entity = entities.values().iterator().next();
+            entity.setNewestIdentify(comment);
+        }
     }
 
     @Override
     public void setOldestComment(Comment comment) {
         setSinceDate(comment.getCreateAt());
+
+        // リクエストが単数の場合
+        // -> ページネーションにも通知
+        if (entities.size() == 1) {
+            Pageable<Comment> entity = entities.values().iterator().next();
+            entity.setOldestIdentify(comment);
+        }
     }
 
     //region // Getter&Setter

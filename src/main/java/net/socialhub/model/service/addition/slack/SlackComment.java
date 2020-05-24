@@ -26,6 +26,12 @@ public class SlackComment extends Comment {
     }
 
     @Override
+    public String getWebUrl() {
+        return "https://app.slack.com/archives/" +
+                getChannel() + "/p" + getId();
+    }
+
+    @Override
     public List<Reaction> getReactions() {
         if (reactions == null) {
             return super.getReactions();

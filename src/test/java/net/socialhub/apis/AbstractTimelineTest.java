@@ -32,13 +32,16 @@ public class AbstractTimelineTest extends AbstractApiTest {
 
         Comment dc = c.getDisplayComment();
         System.out.println("Text > " + dc.getText().getDisplayText());
+        System.out.println("Url > " + dc.getWebUrl());
 
         if (c instanceof SlackComment) {
             System.out.println("Channel > " + ((SlackComment) c).getChannel());
         }
+
         if (dc.getApplication() != null) {
             System.out.println("App > " + dc.getApplication().getName());
         }
+
         if (c instanceof MiniBlogComment) {
             Poll poll = ((MiniBlogComment) c).getPoll();
             if (poll != null) {
@@ -54,6 +57,7 @@ public class AbstractTimelineTest extends AbstractApiTest {
             System.out.println("M Source > " + m.getSourceUrl());
             System.out.println("M Preview > " + m.getPreviewUrl());
         }
+
         for (Reaction m : dc.getReactions()) {
             if (m.getCount() > 0) {
                 System.out.println("Reaction > " + m.getName() + " : " + m.getCount());

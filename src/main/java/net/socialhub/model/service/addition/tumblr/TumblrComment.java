@@ -13,8 +13,13 @@ import java.util.List;
  */
 public class TumblrComment extends Comment {
 
+    /** Note (Reaction) count */
     private Long noteCount;
 
+    /** Tumblr wrb url */
+    private String webUrl;
+
+    /** User already liked this post */
     private boolean isLiked;
 
     public TumblrComment(Service service) {
@@ -55,6 +60,15 @@ public class TumblrComment extends Comment {
     }
 
     //region // Getter&Setter
+    @Override
+    public String getWebUrl() {
+        return webUrl;
+    }
+
+    public void setWebUrl(String webUrl) {
+        this.webUrl = webUrl;
+    }
+
     public String getReblogKey() {
         return reblogKey;
     }

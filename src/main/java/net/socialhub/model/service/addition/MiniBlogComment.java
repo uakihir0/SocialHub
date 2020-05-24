@@ -38,11 +38,6 @@ public abstract class MiniBlogComment extends Comment {
         super(service);
     }
 
-    /**
-     * Url を取得
-     */
-    abstract public String getWebUrl();
-
     @Override
     public Comment getDisplayComment() {
         return (getText() == null && getSharedComment() != null) //

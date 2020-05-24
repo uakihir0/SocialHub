@@ -192,6 +192,7 @@ public class TumblrMapper {
         model.setCreateAt(new Date(post.getTimestamp() * 1000));
         model.setReblogKey(post.getReblogKey());
         model.setNoteCount(post.getNoteCount());
+        model.setWebUrl(post.getPostUrl());
 
         model.setId(post.getId());
         model.setUser(user(post, trails, service));

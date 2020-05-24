@@ -12,8 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
-
 /**
  * Twitter Comment Model
  * Twitter のコメント情報
@@ -58,7 +56,7 @@ public class TwitterComment extends MiniBlogComment {
         // 以下でネットワークリクエストが発生するので注意
         AccountAction account = getService().getAccount().action();
         if (account instanceof TwitterAction) {
-            User me = ((TwitterAction)account).getUserMeWithCache();
+            User me = ((TwitterAction) account).getUserMeWithCache();
             candidates.remove(me.getAccountIdentify());
         }
 

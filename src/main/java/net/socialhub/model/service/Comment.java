@@ -103,6 +103,14 @@ public class Comment extends Identify {
     }
 
     /**
+     * Get Web Url
+     * Web のアドレスを取得
+     */
+    public String getWebUrl() {
+        throw new NotImplimentedException();
+    }
+
+    /**
      * Only shared content comment.
      * 共有されたコメント情報のみの場合
      */

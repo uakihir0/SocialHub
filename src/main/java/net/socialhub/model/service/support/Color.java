@@ -10,9 +10,22 @@ public class Color {
     private int b;
     private int a;
 
-    public Color(String color) {
+    /**
+     * Initialize with white color.
+     */
+    public Color() {
+        r = 255;
+        g = 255;
+        b = 255;
+        a = 255;
+    }
+
+    /**
+     * Initialize with JavaScript expression.
+     */
+    public Color(String javaScriptColorExpression) {
         Pattern p = Pattern.compile("rgb\\(([0-9]+),([0-9]+),([0-9]+)\\)");
-        Matcher m = p.matcher(color);
+        Matcher m = p.matcher(javaScriptColorExpression);
 
         if (m.find()) {
             r = Integer.parseInt(m.group(1));

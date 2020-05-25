@@ -129,10 +129,10 @@ public class MisskeyMapper {
 
         // 色設定
         if (account.getAvatarColor() != null) {
-            model.setAvatarColor(new Color(account.getAvatarColor()));
+            model.setAvatarColor(color(account.getAvatarColor()));
         }
         if (account.getBannerColor() != null) {
-            model.setBannerColor(new Color(account.getBannerColor()));
+            model.setBannerColor(color(account.getBannerColor()));
         }
 
         // プロフィールページの設定
@@ -531,6 +531,20 @@ public class MisskeyMapper {
         model.setName("#" + trend.getTag());
         model.setQuery("#" + trend.getTag());
         model.setVolume(trend.getUsersCount().intValue());
+        return model;
+    }
+
+    /**
+     * カラーマッピング
+     */
+    public static Color color(
+            misskey4j.entity.Color color) {
+
+        Color model = new Color();
+        model.setR(color.getR());
+        model.setG(color.getG());
+        model.setB(color.getB());
+        model.setA(255);
         return model;
     }
 

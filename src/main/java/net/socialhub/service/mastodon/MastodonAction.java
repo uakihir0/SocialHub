@@ -1,6 +1,7 @@
 package net.socialhub.service.mastodon;
 
 import mastodon4j.Mastodon;
+import mastodon4j.MastodonException;
 import mastodon4j.Page;
 import mastodon4j.Range;
 import mastodon4j.entity.Alert;
@@ -28,6 +29,7 @@ import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Error;
 import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Notification;
 import net.socialhub.model.service.Pageable;
@@ -99,7 +101,7 @@ import static net.socialhub.define.action.UsersActionType.SearchUsers;
 
 public class MastodonAction extends AccountActionImpl implements MicroBlogAccountAction {
 
-    private static Logger logger = Logger.getLogger(MastodonAction.class);
+    private static final Logger logger = Logger.getLogger(MastodonAction.class);
 
     private ServiceAuth<Mastodon> auth;
 
@@ -1183,8 +1185,8 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
     // 通信に対してのコールバック設定
     static class MastodonConnectionListener implements LifeCycleListener {
 
-        private EventCallback listener;
-        private MastodonStream stream;
+        private final EventCallback listener;
+        private final MastodonStream stream;
 
         MastodonConnectionListener(
                 EventCallback listener,
@@ -1215,8 +1217,8 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             UserStreamListener,
             PublicStreamListener {
 
-        private EventCallback listener;
-        private Service service;
+        private final EventCallback listener;
+        private final Service service;
 
         MastodonNotificationListener(
                 EventCallback listener,
@@ -1292,7 +1294,19 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
     }
 
     private static void handleException(Exception e) {
-        throw new SocialHubException(e);
+        SocialHubException se = new SocialHubException(e);
+
+        if (e instanceof MastodonException) {
+            MastodonException me = (MastodonException) e;
+
+            // エラーメッセージが設定されているエラーである場合
+            if (me.getError() != null && me.getError().getDescription() != null) {
+                String description = me.getError().getDescription();
+                se.setError(new Error(description));
+            }
+        }
+
+        throw se;
     }
 
     //region // Getter&Setter

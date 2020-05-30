@@ -1,6 +1,7 @@
 package net.socialhub.service.misskey;
 
 import misskey4j.Misskey;
+import misskey4j.MisskeyException;
 import misskey4j.api.request.UsersListsListRequest;
 import misskey4j.api.request.UsersListsShowRequest;
 import misskey4j.api.request.blocks.BlocksCreateRequest;
@@ -69,6 +70,7 @@ import misskey4j.api.response.users.UsersFollowingsResponse;
 import misskey4j.api.response.users.UsersRelationResponse;
 import misskey4j.api.response.users.UsersSearchResponse;
 import misskey4j.api.response.users.UsersShowResponse;
+import misskey4j.entity.Error.ErrorDetail;
 import misskey4j.entity.Follow;
 import misskey4j.entity.Message;
 import misskey4j.entity.Note;
@@ -96,6 +98,7 @@ import net.socialhub.model.request.MediaForm;
 import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Error;
 import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
@@ -146,7 +149,7 @@ import static java.util.stream.Collectors.toList;
 
 public class MisskeyAction extends AccountActionImpl implements MicroBlogAccountAction {
 
-    private static Logger logger = Logger.getLogger(MisskeyAction.class);
+    private static final Logger logger = Logger.getLogger(MisskeyAction.class);
 
     private ServiceAuth<Misskey> auth;
 
@@ -1504,8 +1507,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             ClosedCallback,
             ErrorCallback {
 
-        private EventCallback listener;
-        private Runnable runnable;
+        private final EventCallback listener;
+        private final Runnable runnable;
 
         MisskeyConnectionListener(
                 EventCallback listener,
@@ -1545,11 +1548,11 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             MentionCallback,
             NotificationCallback {
 
-        private EventCallback listener;
-        private List<ReactionCandidate> reactions;
-        private Service service;
-        private String host;
-        private User me;
+        private final EventCallback listener;
+        private final List<ReactionCandidate> reactions;
+        private final Service service;
+        private final String host;
+        private final User me;
 
         MisskeyNotificationListener(
                 EventCallback listener,
@@ -1638,7 +1641,19 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
     }
 
     private static void handleException(Exception e) {
-        throw new SocialHubException(e);
+        SocialHubException se = new SocialHubException(e);
+
+        if (e instanceof MisskeyException) {
+            MisskeyException me = (MisskeyException) e;
+
+            // エラーメッセージが設定されているエラーである場合
+            if (me.getError() != null && me.getError().getError() != null) {
+                ErrorDetail detail = me.getError().getError();
+                se.setError(new Error(detail.getMessage()));
+            }
+        }
+
+        throw se;
     }
 
     //region // Getter&Setter

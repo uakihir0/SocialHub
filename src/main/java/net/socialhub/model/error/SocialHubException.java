@@ -2,6 +2,12 @@ package net.socialhub.model.error;
 
 public class SocialHubException extends RuntimeException {
 
+    /**
+     * Error detail
+     * エラー情報をまとめたものを設定
+     */
+    private SocialHubError error;
+
     public SocialHubException() {
         super();
     }
@@ -18,4 +24,13 @@ public class SocialHubException extends RuntimeException {
         super(cause);
     }
 
+    // region
+    public SocialHubError getError() {
+        return error;
+    }
+
+    public void setError(SocialHubError error) {
+        this.error = error;
+    }
+    // endregion
 }

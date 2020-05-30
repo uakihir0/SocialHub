@@ -1,5 +1,6 @@
 package net.socialhub.service.twitter;
 
+import net.socialhub.define.ErrorType;
 import net.socialhub.define.MediaType;
 import net.socialhub.define.NotificationType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
@@ -13,6 +14,7 @@ import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Context;
+import net.socialhub.model.service.Error;
 import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Notification;
 import net.socialhub.model.service.Pageable;
@@ -63,6 +65,7 @@ import twitter4j.StatusDeletionNotice;
 import twitter4j.StatusUpdate;
 import twitter4j.Trends;
 import twitter4j.Twitter;
+import twitter4j.TwitterException;
 import twitter4j.TwitterStream;
 import twitter4j.UserList;
 
@@ -116,7 +119,7 @@ import static net.socialhub.utils.CollectionUtil.partitionList;
  */
 public class TwitterAction extends AccountActionImpl {
 
-    private static Logger logger = Logger.getLogger(TwitterAction.class);
+    private static final Logger logger = Logger.getLogger(TwitterAction.class);
 
     private ServiceAuth<Twitter> auth;
 
@@ -1397,9 +1400,9 @@ public class TwitterAction extends AccountActionImpl {
     // コメントに対するコールバック設定
     static class TwitterCommentListener extends StatusAdapter {
 
-        private EventCallback listener;
-        private List<Long> userIdList;
-        private Service service;
+        private final EventCallback listener;
+        private final List<Long> userIdList;
+        private final Service service;
 
         TwitterCommentListener(
                 EventCallback listener,
@@ -1450,7 +1453,7 @@ public class TwitterAction extends AccountActionImpl {
     // 通信に対するコールバック設定
     static class TwitterConnectionListener implements ConnectionLifeCycleListener {
 
-        private EventCallback listener;
+        private final EventCallback listener;
 
         TwitterConnectionListener(
                 EventCallback listener) {
@@ -1480,9 +1483,9 @@ public class TwitterAction extends AccountActionImpl {
     // 通知に対するコールバック設定
     static class TwitterNotificationListener extends StatusAdapter {
 
-        private EventCallback listener;
-        private Service service;
-        private User me;
+        private final EventCallback listener;
+        private final Service service;
+        private final User me;
 
         TwitterNotificationListener(
                 EventCallback listener,
@@ -1579,7 +1582,24 @@ public class TwitterAction extends AccountActionImpl {
     }
 
     private static void handleTwitterException(Exception e) {
-        throw new SocialHubException(e);
+        SocialHubException se = new SocialHubException(e);
+
+        if (e instanceof TwitterException) {
+            TwitterException te = (TwitterException) e;
+
+            // 特殊対応エラー：リクエスト上限
+            if (te.exceededRateLimitation()) {
+                se.setError(ErrorType.RATE_LIMIT_EXCEEDED);
+                throw se;
+            }
+
+            // その他エラーの場合はエラーメッセージ内容を作成
+            if (te.isErrorMessageAvailable()) {
+                se.setError(new Error(te.getErrorMessage()));
+                throw se;
+            }
+        }
+        throw se;
     }
 
     private String decodeUrlEncode(String str) {

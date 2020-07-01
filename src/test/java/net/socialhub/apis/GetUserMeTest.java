@@ -86,5 +86,6 @@ public class GetUserMeTest extends AbstractApiTest {
         Account account = SocialAuthUtil.getSlackAccount();
         User user = account.action().getUserMe();
         System.out.println(user.getName());
+        System.out.println(user.getWebUrl());
     }
 }

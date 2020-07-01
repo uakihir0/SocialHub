@@ -29,12 +29,7 @@ public abstract class MiniBlogUser extends User {
 
     /** Profile url */
     private AttributedString profileUrl;
-
-    /**
-     * Url を取得
-     */
-    abstract public String getWebUrl();
-
+    
     @Override
     public CommentForm getCommentForm() {
         CommentForm form = new CommentForm();

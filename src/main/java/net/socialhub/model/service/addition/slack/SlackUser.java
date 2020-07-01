@@ -38,6 +38,14 @@ public class SlackUser extends User {
     private Boolean isBot;
 
     @Override
+    public String getWebUrl() {
+        return "https://app.slack.com/client/"
+                + team.getId()
+                + "/user_profile/"
+                + this.getId();
+    }
+
+    @Override
     public CommentForm getMessageForm() {
         CommentForm form = new CommentForm();
         form.targetId(getId());

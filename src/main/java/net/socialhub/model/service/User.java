@@ -81,6 +81,14 @@ public class User extends Identify {
         throw new NotImplimentedException();
     }
 
+    /**
+     * Get Web Url
+     * Web のアドレスを取得
+     */
+    public String getWebUrl() {
+        throw new NotImplimentedException();
+    }
+
     //region // Getter&Setter
     public String getName() {
         return name;

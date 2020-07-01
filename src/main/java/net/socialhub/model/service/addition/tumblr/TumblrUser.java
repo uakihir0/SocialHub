@@ -31,6 +31,11 @@ public class TumblrUser extends User {
      */
     private Relationship relationship;
 
+    @Override
+    public String getWebUrl() {
+        return blogUrl;
+    }
+
     //region // Getter&Setter
     public Integer getFollowersCount() {
         return followersCount;

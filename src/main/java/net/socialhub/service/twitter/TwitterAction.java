@@ -26,6 +26,7 @@ import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.twitter.TwitterComment;
 import net.socialhub.model.service.addition.twitter.TwitterThread;
+import net.socialhub.model.service.addition.twitter.TwitterUser;
 import net.socialhub.model.service.event.CommentEvent;
 import net.socialhub.model.service.event.IdentifyEvent;
 import net.socialhub.model.service.event.NotificationEvent;
@@ -45,6 +46,9 @@ import net.socialhub.service.action.callback.comment.NotificationCommentCallback
 import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
 import net.socialhub.service.action.callback.lifecycle.ConnectCallback;
 import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
+import net.socialhub.twitter.web.TwitterWebClient;
+import net.socialhub.twitter.web.entity.request.UserTimelineRequest;
+import net.socialhub.twitter.web.entity.response.TopLevel;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.SnowflakeUtil;
@@ -122,6 +126,14 @@ public class TwitterAction extends AccountActionImpl {
     private static final Logger logger = Logger.getLogger(TwitterAction.class);
 
     private ServiceAuth<Twitter> auth;
+
+    // -------------------------------------------------------------- //
+    // Twitter WebClient Fields
+    // -------------------------------------------------------------- //
+
+    private boolean useWebClient = true;
+
+    private TwitterWebClient webClient = null;
 
     // ============================================================== //
     // Account
@@ -436,6 +448,38 @@ public class TwitterAction extends AccountActionImpl {
     @Override
     public Pageable<Comment> getUserMediaTimeLine(Identify id, Paging paging) {
         return proceed(() -> {
+
+            if (useWebClient) {
+
+                // 公開アカウントの場合 Web API から取得
+                if (id instanceof TwitterUser) {
+                    TwitterUser twuser = (TwitterUser) id;
+                    if (!twuser.getProtected()) {
+
+                        try {
+                            Twitter twitter = auth.getAccessor();
+                            Service service = getAccount().getService();
+
+                            UserTimelineRequest request = new UserTimelineRequest();
+                            request.setUserId(twuser.getId().toString());
+                            request.setCount(100);
+
+                            TopLevel top = getWebClient().timeline()
+                                    .getUserMediaTimeline(request).get();
+
+                            long[] tweetIds = top.toTweetTimeline().stream()
+                                    .mapToLong(e -> Long.parseLong(e.getId()))
+                                    .toArray();
+
+                            ResponseList<Status> statues = twitter.tweets().lookup(tweetIds);
+                            return TwitterMapper.timeLine(statues, service, paging);
+
+                        } catch (Exception e) {
+                            logger.debug("failed to get data from web api.", e);
+                        }
+                    }
+                }
+            }
 
             int requestCount = 0;
             int maxMediaCount = 50;
@@ -1608,6 +1652,17 @@ public class TwitterAction extends AccountActionImpl {
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private TwitterWebClient getWebClient() {
+        if (webClient == null) {
+            webClient = new TwitterWebClient.Builder().build();
+        }
+        return webClient;
+    }
+
+    public void setUseWebClient(boolean useWebClient) {
+        this.useWebClient = useWebClient;
     }
 
     //region // Getter&Setter

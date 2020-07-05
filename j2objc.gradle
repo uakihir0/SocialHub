@@ -54,6 +54,7 @@ dependencies {
     // J2ObjC Network Library
     compile('com.github.uakihir0.twitter4j:twitter4j-core:4.0.8.4')
     compile('com.github.uakihir0.twitter4j:twitter4j-stream:4.0.8.4')
+    compile('com.github.uakihir0:twitter-web-client:0.2')
     compile('com.github.uakihir0:twitter-text:3.0.1.1')
     compile('com.github.uakihir0.facebook4j:facebook4j-core:2.4.11.3')
     compile('com.github.uakihir0.jslack:jslack-api-client:3.2.2.2')

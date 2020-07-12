@@ -4,9 +4,12 @@ import net.socialhub.SocialAuthUtil;
 import net.socialhub.apis.AbstractTimelineTest;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.Channel;
+import net.socialhub.model.service.Comment;
+import net.socialhub.model.service.Identify;
 import net.socialhub.model.service.Pageable;
 import net.socialhub.model.service.Paging;
 import net.socialhub.model.service.Trend;
+import net.socialhub.model.service.User;
 import net.socialhub.model.service.support.TrendComment;
 import net.socialhub.model.service.support.TrendCountry;
 import net.socialhub.model.service.support.TrendCountry.TrendLocation;
@@ -84,6 +87,31 @@ public class TwitterActionTest extends AbstractTimelineTest {
 
         for (Channel channel : channels.getEntities()) {
             System.out.println(channel.getName());
+        }
+    }
+
+    @Test
+    public void getReactionUsers() {
+        Account account = SocialAuthUtil.getTwitterAccount();
+        TwitterAction action = (TwitterAction) account.action();
+
+        Identify id = new Identify(account.getService(), 25073877L);
+        Pageable<Comment> comment = action.getUserCommentTimeLine(id, new Paging(1L));
+
+        Comment c = comment.getEntities().get(0);
+
+        Pageable<User> favoriteUsers = action.getUsersFavoriteBy(c, new Paging(100L));
+        System.out.println("// ================================= //");
+        System.out.println("// Favorite //");
+        for (User user : favoriteUsers.getEntities()) {
+            System.out.println(user.getName());
+        }
+
+        Pageable<User> retweetUsers = action.getUsersRetweetBy(c, new Paging(100L));
+        System.out.println("// ================================= //");
+        System.out.println("// Retweet //");
+        for (User user : retweetUsers.getEntities()) {
+            System.out.println(user.getName());
         }
     }
 }

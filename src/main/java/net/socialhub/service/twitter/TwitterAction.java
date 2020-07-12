@@ -47,8 +47,11 @@ import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
 import net.socialhub.service.action.callback.lifecycle.ConnectCallback;
 import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
 import net.socialhub.twitter.web.TwitterWebClient;
+import net.socialhub.twitter.web.entity.request.SpecifiedTweetRequest;
 import net.socialhub.twitter.web.entity.request.UserTimelineRequest;
+import net.socialhub.twitter.web.entity.request.graphql.ScreenNameRequest;
 import net.socialhub.twitter.web.entity.response.TopLevel;
+import net.socialhub.twitter.web.entity.response.graphql.GraphRoot;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
 import net.socialhub.utils.SnowflakeUtil;
@@ -83,10 +86,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static net.socialhub.define.action.OtherActionType.BlockUser;
@@ -446,6 +452,7 @@ public class TwitterAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
+    @SuppressWarnings("unchecked")
     public Pageable<Comment> getUserMediaTimeLine(Identify id, Paging paging) {
         return proceed(() -> {
 
@@ -462,7 +469,8 @@ public class TwitterAction extends AccountActionImpl {
 
                             UserTimelineRequest request = new UserTimelineRequest();
                             request.setUserId(twuser.getId().toString());
-                            request.setCount(100);
+                            request.setCount(getCountFromPage(paging, 100));
+                            request.setCursor(getCursorFromPage(paging, null));
 
                             TopLevel top = getWebClient().timeline()
                                     .getUserMediaTimeline(request).get();
@@ -471,10 +479,20 @@ public class TwitterAction extends AccountActionImpl {
                                     .mapToLong(e -> Long.parseLong(e.getId()))
                                     .toArray();
 
+                            CursorPaging<String> pg = CursorPaging.fromPaging(paging);
+                            pg.setHasNext(top.getBottomCursor() != null);
+                            pg.setNextCursor(top.getBottomCursor());
+                            pg.setHasPrev(top.getTopCursor() != null);
+                            pg.setPrevCursor(top.getTopCursor());
+
                             ResponseList<Status> statues = twitter.tweets().lookup(tweetIds);
-                            return TwitterMapper.timeLine(statues, service, paging);
+                            Pageable<Comment> pageable = TwitterMapper.timeLine(statues, service, paging);
+                            pageable.setPaging(pg);
+                            return pageable;
 
                         } catch (Exception e) {
+
+                            // Web 経由で取得できない場合は API 連続呼び出しを試行する
                             logger.debug("failed to get data from web api.", e);
                         }
                     }
@@ -1261,6 +1279,59 @@ public class TwitterAction extends AccountActionImpl {
     }
 
     // ============================================================== //
+    // Micro Blog
+    // ============================================================== //
+
+    /**
+     * Get user pinned comments.
+     * ユーザーのピンされたコメントを取得
+     */
+    public List<Comment> getUserPinedComments(Identify id) {
+
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            if (useWebClient) {
+
+                // 公開アカウントの場合 Web API から取得
+                if (id instanceof TwitterUser) {
+                    TwitterUser twuser = (TwitterUser) id;
+                    if (!twuser.getProtected()) {
+
+                        ScreenNameRequest request = new ScreenNameRequest();
+                        request.setScreenName(twuser.getScreenName());
+
+                        GraphRoot root = getWebClient().user().getUserByScreenName(request).get();
+                        String[] pinTweetIds = root.getData().getUser().getLegacy().getPinnedTweetIds();
+
+                        // ユーザーの PIN ツイートが見つからない場合は空リストを返す
+                        if (pinTweetIds == null || pinTweetIds.length == 0) {
+                            return emptyList();
+                        }
+
+                        // 個々のツイートの取得
+                        ResponseList<Status> statuses = twitter.tweets().lookup(
+                                Stream.of(pinTweetIds).mapToLong(Long::parseLong).toArray());
+
+                        // モデルにマッピングして返却
+                        return statuses.stream().map(e -> TwitterMapper.comment(e, service))
+                                .sorted(Comparator.comparing(Comment::getCreateAt).reversed())
+                                .collect(toList());
+
+                    } else {
+                        throw new SocialHubException("User is not public account.");
+                    }
+                } else {
+                    throw new SocialHubException("Need twitter user object for identify.");
+                }
+            } else {
+                throw new SocialHubException("Cannot access to user's pin tweet.");
+            }
+        });
+    }
+
+    // ============================================================== //
     // Others
     // ============================================================== //
 
@@ -1400,6 +1471,102 @@ public class TwitterAction extends AccountActionImpl {
 
                 return model;
             }).collect(toList());
+        });
+    }
+
+    /**
+     * Get Users who favorites specified tweet
+     * 特定のツイートをいいねしたユーザーを取得
+     */
+    public Pageable<User> getUsersFavoriteBy(Identify id, Paging paging) {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            if (useWebClient) {
+
+                // 公開アカウントの場合 Web API から取得
+                if (id instanceof TwitterComment) {
+                    TwitterComment c = (TwitterComment) id;
+                    if (!((TwitterUser) c.getUser()).getProtected()) {
+
+                        SpecifiedTweetRequest request = new SpecifiedTweetRequest();
+                        request.setTweetId(c.getId().toString());
+                        request.setCount(getCountFromPage(paging, 100));
+                        request.setCursor(getCursorFromPage(paging, null));
+
+                        TopLevel top = getWebClient().user().getUsersLikedBy(request).get();
+                        long[] userIds = top.toUserTimeline().stream().filter(Objects::nonNull)
+                                .mapToLong(e -> Long.parseLong(e.getId())).toArray();
+
+                        CursorPaging<String> pg = CursorPaging.fromPaging(paging);
+                        pg.setHasNext(top.getBottomCursor() != null);
+                        pg.setNextCursor(top.getBottomCursor());
+                        pg.setHasPrev(top.getTopCursor() != null);
+                        pg.setPrevCursor(top.getTopCursor());
+
+                        ResponseList<twitter4j.User> users = twitter.users().lookupUsers(userIds);
+                        Pageable<User> pageable = TwitterMapper.users(users, service, paging);
+                        pageable.setPaging(pg);
+                        return pageable;
+
+                    } else {
+                        throw new SocialHubException("User is not public account.");
+                    }
+                } else {
+                    throw new SocialHubException("Need twitter comment object for identify.");
+                }
+            } else {
+                throw new SocialHubException("Cannot access to user's pin tweet.");
+            }
+        });
+    }
+
+    /**
+     * Get Users who retweeted specified tweet
+     * 特定のツイートをリツイートしたユーザーを取得
+     */
+    public Pageable<User> getUsersRetweetBy(Identify id, Paging paging) {
+        return proceed(() -> {
+            Twitter twitter = auth.getAccessor();
+            Service service = getAccount().getService();
+
+            if (useWebClient) {
+
+                // 公開アカウントの場合 Web API から取得
+                if (id instanceof TwitterComment) {
+                    TwitterComment c = (TwitterComment) id;
+                    if (!((TwitterUser) c.getUser()).getProtected()) {
+
+                        SpecifiedTweetRequest request = new SpecifiedTweetRequest();
+                        request.setTweetId(c.getId().toString());
+                        request.setCount(getCountFromPage(paging, 100));
+                        request.setCursor(getCursorFromPage(paging, null));
+
+                        TopLevel top = getWebClient().user().getUsersRetweetedBy(request).get();
+                        long[] userIds = top.toUserTimeline().stream().filter(Objects::nonNull)
+                                .mapToLong(e -> Long.parseLong(e.getId())).toArray();
+
+                        CursorPaging<String> pg = CursorPaging.fromPaging(paging);
+                        pg.setHasNext(top.getBottomCursor() != null);
+                        pg.setNextCursor(top.getBottomCursor());
+                        pg.setHasPrev(top.getTopCursor() != null);
+                        pg.setPrevCursor(top.getTopCursor());
+
+                        ResponseList<twitter4j.User> users = twitter.users().lookupUsers(userIds);
+                        Pageable<User> pageable = TwitterMapper.users(users, service, paging);
+                        pageable.setPaging(pg);
+                        return pageable;
+
+                    } else {
+                        throw new SocialHubException("User is not public account.");
+                    }
+                } else {
+                    throw new SocialHubException("Need twitter comment object for identify.");
+                }
+            } else {
+                throw new SocialHubException("Cannot access to user's pin tweet.");
+            }
         });
     }
 

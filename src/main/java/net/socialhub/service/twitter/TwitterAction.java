@@ -90,6 +90,8 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -183,6 +185,29 @@ public class TwitterAction extends AccountActionImpl {
             }
 
             return null;
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     * Parse Twitter user's url, like "https://twitter.com/uakihir0".
+     */
+    @Override
+    public User getUser(String url) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+
+            Pattern regex = Pattern.compile("https://twitter.com/(.+?)");
+            Matcher matcher = regex.matcher(url);
+
+            if (matcher.matches()) {
+                String sname = matcher.group(1);
+                twitter4j.User user = auth.getAccessor().showUser(sname);
+                service.getRateLimit().addInfo(GetUser, user);
+                return TwitterMapper.user(user, service);
+            }
+
+            throw new SocialHubException("this url is not supported format.");
         });
     }
 

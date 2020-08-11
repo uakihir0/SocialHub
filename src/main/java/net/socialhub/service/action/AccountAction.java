@@ -45,6 +45,14 @@ public interface AccountAction {
     }
 
     /**
+     * Get Specific UserInfo from URL
+     * URL からユーザーを取得
+     */
+    default User getUser(String url) {
+        throw new NotImplimentedException();
+    }
+
+    /**
      * Follow User
      * ユーザーをフォロー
      */

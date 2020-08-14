@@ -2,6 +2,7 @@ package net.socialhub.service.misskey;
 
 import misskey4j.Misskey;
 import misskey4j.MisskeyException;
+import misskey4j.api.model.PollRequest;
 import misskey4j.api.request.UsersListsListRequest;
 import misskey4j.api.request.UsersListsShowRequest;
 import misskey4j.api.request.blocks.BlocksCreateRequest;
@@ -95,6 +96,7 @@ import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.request.MediaForm;
+import net.socialhub.model.request.PollForm;
 import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Context;
@@ -572,6 +574,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
      * {@inheritDoc}
      */
     @Override
+    @SuppressWarnings("unchecked")
     public void postComment(CommentForm req) {
         if (req.isMessage()) {
             postMessage(req);
@@ -621,6 +624,18 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                 fileIds.addAll(medias.stream().map( //
                         (e) -> HandlingUtil.runtime(e::get)) //
                         .collect(toList()));
+            }
+
+            // 投票
+            if (req.getPoll() != null) {
+                PollForm poll = req.getPoll();
+
+                builder.poll(PollRequest
+                        .builder()
+                        .choices(poll.getOptions())
+                        .multiple(poll.getMultiple())
+                        .expiredAfter(poll.getExpiresIn() * 1000 * 60)
+                        .build());
             }
 
             misskey.notes().create(builder.build());

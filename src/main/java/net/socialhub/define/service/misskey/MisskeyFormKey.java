@@ -2,7 +2,7 @@ package net.socialhub.define.service.misskey;
 
 public class MisskeyFormKey {
 
-    /** 投稿について Renote の場合 */
+    /** Renote の場合 */
     public static String RENOTE_KEY = "renote";
 
     /** メッセージ投稿について (グループか個人か？) */

@@ -26,6 +26,7 @@ import net.socialhub.model.Account;
 import net.socialhub.model.error.NotSupportedException;
 import net.socialhub.model.error.SocialHubException;
 import net.socialhub.model.request.CommentForm;
+import net.socialhub.model.request.PollForm;
 import net.socialhub.model.service.Channel;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Context;
@@ -447,6 +448,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
      * {@inheritDoc}
      */
     @Override
+    @SuppressWarnings("unchecked")
     public void postComment(CommentForm req) {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
@@ -482,6 +484,14 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             // センシティブな内容
             if (req.isSensitive()) {
                 update.setSensitive(true);
+            }
+
+            // 投票
+            if (req.getPoll() != null) {
+                PollForm poll = req.getPoll();
+                update.setPollOptions(poll.getOptions());
+                update.setPollMultiple(poll.getMultiple());
+                update.setPollExpiresIn(poll.getExpiresIn() * 60);
             }
 
             Response<Status> status = mastodon.statuses().postStatus(update);

@@ -27,6 +27,9 @@ public class CommentForm {
     /** Is Message? */
     private boolean isMessage = false;
 
+    /** Poll */
+    private PollForm poll;
+
     /** Other params */
     private Map<String, Object> params;
 
@@ -119,6 +122,14 @@ public class CommentForm {
     }
 
     /**
+     * Set Poll
+     */
+    public CommentForm poll(PollForm poll) {
+        this.poll = poll;
+        return this;
+    }
+
+    /**
      * Set addition params
      */
     public CommentForm param(String key, Object value) {
@@ -159,6 +170,10 @@ public class CommentForm {
 
     public boolean isMessage() {
         return isMessage;
+    }
+
+    public PollForm getPoll() {
+        return poll;
     }
     //endregion
 }

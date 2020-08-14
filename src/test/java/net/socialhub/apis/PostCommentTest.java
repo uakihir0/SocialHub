@@ -5,6 +5,7 @@ import net.socialhub.SocialAuthUtil;
 import net.socialhub.define.service.slack.SlackFormKey;
 import net.socialhub.model.Account;
 import net.socialhub.model.request.CommentForm;
+import net.socialhub.model.request.PollForm;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -51,6 +52,24 @@ public class PostCommentTest extends AbstractApiTest {
         CommentForm req = new CommentForm() //
                 .addImage(convertFile(stream), "icon.png") //
                 .text("SocialHub Test");
+
+        account.action().postComment(req);
+    }
+
+    @Test
+    @Ignore
+    public void testPostWithPollMisskey() {
+
+        Account account = SocialAuthUtil.getMisskeyAccount();
+
+        CommentForm req = new CommentForm() //
+                .text("SocialHub Test")
+                .poll(new PollForm()
+                        .multiple(true)
+                        .addOption("A")
+                        .addOption("B")
+                        .addOption("C")
+                        .expiresIn(1440L));
 
         account.action().postComment(req);
     }

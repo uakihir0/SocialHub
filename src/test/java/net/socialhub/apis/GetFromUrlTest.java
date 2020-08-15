@@ -40,8 +40,15 @@ public class GetFromUrlTest extends AbstractApiTest {
     @Test
     public void getCommentFromUrlMastodon() {
         Account account = SocialAuthUtil.getMastodonAccount();
-        Comment comment = account.action().getComment(
-                "https://mastodon.social/web/statuses/104681506368424218");
-        System.out.println(comment.getDisplayComment().getText().getDisplayText());
+        {
+            Comment comment = account.action().getComment(
+                    "https://mastodon.social/@uakihir0/104681506368424218");
+            System.out.println(comment.getDisplayComment().getText().getDisplayText());
+        }
+        {
+            Comment comment = account.action().getComment(
+                    "https://mastodon.social/web/statuses/104681506368424218");
+            System.out.println(comment.getDisplayComment().getText().getDisplayText());
+        }
     }
 }

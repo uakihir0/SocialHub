@@ -190,8 +190,8 @@ public class TwitterAction extends AccountActionImpl {
 
     /**
      * {@inheritDoc}
-     * Parse Twitter user's url,
-     * like "https://twitter.com/uakihir0".
+     * Parse Twitter user's url, like:
+     * https://twitter.com/uakihir0
      */
     @Override
     public User getUser(String url) {
@@ -650,8 +650,8 @@ public class TwitterAction extends AccountActionImpl {
 
     /**
      * {@inheritDoc}
-     * Parse Twitter tweet's url,
-     * like "https://twitter.com/xxxx/status/[0-9]+".
+     * Parse Twitter tweet's url, like:
+     * https://twitter.com/xxxx/status/[0-9]+
      */
     @Override
     public Comment getComment(String url) {

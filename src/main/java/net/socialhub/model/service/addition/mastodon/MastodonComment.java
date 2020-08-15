@@ -16,6 +16,9 @@ import java.util.List;
  */
 public class MastodonComment extends MiniBlogComment {
 
+    /** Requester host */
+    private String requesterHost;
+
     /** Warning text (Mastodon only) */
     private AttributedString spoilerText;
 
@@ -34,10 +37,10 @@ public class MastodonComment extends MiniBlogComment {
 
     @Override
     public String getWebUrl() {
-        MastodonUser user = (MastodonUser) getUser();
-        String host = user.getAccountIdentify().split("@")[2];
-        String identify = user.getAccountIdentify().split("@")[1];
-        return "https://" + host + "/@" + identify + "/" + getId().toString();
+        return "https://"
+                + requesterHost
+                + "/web/statuses/"
+                + getId().toString();
     }
 
     @Override
@@ -62,6 +65,14 @@ public class MastodonComment extends MiniBlogComment {
     }
 
     // region // Getter&Setter
+    public String getRequesterHost() {
+        return requesterHost;
+    }
+
+    public void setRequesterHost(String requesterHost) {
+        this.requesterHost = requesterHost;
+    }
+
     public AttributedString getSpoilerText() {
         return spoilerText;
     }

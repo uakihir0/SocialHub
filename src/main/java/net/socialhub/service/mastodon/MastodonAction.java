@@ -146,6 +146,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
     /**
      * {@inheritDoc}
+     * Parse Mastodon user's url, like:
      * https://mastodon.social/@uakihir0
      * https://mastodon.social/web/accounts/1223371
      */
@@ -560,19 +561,33 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
     /**
      * {@inheritDoc}
+     * Parse Mastodon Toot's url, like:
+     * https://mastodon.social/@uakihir0/104681506368424218
      * https://mastodon.social/web/statuses/104681506368424218
      */
     @Override
     public Comment getComment(String url) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            Pattern regex = Pattern.compile("https://(.+?)/web/statuses/(.+)");
-            Matcher matcher = regex.matcher(url);
+            {
+                Pattern regex = Pattern.compile("https://(.+?)/@(.+?)/(.+)");
+                Matcher matcher = regex.matcher(url);
 
-            if (matcher.matches()) {
-                Long id = Long.parseLong(matcher.group(2));
-                Identify identify = new Identify(service, id);
-                return getComment(identify);
+                if (matcher.matches()) {
+                    Long id = Long.parseLong(matcher.group(3));
+                    Identify identify = new Identify(service, id);
+                    return getComment(identify);
+                }
+            }
+            {
+                Pattern regex = Pattern.compile("https://(.+?)/web/statuses/(.+)");
+                Matcher matcher = regex.matcher(url);
+
+                if (matcher.matches()) {
+                    Long id = Long.parseLong(matcher.group(2));
+                    Identify identify = new Identify(service, id);
+                    return getComment(identify);
+                }
             }
             throw new SocialHubException("this url is not supported format.");
         });

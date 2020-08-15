@@ -49,8 +49,11 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
 
         this.accessToken = accessToken;
         Account account = new Account();
+
         ServiceType type = ServiceType.Mastodon;
         Service service = new Service(type, account);
+        service.setApiHost(host);
+
         account.setAction(new MastodonAction(account, this));
         account.setService(service);
         return account;

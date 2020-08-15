@@ -18,7 +18,6 @@ public class Service implements Serializable {
 
     /** Use Only Mastodon */
     private String apiHost;
-    private String streamApiHost;
 
     /**
      * Constructor
@@ -91,14 +90,6 @@ public class Service implements Serializable {
 
     public void setApiHost(String apiHost) {
         this.apiHost = apiHost;
-    }
-
-    public String getStreamApiHost() {
-        return streamApiHost;
-    }
-
-    public void setStreamApiHost(String streamApiHost) {
-        this.streamApiHost = streamApiHost;
     }
     //endregion
 }

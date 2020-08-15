@@ -53,8 +53,11 @@ public class MisskeyAuth implements ServiceAuth<Misskey> {
 
         this.accessToken = accessToken;
         Account account = new Account();
+
         ServiceType type = ServiceType.Misskey;
         Service service = new Service(type, account);
+        service.setApiHost(host);
+
         account.setAction(new MisskeyAction(account, this));
         account.setService(service);
         return account;

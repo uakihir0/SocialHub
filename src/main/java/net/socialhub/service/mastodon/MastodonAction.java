@@ -493,7 +493,6 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
      * {@inheritDoc}
      */
     @Override
-    @SuppressWarnings("unchecked")
     public void postComment(CommentForm req) {
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();

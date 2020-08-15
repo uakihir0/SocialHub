@@ -51,4 +51,25 @@ public class GetFromUrlTest extends AbstractApiTest {
             System.out.println(comment.getDisplayComment().getText().getDisplayText());
         }
     }
+
+    @Test
+    public void getUserFromUrlMisskey() {
+        Account account = SocialAuthUtil.getMisskeyAccount();
+        {
+            User user = account.action().getUser("https://misskey.io/@syuilo");
+            System.out.println(user.getName());
+        }
+        {
+            User user = account.action().getUser("https://misskey.io/@mei23@misskey.m544.net");
+            System.out.println(user.getName());
+        }
+    }
+
+    @Test
+    public void getCommentFromUrlMisskey() {
+        Account account = SocialAuthUtil.getMisskeyAccount();
+        Comment comment = account.action().getComment(
+                "https://misskey.io/notes/8axwbcxiff");
+        System.out.println(comment.getDisplayComment().getText().getDisplayText());
+    }
 }

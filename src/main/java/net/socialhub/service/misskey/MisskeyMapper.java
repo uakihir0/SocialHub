@@ -38,6 +38,8 @@ import net.socialhub.model.service.support.Color;
 import net.socialhub.model.service.support.PollOption;
 import net.socialhub.model.service.support.ReactionCandidate;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -208,9 +210,14 @@ public class MisskeyMapper {
                     note.getEmojis(),
                     note.getMyReaction()));
 
+            // リクエストホストを記録
+            URL url = new URL(service.getApiHost());
+            model.setRequesterHost(url.getHost());
+
             return model;
 
-        } catch (ParseException e) {
+        } catch (ParseException | MalformedURLException e) {
+
             logger.error(e);
             throw new IllegalStateException(e);
         }

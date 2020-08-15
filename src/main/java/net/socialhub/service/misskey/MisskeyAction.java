@@ -143,6 +143,8 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
@@ -205,6 +207,34 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
 
             return MisskeyMapper.user(users,
                     misskey.getHost(), service);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     * https://misskey.io/@syuilo
+     * https://misskey.io/@syuilo@misskey.io
+     */
+    @Override
+    public User getUser(String url) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Pattern regex = Pattern.compile("https://(.+?)/@(.+)");
+            Matcher matcher = regex.matcher(url);
+
+            if (matcher.matches()) {
+                String host = matcher.group(1);
+                String identify = matcher.group(2);
+
+                if (identify.contains("@")) {
+                    String format = ("@" + identify);
+                    return getUser(new Identify(service, format));
+                } else {
+                    String format = ("@" + identify + "@" + host);
+                    return getUser(new Identify(service, format));
+                }
+            }
+            throw new SocialHubException("this url is not supported format.");
         });
     }
 
@@ -574,7 +604,6 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
      * {@inheritDoc}
      */
     @Override
-    @SuppressWarnings("unchecked")
     public void postComment(CommentForm req) {
         if (req.isMessage()) {
             postMessage(req);
@@ -658,6 +687,28 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
 
             return MisskeyMapper.comment(response.get(),
                     misskey.getHost(), service);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     * Parse Misskey Post's url, like:
+     * https://misskey.io/notes/8axwbcxiff
+     */
+    @Override
+    public Comment getComment(String url) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Pattern regex = Pattern.compile("https://(.+?)/notes/(.+)");
+            Matcher matcher = regex.matcher(url);
+
+            if (matcher.matches()) {
+                String id = matcher.group(2);
+                Identify identify = new Identify(service, id);
+                return getComment(identify);
+            }
+
+            throw new SocialHubException("this url is not supported format.");
         });
     }
 

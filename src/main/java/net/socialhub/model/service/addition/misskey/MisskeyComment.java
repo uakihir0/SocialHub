@@ -14,6 +14,9 @@ import java.util.List;
 
 public class MisskeyComment extends MiniBlogComment {
 
+    /** Requester host */
+    private String requesterHost;
+
     /** ID for Paging */
     private String pagingId;
 
@@ -38,9 +41,10 @@ public class MisskeyComment extends MiniBlogComment {
 
     @Override
     public String getWebUrl() {
-        MisskeyUser user = (MisskeyUser) getUser();
-        String host = user.getAccountIdentify().split("@")[2];
-        return "https://" + host + "/notes/" + getId().toString();
+        return "https://"
+                + requesterHost
+                + "/notes/"
+                + getId().toString();
     }
 
     @Override
@@ -83,6 +87,14 @@ public class MisskeyComment extends MiniBlogComment {
     }
 
     // region // Getter&Setter
+    public String getRequesterHost() {
+        return requesterHost;
+    }
+
+    public void setRequesterHost(String requesterHost) {
+        this.requesterHost = requesterHost;
+    }
+
     public void setPagingId(String pagingId) {
         this.pagingId = pagingId;
     }

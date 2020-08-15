@@ -205,9 +205,17 @@ public interface AccountAction {
 
     /**
      * Get Comment
-     * 単品コメントを取得
+     * コメントを取得
      */
     default Comment getComment(Identify id) {
+        throw new NotImplimentedException();
+    }
+
+    /**
+     * Get Comment from URL
+     * URL からコメントを取得
+     */
+    default Comment getComment(String url) {
         throw new NotImplimentedException();
     }
 

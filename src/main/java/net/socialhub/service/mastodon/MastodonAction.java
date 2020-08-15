@@ -68,6 +68,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
@@ -138,6 +141,47 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
             service.getRateLimit().addInfo(GetUser, account);
             return MastodonMapper.user(account.get(), service);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     * https://mastodon.social/@uakihir0
+     * https://mastodon.social/web/accounts/1223371
+     */
+    @Override
+    public User getUser(String url) {
+        return proceed(() -> {
+            {
+                Pattern regex = Pattern.compile("https://(.+?)/@(.+)");
+                Matcher matcher = regex.matcher(url);
+
+                if (matcher.matches()) {
+                    String host = matcher.group(1);
+                    String sname = matcher.group(2);
+                    String format = ("@" + sname + "@" + host);
+                    Pageable<User> users = searchUsers(format, null);
+                    Optional<User> user = users.getEntities().stream()
+                            .filter(u -> u.getAccountIdentify().equals(format))
+                            .findFirst();
+
+                    if (user.isPresent()) {
+                        return user.get();
+                    }
+                }
+            }
+            {
+                Service service = getAccount().getService();
+                Pattern regex = Pattern.compile("https://(.+?)/web/accounts/(.+)");
+                Matcher matcher = regex.matcher(url);
+
+                if (matcher.matches()) {
+                    Long id = Long.parseLong(matcher.group(2));
+                    Identify identify = new Identify(service, id);
+                    return getUser(identify);
+                }
+            }
+            throw new SocialHubException("this url is not supported format.");
         });
     }
 
@@ -511,6 +555,26 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Service service = getAccount().getService();
             service.getRateLimit().addInfo(GetComment, status);
             return MastodonMapper.comment(status.get(), service);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     * https://mastodon.social/web/statuses/104681506368424218
+     */
+    @Override
+    public Comment getComment(String url) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Pattern regex = Pattern.compile("https://(.+?)/web/statuses/(.+)");
+            Matcher matcher = regex.matcher(url);
+
+            if (matcher.matches()) {
+                Long id = Long.parseLong(matcher.group(2));
+                Identify identify = new Identify(service, id);
+                return getComment(identify);
+            }
+            throw new SocialHubException("this url is not supported format.");
         });
     }
 

@@ -190,13 +190,13 @@ public class TwitterAction extends AccountActionImpl {
 
     /**
      * {@inheritDoc}
-     * Parse Twitter user's url, like "https://twitter.com/uakihir0".
+     * Parse Twitter user's url,
+     * like "https://twitter.com/uakihir0".
      */
     @Override
     public User getUser(String url) {
         return proceed(() -> {
             Service service = getAccount().getService();
-
             Pattern regex = Pattern.compile("https://twitter.com/(.+?)");
             Matcher matcher = regex.matcher(url);
 
@@ -477,7 +477,6 @@ public class TwitterAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    @SuppressWarnings("unchecked")
     public Pageable<Comment> getUserMediaTimeLine(Identify id, Paging paging) {
         return proceed(() -> {
 
@@ -646,6 +645,27 @@ public class TwitterAction extends AccountActionImpl {
             service.getRateLimit().addInfo(GetComment, status);
 
             return TwitterMapper.comment(status, service);
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     * Parse Twitter tweet's url,
+     * like "https://twitter.com/xxxx/status/[0-9]+".
+     */
+    @Override
+    public Comment getComment(String url) {
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Pattern regex = Pattern.compile("https://twitter.com/(.+?)/status/([0-9]+)");
+            Matcher matcher = regex.matcher(url);
+
+            if (matcher.matches()) {
+                Long id = Long.parseLong(matcher.group(2));
+                return getComment(new Identify(service, id));
+            }
+
+            throw new SocialHubException("this url is not supported format.");
         });
     }
 

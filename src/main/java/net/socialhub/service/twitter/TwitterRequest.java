@@ -2,6 +2,7 @@ package net.socialhub.service.twitter;
 
 import com.google.gson.Gson;
 import net.socialhub.define.action.TimeLineActionType;
+import net.socialhub.define.action.service.TwitterActionType;
 import net.socialhub.logger.Logger;
 import net.socialhub.model.Account;
 import net.socialhub.model.service.Identify;
@@ -10,6 +11,7 @@ import net.socialhub.model.service.User;
 import net.socialhub.service.action.RequestActionImpl;
 import net.socialhub.service.action.request.CommentsRequest;
 import net.socialhub.service.action.request.CommentsRequestImpl;
+import net.socialhub.service.action.request.UsersRequest;
 
 public class TwitterRequest extends RequestActionImpl {
 
@@ -96,6 +98,32 @@ public class TwitterRequest extends RequestActionImpl {
     }
 
     // ============================================================== //
+    // Users API
+    // ============================================================== //
+
+    /**
+     * Get Users who favorites specified tweet
+     * 特定のツイートをいいねしたユーザーを取得
+     */
+    public UsersRequest getUsersFavoriteBy(Identify id) {
+        return getUsersRequest(TwitterActionType.FavoriteByUsers,
+                (paging) -> ((TwitterAction) account.action()).getUsersFavoriteBy(id, paging),
+                new RequestActionImpl.SerializeBuilder(TwitterActionType.FavoriteByUsers)
+                        .add("id", id.getSerializedIdString()));
+    }
+
+    /**
+     * Get Users who retweeted specified tweet
+     * 特定のツイートをリツイートしたユーザーを取得
+     */
+    public UsersRequest getUsersRetweetBy(Identify id) {
+        return getUsersRequest(TwitterActionType.RetweetByUsers,
+                (paging) -> ((TwitterAction) account.action()).getUsersRetweetBy(id, paging),
+                new RequestActionImpl.SerializeBuilder(TwitterActionType.RetweetByUsers)
+                        .add("id", id.getSerializedIdString()));
+    }
+
+    // ============================================================== //
     // From Serialized
     // ============================================================== //
 
@@ -109,6 +137,27 @@ public class TwitterRequest extends RequestActionImpl {
             SerializeParams params = new Gson().fromJson(serialize, SerializeParams.class);
             String action = params.get("action");
 
+            // Identify
+            Identify id = null;
+            if (params.contains("id")) {
+                id = new Identify(account.getService());
+                id.setSerializedIdString(params.get("id"));
+            }
+
+            // Mastodon
+            if (isTypeIncluded(TwitterActionType.values(), action)) {
+                switch (TwitterActionType.valueOf(action)) {
+
+                    case FavoriteByUsers:
+                        return getUsersFavoriteBy(id);
+                    case RetweetByUsers:
+                        return getUsersRetweetBy(id);
+                    default:
+                        log.debug("invalid twitter action type: " + action);
+                        return null;
+                }
+            }
+
             Request result = super.fromSerializedString(serialize);
 
             // Comment Mentions
@@ -116,13 +165,13 @@ public class TwitterRequest extends RequestActionImpl {
                 CommentsRequest req = (CommentsRequest) result;
                 switch (TimeLineActionType.valueOf(action)) {
 
-                case UserCommentTimeLine:
-                case UserLikeTimeLine:
-                case UserMediaTimeLine:
-                    setCommentIdentify(req, params.get("to"));
-                    break;
-                default:
-                    break;
+                    case UserCommentTimeLine:
+                    case UserLikeTimeLine:
+                    case UserMediaTimeLine:
+                        setCommentIdentify(req, params.get("to"));
+                        break;
+                    default:
+                        break;
                 }
             }
 

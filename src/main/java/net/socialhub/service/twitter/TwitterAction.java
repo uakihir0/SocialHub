@@ -1531,35 +1531,31 @@ public class TwitterAction extends AccountActionImpl {
             if (useWebClient) {
 
                 // 公開アカウントの場合 Web API から取得
-                if (id instanceof TwitterComment) {
-                    TwitterComment c = (TwitterComment) id;
-                    if (!((TwitterUser) c.getUser()).getProtected()) {
+                TwitterComment c = toTwitterComment(id);
+                if (!((TwitterUser) c.getUser()).getProtected()) {
 
-                        SpecifiedTweetRequest request = new SpecifiedTweetRequest();
-                        request.setTweetId(c.getId().toString());
-                        request.setCount(getCountFromPage(paging, 100));
-                        request.setCursor(getCursorFromPage(paging, null));
+                    SpecifiedTweetRequest request = new SpecifiedTweetRequest();
+                    request.setTweetId(c.getId().toString());
+                    request.setCount(getCountFromPage(paging, 100));
+                    request.setCursor(getCursorFromPage(paging, null));
 
-                        TopLevel top = getWebClient().user().getUsersLikedBy(request).get();
-                        long[] userIds = top.toUserTimeline().stream().filter(Objects::nonNull)
-                                .mapToLong(e -> Long.parseLong(e.getId())).toArray();
+                    TopLevel top = getWebClient().user().getUsersLikedBy(request).get();
+                    long[] userIds = top.toUserTimeline().stream().filter(Objects::nonNull)
+                            .mapToLong(e -> Long.parseLong(e.getId())).toArray();
 
-                        CursorPaging<String> pg = CursorPaging.fromPaging(paging);
-                        pg.setHasNext(top.getBottomCursor() != null);
-                        pg.setNextCursor(top.getBottomCursor());
-                        pg.setHasPrev(top.getTopCursor() != null);
-                        pg.setPrevCursor(top.getTopCursor());
+                    CursorPaging<String> pg = CursorPaging.fromPaging(paging);
+                    pg.setHasNext(top.getBottomCursor() != null);
+                    pg.setNextCursor(top.getBottomCursor());
+                    pg.setHasPrev(top.getTopCursor() != null);
+                    pg.setPrevCursor(top.getTopCursor());
 
-                        ResponseList<twitter4j.User> users = twitter.users().lookupUsers(userIds);
-                        Pageable<User> pageable = TwitterMapper.users(users, service, paging);
-                        pageable.setPaging(pg);
-                        return pageable;
+                    ResponseList<twitter4j.User> users = twitter.users().lookupUsers(userIds);
+                    Pageable<User> pageable = TwitterMapper.users(users, service, paging);
+                    pageable.setPaging(pg);
+                    return pageable;
 
-                    } else {
-                        throw new SocialHubException("User is not public account.");
-                    }
                 } else {
-                    throw new SocialHubException("Need twitter comment object for identify.");
+                    throw new SocialHubException("User is not public account.");
                 }
             } else {
                 throw new SocialHubException("Cannot access to user's pin tweet.");
@@ -1579,35 +1575,31 @@ public class TwitterAction extends AccountActionImpl {
             if (useWebClient) {
 
                 // 公開アカウントの場合 Web API から取得
-                if (id instanceof TwitterComment) {
-                    TwitterComment c = (TwitterComment) id;
-                    if (!((TwitterUser) c.getUser()).getProtected()) {
+                TwitterComment c = toTwitterComment(id);
+                if (!((TwitterUser) c.getUser()).getProtected()) {
 
-                        SpecifiedTweetRequest request = new SpecifiedTweetRequest();
-                        request.setTweetId(c.getId().toString());
-                        request.setCount(getCountFromPage(paging, 100));
-                        request.setCursor(getCursorFromPage(paging, null));
+                    SpecifiedTweetRequest request = new SpecifiedTweetRequest();
+                    request.setTweetId(c.getId().toString());
+                    request.setCount(getCountFromPage(paging, 100));
+                    request.setCursor(getCursorFromPage(paging, null));
 
-                        TopLevel top = getWebClient().user().getUsersRetweetedBy(request).get();
-                        long[] userIds = top.toUserTimeline().stream().filter(Objects::nonNull)
-                                .mapToLong(e -> Long.parseLong(e.getId())).toArray();
+                    TopLevel top = getWebClient().user().getUsersRetweetedBy(request).get();
+                    long[] userIds = top.toUserTimeline().stream().filter(Objects::nonNull)
+                            .mapToLong(e -> Long.parseLong(e.getId())).toArray();
 
-                        CursorPaging<String> pg = CursorPaging.fromPaging(paging);
-                        pg.setHasNext(top.getBottomCursor() != null);
-                        pg.setNextCursor(top.getBottomCursor());
-                        pg.setHasPrev(top.getTopCursor() != null);
-                        pg.setPrevCursor(top.getTopCursor());
+                    CursorPaging<String> pg = CursorPaging.fromPaging(paging);
+                    pg.setHasNext(top.getBottomCursor() != null);
+                    pg.setNextCursor(top.getBottomCursor());
+                    pg.setHasPrev(top.getTopCursor() != null);
+                    pg.setPrevCursor(top.getTopCursor());
 
-                        ResponseList<twitter4j.User> users = twitter.users().lookupUsers(userIds);
-                        Pageable<User> pageable = TwitterMapper.users(users, service, paging);
-                        pageable.setPaging(pg);
-                        return pageable;
+                    ResponseList<twitter4j.User> users = twitter.users().lookupUsers(userIds);
+                    Pageable<User> pageable = TwitterMapper.users(users, service, paging);
+                    pageable.setPaging(pg);
+                    return pageable;
 
-                    } else {
-                        throw new SocialHubException("User is not public account.");
-                    }
                 } else {
-                    throw new SocialHubException("Need twitter comment object for identify.");
+                    throw new SocialHubException("User is not public account.");
                 }
             } else {
                 throw new SocialHubException("Cannot access to user's pin tweet.");

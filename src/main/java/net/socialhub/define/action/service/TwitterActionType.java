@@ -5,6 +5,6 @@ import net.socialhub.define.action.ActionType;
 public enum TwitterActionType implements ActionType {
 
     // Users
-    RetweetByUsers,
     FavoriteByUsers,
+    RetweetByUsers,
 }

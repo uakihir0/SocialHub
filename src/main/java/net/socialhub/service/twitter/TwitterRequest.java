@@ -144,7 +144,7 @@ public class TwitterRequest extends RequestActionImpl {
                 id.setSerializedIdString(params.get("id"));
             }
 
-            // Mastodon
+            // Twitter
             if (isTypeIncluded(TwitterActionType.values(), action)) {
                 switch (TwitterActionType.valueOf(action)) {
 

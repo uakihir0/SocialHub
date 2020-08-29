@@ -22,7 +22,7 @@ public interface RequestAction {
      * Get Follower Account
      * フォローされているユーザー情報を取得
      */
-    UsersRequest getUsersRetweetBy(Identify id);
+    UsersRequest getFollowerUsers(Identify id);
 
     /**
      * Search User Account

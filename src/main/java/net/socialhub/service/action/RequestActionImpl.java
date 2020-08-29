@@ -64,7 +64,7 @@ public class RequestActionImpl implements RequestAction {
      * {@inheritDoc}
      */
     @Override
-    public UsersRequest getUsersRetweetBy(Identify id) {
+    public UsersRequest getFollowerUsers(Identify id) {
         return getUsersRequest(GetFollowerUsers,
                 (paging) -> account.action().getFollowerUsers(id, paging),
                 new SerializeBuilder(GetFollowerUsers)
@@ -214,7 +214,7 @@ public class RequestActionImpl implements RequestAction {
                     case GetFollowingUsers:
                         return getFollowingUsers(id);
                     case GetFollowerUsers:
-                        return getUsersRetweetBy(id);
+                        return getFollowerUsers(id);
                     case SearchUsers:
                         return getSearchTimeLine(query);
                     case ChannelUsers:

@@ -5,9 +5,11 @@ package net.socialhub.define;
  */
 public enum NotificationType {
 
+    MENTION("mention"),
     FOLLOW("follow"),
     SHARE("share"),
-    LIKE("like");
+    LIKE("like"),
+    ;
 
     private String code;
 

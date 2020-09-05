@@ -6,11 +6,11 @@ import java.util.stream.Stream;
 
 public enum MastodonNotificationType {
 
+    MENTION(NotificationType.MENTION, "mention"),
     FOLLOW(NotificationType.FOLLOW, "follow"),
     REBLOG(NotificationType.SHARE, "reblog"),
     FAVOURITE(NotificationType.LIKE, "favourite"),
 
-    MENTION(null, "mention"),
     POLL(null, "poll"),
 
     ;

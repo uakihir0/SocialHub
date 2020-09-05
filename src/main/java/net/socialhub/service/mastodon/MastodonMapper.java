@@ -361,7 +361,7 @@ public class MastodonMapper {
                             .of(notification.getType());
 
             // 存在する場合のみ設定
-            if (type != null) {
+            if (type != null && type.getType() != null) {
                 model.setType(type.getType().getCode());
             }
 

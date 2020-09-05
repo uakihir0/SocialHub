@@ -42,6 +42,7 @@ import twitter4j.URLEntity;
 import twitter4j.UserList;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,6 +61,13 @@ public class TwitterMapper {
     private static final String HOST = "https://twitter.com/";
 
     public static TwitterIconSize DEFAULT_ICON_SIZE = TwitterIconSize.W200H200;
+
+    /** J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
+    private final static List<Class<?>> ClassLoader = Arrays.asList(
+            net.socialhub.twitter.web.entity.response.ExtendedMedia.class,
+            net.socialhub.twitter.web.entity.response.Content.class,
+            net.socialhub.twitter.web.entity.response.Media.class
+    );
 
     /**
      * ユーザーマッピング

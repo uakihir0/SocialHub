@@ -149,7 +149,7 @@ public class MastodonRequest extends RequestActionImpl implements MicroBlogReque
             Long maxId = (Long) comments.getEntities().stream()
                     .max(Comparator.comparing(Comment::getCreateAt))
                     .map(Identify::getId).orElse(null);
-            request.getCommentFrom().targetId(maxId);
+            request.getCommentFrom().replyId(maxId);
             return comments;
         });
 

@@ -20,7 +20,7 @@ public class PostMessageTest extends AbstractApiTest {
         CommentForm req = new CommentForm()
                 .addImage(convertFile(stream), "icon.png")
                 .text("SocialHub Test")
-                .targetId(0L)
+                .replyId(0L)
                 .message(true);
 
         account.action().postMessage(req);
@@ -36,7 +36,7 @@ public class PostMessageTest extends AbstractApiTest {
         CommentForm req = new CommentForm()
                 .addImage(convertFile(stream), "icon.png")
                 .text("SocialHub Test")
-                .targetId("")
+                .replyId("")
                 .message(true);
 
         account.action().postMessage(req);

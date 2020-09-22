@@ -92,13 +92,13 @@ public abstract class MiniBlogComment extends Comment {
     public CommentForm getReplyForm() {
         if (getDirectMessage()) {
             CommentForm form = new CommentForm();
-            form.targetId(getUser().getId());
+            form.replyId(getUser().getId());
             form.message(true);
             return form;
         }
         CommentForm form = new CommentForm();
         form.text(getUser().getAccountIdentify() + " ");
-        form.targetId(getId());
+        form.replyId(getId());
         form.message(false);
         return form;
     }

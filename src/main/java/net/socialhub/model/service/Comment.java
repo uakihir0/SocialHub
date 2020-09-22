@@ -103,6 +103,14 @@ public class Comment extends Identify {
     }
 
     /**
+     * Get Quote Form
+     * 引用RT用のフォームを取得
+     */
+    public CommentForm getQuoteForm() {
+        throw new NotImplimentedException();
+    }
+
+    /**
      * Get Web Url
      * Web のアドレスを取得
      */

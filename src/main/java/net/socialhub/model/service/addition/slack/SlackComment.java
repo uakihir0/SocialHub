@@ -72,7 +72,7 @@ public class SlackComment extends Comment {
         CommentForm form = new CommentForm();
         form.param(SlackFormKey.CHANNEL_KEY, channel);
         form.message(getDirectMessage());
-        form.targetId(getId());
+        form.replyId(getId());
         return form;
     }
 

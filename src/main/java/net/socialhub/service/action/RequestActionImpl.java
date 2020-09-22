@@ -173,7 +173,7 @@ public class RequestActionImpl implements RequestAction {
 
         request.getCommentFrom()
                 .message(true)
-                .targetId(id);
+                .replyId(id);
         return request;
     }
 

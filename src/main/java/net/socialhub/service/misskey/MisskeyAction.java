@@ -621,13 +621,13 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             builder.text(req.getText());
 
             // 返信の処理
-            if (req.getTargetId() != null) {
-                builder.replyId((String) req.getTargetId());
+            if (req.getReplyId() != null) {
+                builder.replyId((String) req.getReplyId());
             }
 
             // 引用 RT の場合はその ID を設定
-            if (req.getParams().containsKey(MisskeyFormKey.RENOTE_KEY)) {
-                builder.renoteId((String) req.getParams().get(MisskeyFormKey.RENOTE_KEY));
+            if (req.getQuoteId() != null) {
+                builder.renoteId((String) req.getQuoteId());
             }
 
             // 画像の処理
@@ -1151,8 +1151,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Boolean isGroup = null;
             String targetId = null;
 
-            if (req.getTargetId() instanceof String) {
-                targetId = (String) req.getTargetId();
+            if (req.getReplyId() instanceof String) {
+                targetId = (String) req.getReplyId();
 
                 // パラメータからグループか取得
                 isGroup = req.getParams()
@@ -1160,9 +1160,9 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                         .equals(MisskeyFormKey.MESSAGE_TYPE_GROUP);
             }
 
-            if (req.getTargetId() instanceof MisskeyThread) {
-                targetId = (String) ((Thread) req.getTargetId()).getId();
-                isGroup = ((MisskeyThread) req.getTargetId()).isGroup();
+            if (req.getReplyId() instanceof MisskeyThread) {
+                targetId = (String) ((Thread) req.getReplyId()).getId();
+                isGroup = ((MisskeyThread) req.getReplyId()).isGroup();
             }
 
             // 必須パラメータが発見できなかった場合

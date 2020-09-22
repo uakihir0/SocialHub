@@ -4,7 +4,6 @@ import net.socialhub.SocialAuthUtil;
 import net.socialhub.model.Account;
 import net.socialhub.model.common.AttributedFiled;
 import net.socialhub.model.service.User;
-import net.socialhub.model.service.addition.MiniBlogUser;
 import net.socialhub.model.service.addition.mastodon.MastodonUser;
 import net.socialhub.model.service.addition.misskey.MisskeyUser;
 import net.socialhub.model.service.addition.tumblr.TumblrUser;
@@ -19,7 +18,7 @@ public class GetUserMeTest extends AbstractApiTest {
         Account account = SocialAuthUtil.getTwitterAccount();
         User user = account.action().getUserMe();
         System.out.println(user.getName());
-        System.out.println(((MiniBlogUser) user).getWebUrl());
+        System.out.println(user.getWebUrl());
     }
 
     @Test
@@ -37,7 +36,7 @@ public class GetUserMeTest extends AbstractApiTest {
         Account account = SocialAuthUtil.getMastodonAccount();
         User user = account.action().getUserMe();
         System.out.println(user.getName());
-        System.out.println(((MiniBlogUser) user).getWebUrl());
+        System.out.println(user.getWebUrl());
 
         if (user instanceof MastodonUser) {
             MastodonUser mastodonUser = (MastodonUser) user;
@@ -53,7 +52,7 @@ public class GetUserMeTest extends AbstractApiTest {
         Account account = SocialAuthUtil.getMisskeyAccount();
         User user = account.action().getUserMe();
         System.out.println(user.getName());
-        System.out.println(((MiniBlogUser) user).getWebUrl());
+        System.out.println(user.getWebUrl());
 
         if (user instanceof MisskeyUser) {
             MisskeyUser misskeyUser = (MisskeyUser) user;

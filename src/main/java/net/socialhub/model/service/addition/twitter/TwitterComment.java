@@ -51,7 +51,7 @@ public class TwitterComment extends MiniBlogComment {
 
         // このコメントの対象アカウントを追加して自身を除外
         List<String> candidates = new ArrayList<>(accounts);
-        candidates.add(getUser().getAccountIdentify());
+        candidates.add(0, getUser().getAccountIdentify());
 
         // 以下でネットワークリクエストが発生するので注意
         AccountAction account = getService().getAccount().action();
@@ -65,7 +65,16 @@ public class TwitterComment extends MiniBlogComment {
 
         CommentForm form = new CommentForm();
         form.text(replyTo + " ");
-        form.targetId(getId());
+        form.replyId(getId());
+        form.message(false);
+        return form;
+    }
+
+
+    @Override
+    public CommentForm getQuoteForm() {
+        CommentForm form = new CommentForm();
+        form.quoteId(getWebUrl());
         form.message(false);
         return form;
     }

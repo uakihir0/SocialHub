@@ -603,8 +603,13 @@ public class TwitterAction extends AccountActionImpl {
             StatusUpdate update = new StatusUpdate(req.getText());
 
             // 返信の処理
-            if (req.getTargetId() != null) {
-                update.setInReplyToStatusId((Long) req.getTargetId());
+            if (req.getReplyId() != null) {
+                update.setInReplyToStatusId((Long) req.getReplyId());
+            }
+
+            // 引用RTの処理
+            if (req.getQuoteId() != null) {
+                update.setAttachmentUrl((String) req.getQuoteId());
             }
 
             // 画像の処理
@@ -1157,17 +1162,17 @@ public class TwitterAction extends AccountActionImpl {
             ExecutorService pool = Executors.newCachedThreadPool();
 
             // どの DM スレッドかに送信するか？
-            if (req.getTargetId() == null) {
+            if (req.getReplyId() == null) {
                 throw new IllegalStateException("Needs DM Thread ID.");
             }
 
             Long targetId = null;
-            if (req.getTargetId() instanceof Long) {
-                targetId = (Long) req.getTargetId();
+            if (req.getReplyId() instanceof Long) {
+                targetId = (Long) req.getReplyId();
             }
-            if (req.getTargetId() instanceof Thread) {
+            if (req.getReplyId() instanceof Thread) {
                 User me = getUserMeWithCache();
-                Thread thread = (Thread) req.getTargetId();
+                Thread thread = (Thread) req.getReplyId();
 
                 // 自分に対しての DM の場合はそのまま格納
                 if (thread.getUsers().size() == 1) {

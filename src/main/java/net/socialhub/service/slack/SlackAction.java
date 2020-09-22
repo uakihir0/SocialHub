@@ -18,7 +18,6 @@ import com.github.seratch.jslack.api.methods.request.reactions.ReactionsAddReque
 import com.github.seratch.jslack.api.methods.request.reactions.ReactionsRemoveRequest;
 import com.github.seratch.jslack.api.methods.request.team.TeamInfoRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersInfoRequest;
-import com.github.seratch.jslack.api.methods.request.users.UsersListRequest;
 import com.github.seratch.jslack.api.methods.response.auth.AuthTestResponse;
 import com.github.seratch.jslack.api.methods.response.bots.BotsInfoResponse;
 import com.github.seratch.jslack.api.methods.response.chat.ChatDeleteResponse;
@@ -32,7 +31,6 @@ import com.github.seratch.jslack.api.methods.response.reactions.ReactionsAddResp
 import com.github.seratch.jslack.api.methods.response.reactions.ReactionsRemoveResponse;
 import com.github.seratch.jslack.api.methods.response.team.TeamInfoResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
-import com.github.seratch.jslack.api.methods.response.users.UsersListResponse;
 import com.github.seratch.jslack.api.model.Conversation;
 import com.github.seratch.jslack.api.model.ConversationType;
 import com.github.seratch.jslack.api.model.Message;
@@ -650,7 +648,7 @@ public class SlackAction extends AccountActionImpl {
             // ユーザーに対してのメッセージの場合は IM を検索
             if (channel == null && req.isMessage()) {
                 channel = searchMessageChannel(req);
-                req.targetId(null);
+                req.replyId(null);
             }
 
             // 画像がある場合とそうでない場合で処理を分岐
@@ -668,8 +666,8 @@ public class SlackAction extends AccountActionImpl {
                                         .filestream(new ByteArrayInputStream(media.getData())) //
                                         .filename(media.getName());
 
-                        if (req.getTargetId() != null) {
-                            builder.threadTs((String) req.getTargetId());
+                        if (req.getReplyId() != null) {
+                            builder.threadTs((String) req.getReplyId());
                         }
 
                         auth.getAccessor().getSlack().methods() //
@@ -682,8 +680,8 @@ public class SlackAction extends AccountActionImpl {
                                         .text(req.getText()) //
                                         .channel(channel);
 
-                        if (req.getTargetId() != null) {
-                            builder.threadTs((String) req.getTargetId());
+                        if (req.getReplyId() != null) {
+                            builder.threadTs((String) req.getReplyId());
                         }
 
                         auth.getAccessor().getSlack().methods() //
@@ -701,8 +699,8 @@ public class SlackAction extends AccountActionImpl {
                                     .filestream(new ByteArrayInputStream(media.getData())) //
                                     .filename(media.getName());
 
-                    if (req.getTargetId() != null) {
-                        builder.threadTs((String) req.getTargetId());
+                    if (req.getReplyId() != null) {
+                        builder.threadTs((String) req.getReplyId());
                     }
 
                     auth.getAccessor().getSlack().methods() //
@@ -717,8 +715,8 @@ public class SlackAction extends AccountActionImpl {
                                 .text(req.getText()) //
                                 .channel(channel);
 
-                if (req.getTargetId() != null) {
-                    builder.threadTs((String) req.getTargetId());
+                if (req.getReplyId() != null) {
+                    builder.threadTs((String) req.getReplyId());
                 }
 
                 auth.getAccessor().getSlack().methods() //
@@ -736,7 +734,7 @@ public class SlackAction extends AccountActionImpl {
                 String token = auth.getAccessor().getToken();
 
                 // TargetID にはユーザーの ID が入っていると仮定
-                String userId = (String) req.getTargetId();
+                String userId = (String) req.getReplyId();
 
                 // IM のリストを取得してその中から該当のものを取得
                 ConversationsListResponse listResponse =

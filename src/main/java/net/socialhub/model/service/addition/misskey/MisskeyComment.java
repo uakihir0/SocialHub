@@ -2,6 +2,7 @@ package net.socialhub.model.service.addition.misskey;
 
 import net.socialhub.define.service.misskey.MisskeyVisibility;
 import net.socialhub.model.common.AttributedString;
+import net.socialhub.model.request.CommentForm;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Emoji;
 import net.socialhub.model.service.Reaction;
@@ -80,6 +81,14 @@ public class MisskeyComment extends MiniBlogComment {
 
         results.addAll(reactions);
         return results;
+    }
+
+    @Override
+    public CommentForm getQuoteForm(){
+        CommentForm form = new CommentForm();
+        form.quoteId(getId());
+        form.message(false);
+        return form;
     }
 
     public String getIdForPaging() {

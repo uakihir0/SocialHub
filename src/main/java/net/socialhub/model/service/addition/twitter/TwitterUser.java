@@ -59,7 +59,7 @@ public class TwitterUser extends MiniBlogUser {
     @Override
     public CommentForm getMessageForm() {
         CommentForm form = new CommentForm();
-        form.targetId(getId());
+        form.replyId(getId());
         form.message(true);
         return form;
     }

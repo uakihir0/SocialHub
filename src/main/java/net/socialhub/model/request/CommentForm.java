@@ -16,7 +16,10 @@ public class CommentForm {
     private String text;
 
     /** Reply or Thread ID */
-    private Object targetId;
+    private Object replyId;
+
+    /** QuoteID */
+    private Object quoteId;
 
     /** Images */
     private List<MediaForm> images;
@@ -37,7 +40,8 @@ public class CommentForm {
     public CommentForm copy() {
         CommentForm form = new CommentForm();
         form.text(text);
-        form.targetId(targetId);
+        form.replyId(replyId);
+        form.quoteId(quoteId);
         form.sensitive(isSensitive);
         form.message(isMessage);
 
@@ -69,8 +73,16 @@ public class CommentForm {
     /**
      * Set Reply (Thread) ID
      */
-    public CommentForm targetId(Object targetId) {
-        this.targetId = targetId;
+    public CommentForm replyId(Object replyId) {
+        this.replyId = replyId;
+        return this;
+    }
+
+    /**
+     * Set Quote ID
+     */
+    public CommentForm quoteId(Object quoteId) {
+        this.quoteId = quoteId;
         return this;
     }
 
@@ -149,8 +161,12 @@ public class CommentForm {
         return text;
     }
 
-    public Object getTargetId() {
-        return targetId;
+    public Object getReplyId() {
+        return replyId;
+    }
+
+    public Object getQuoteId() {
+        return quoteId;
     }
 
     public List<MediaForm> getImages() {

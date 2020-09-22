@@ -502,8 +502,8 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             update.setContent(req.getText());
 
             // 返信の処理
-            if (req.getTargetId() != null) {
-                update.setInReplyToId((Long) req.getTargetId());
+            if (req.getReplyId() != null) {
+                update.setInReplyToId((Long) req.getReplyId());
             }
 
             // ダイレクトメッセージの場合

@@ -30,6 +30,9 @@ public class CommentForm {
     /** Is Message? */
     private boolean isMessage = false;
 
+    /** Visibility */
+    private String visibility;
+
     /** Poll */
     private PollForm poll;
 
@@ -44,6 +47,7 @@ public class CommentForm {
         form.quoteId(quoteId);
         form.sensitive(isSensitive);
         form.message(isMessage);
+        form.visibility(visibility);
 
         if (images != null) {
             for (MediaForm image : images) {
@@ -134,6 +138,14 @@ public class CommentForm {
     }
 
     /**
+     * Visibility
+     */
+    public CommentForm visibility(String visibility) {
+        this.visibility = visibility;
+        return this;
+    }
+
+    /**
      * Set Poll
      */
     public CommentForm poll(PollForm poll) {
@@ -177,19 +189,23 @@ public class CommentForm {
         return isSensitive;
     }
 
+    public boolean isMessage() {
+        return isMessage;
+    }
+
+    public String getVisibility() {
+        return visibility;
+    }
+
+    public PollForm getPoll() {
+        return poll;
+    }
+
     public Map<String, Object> getParams() {
         if (params == null) {
             return Collections.emptyMap();
         }
         return params;
-    }
-
-    public boolean isMessage() {
-        return isMessage;
-    }
-
-    public PollForm getPoll() {
-        return poll;
     }
     //endregion
 }

@@ -506,6 +506,11 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
                 update.setInReplyToId((Long) req.getReplyId());
             }
 
+            // 公開範囲
+            if (req.getVisibility() != null) {
+                update.setVisibility(req.getVisibility());
+            }
+
             // ダイレクトメッセージの場合
             if (req.isMessage()) {
                 update.setVisibility(MastodonVisibility.Direct.getCode());

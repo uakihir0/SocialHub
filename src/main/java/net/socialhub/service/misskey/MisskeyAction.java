@@ -667,6 +667,11 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                         .build());
             }
 
+            // 公開範囲
+            if (req.getVisibility() != null) {
+                builder.visibility(req.getVisibility());
+            }
+            
             misskey.notes().create(builder.build());
         });
     }

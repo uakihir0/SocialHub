@@ -501,6 +501,11 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             StatusUpdate update = new StatusUpdate();
             update.setContent(req.getText());
 
+            // コンテンツ注意文言
+            if (req.getWarning() != null) {
+                update.setSpoilerText(req.getWarning());
+            }
+
             // 返信の処理
             if (req.getReplyId() != null) {
                 update.setInReplyToId((Long) req.getReplyId());

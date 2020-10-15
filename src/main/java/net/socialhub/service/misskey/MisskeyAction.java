@@ -620,6 +620,11 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             // 文言の追加
             builder.text(req.getText());
 
+            // コンテンツ注意文言
+            if (req.getWarning() != null) {
+                builder.cw(req.getWarning());
+            }
+
             // 返信の処理
             if (req.getReplyId() != null) {
                 builder.replyId((String) req.getReplyId());
@@ -671,7 +676,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             if (req.getVisibility() != null) {
                 builder.visibility(req.getVisibility());
             }
-            
+
             misskey.notes().create(builder.build());
         });
     }

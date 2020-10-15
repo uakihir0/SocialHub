@@ -15,6 +15,9 @@ public class CommentForm {
     /** Text */
     private String text;
 
+    /** Warning */
+    private String warning;
+
     /** Reply or Thread ID */
     private Object replyId;
 
@@ -43,6 +46,7 @@ public class CommentForm {
     public CommentForm copy() {
         CommentForm form = new CommentForm();
         form.text(text);
+        form.warning(warning);
         form.replyId(replyId);
         form.quoteId(quoteId);
         form.sensitive(isSensitive);
@@ -71,6 +75,14 @@ public class CommentForm {
      */
     public CommentForm text(String text) {
         this.text = text;
+        return this;
+    }
+
+    /**
+     * Set Warning
+     */
+    public CommentForm warning(String warning) {
+        this.warning = warning;
         return this;
     }
 
@@ -171,6 +183,10 @@ public class CommentForm {
     //region // Getter&Setter
     public String getText() {
         return text;
+    }
+
+    public String getWarning() {
+        return warning;
     }
 
     public Object getReplyId() {

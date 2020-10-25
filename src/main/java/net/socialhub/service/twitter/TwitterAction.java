@@ -493,7 +493,7 @@ public class TwitterAction extends AccountActionImpl {
 
                             UserTimelineRequest request = new UserTimelineRequest();
                             request.setUserId(twuser.getId().toString());
-                            request.setCount(getCountFromPage(paging, 100));
+                            request.setCount(getCountFromPage(paging, 100, 100));
                             request.setCursor(getCursorFromPage(paging, null));
 
                             TopLevel top = getWebClient().timeline()
@@ -1793,12 +1793,23 @@ public class TwitterAction extends AccountActionImpl {
     // ============================================================== //
 
     private int getCountFromPage(Paging paging, int defValue) {
+        return getCountFromPage(
+                paging,
+                defValue,
+                Integer.MAX_VALUE);
+    }
+
+    private int getCountFromPage(Paging paging, int defValue, int maxValue) {
         if (paging != null) {
             if (paging.getCount() != null) {
-                return paging.getCount().intValue();
+                return Math.min(
+                        maxValue,
+                        paging.getCount().intValue());
             }
         }
-        return defValue;
+        return Math.min(
+                maxValue,
+                defValue);
     }
 
     @SuppressWarnings("unchecked")

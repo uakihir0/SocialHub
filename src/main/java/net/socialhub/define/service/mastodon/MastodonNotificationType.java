@@ -11,6 +11,7 @@ public enum MastodonNotificationType {
     REBLOG(NotificationType.SHARE, "reblog"),
     FAVOURITE(NotificationType.LIKE, "favourite"),
 
+    STATUS(null, "status"),
     POLL(null, "poll"),
 
     ;

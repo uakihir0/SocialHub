@@ -11,4 +11,6 @@ public class MastodonInstance {
     public final static String PAWOO_NET = "https://pawoo.net";
 
     public final static String MASTODON_SOCIAL = "https://mastodon.social";
+
+    public final static String FEDIBIRD_COM = "https://fedibird.com";
 }

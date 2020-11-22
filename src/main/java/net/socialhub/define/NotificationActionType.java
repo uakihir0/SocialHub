@@ -1,9 +1,9 @@
 package net.socialhub.define;
 
 /**
- * Notification Types
+ * Notification Action Types
  */
-public enum NotificationType {
+public enum NotificationActionType {
 
     MENTION("mention"),
     FOLLOW("follow"),
@@ -13,7 +13,7 @@ public enum NotificationType {
 
     private String code;
 
-    NotificationType(String code) {
+    NotificationActionType(String code) {
         this.code = code;
     }
 

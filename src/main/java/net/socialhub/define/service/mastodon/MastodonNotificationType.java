@@ -1,28 +1,27 @@
 package net.socialhub.define.service.mastodon;
 
-import net.socialhub.define.NotificationType;
+import net.socialhub.define.NotificationActionType;
 
 import java.util.stream.Stream;
 
 public enum MastodonNotificationType {
 
-    MENTION(NotificationType.MENTION, "mention"),
-    FOLLOW(NotificationType.FOLLOW, "follow"),
-    REBLOG(NotificationType.SHARE, "reblog"),
-    FAVOURITE(NotificationType.LIKE, "favourite"),
+    MENTION(NotificationActionType.MENTION, "mention"),
+    FOLLOW(NotificationActionType.FOLLOW, "follow"),
+    REBLOG(NotificationActionType.SHARE, "reblog"),
+    FAVOURITE(NotificationActionType.LIKE, "favourite"),
 
     STATUS(null, "status"),
     POLL(null, "poll"),
-
     ;
 
-    private NotificationType type;
+    private NotificationActionType action;
     private String code;
 
     MastodonNotificationType(
-            NotificationType type,
+            NotificationActionType action,
             String code) {
-        this.type = type;
+        this.action = action;
         this.code = code;
     }
 
@@ -33,8 +32,8 @@ public enum MastodonNotificationType {
     }
 
     // region // Getter
-    public NotificationType getType() {
-        return type;
+    public NotificationActionType getAction() {
+        return action;
     }
 
     public String getCode() {

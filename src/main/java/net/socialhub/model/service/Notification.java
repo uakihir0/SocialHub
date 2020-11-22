@@ -1,5 +1,8 @@
 package net.socialhub.model.service;
 
+import net.socialhub.define.NotificationActionType;
+import net.socialhub.define.service.mastodon.MastodonNotificationType;
+
 import java.util.Date;
 import java.util.List;
 
@@ -9,8 +12,21 @@ import java.util.List;
  */
 public class Notification extends Identify {
 
-    /** Notification type */
+    /**
+     * Notification type name
+     * Origin name form social media.
+     *
+     * @see MastodonNotificationType (code field)
+     */
     private String type;
+
+    /**
+     * Common Action type name
+     * SocialHub common action name.
+     *
+     * @see NotificationActionType (code field)
+     */
+    private String action;
 
     /** Date of created */
     private Date createAt;
@@ -32,6 +48,14 @@ public class Notification extends Identify {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
     }
 
     public Date getCreateAt() {

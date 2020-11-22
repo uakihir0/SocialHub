@@ -2,7 +2,7 @@ package net.socialhub.service.twitter;
 
 import net.socialhub.define.ErrorType;
 import net.socialhub.define.MediaType;
-import net.socialhub.define.NotificationType;
+import net.socialhub.define.NotificationActionType;
 import net.socialhub.define.service.twitter.TwitterReactionType;
 import net.socialhub.define.service.twitter.TwitterSearchBuilder;
 import net.socialhub.define.service.twitter.TwitterSearchQuery;
@@ -1760,7 +1760,8 @@ public class TwitterAction extends AccountActionImpl {
                     Comment comment = TwitterMapper.comment(status, service);
 
                     Notification model = new Notification(service);
-                    model.setType(NotificationType.SHARE.getCode());
+                    model.setType(NotificationActionType.SHARE.getCode());
+                    model.setAction(NotificationActionType.SHARE.getCode());
                     model.setComments(singletonList(comment.getDisplayComment()));
                     model.setUsers(singletonList(comment.getUser()));
 

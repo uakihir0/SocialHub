@@ -1,28 +1,27 @@
 package net.socialhub.define.service.misskey;
 
-import net.socialhub.define.NotificationType;
+import misskey4j.entity.contant.NotificationType;
+import net.socialhub.define.NotificationActionType;
 
 import java.util.stream.Stream;
 
 public enum MisskeyNotificationType {
 
-    FOLLOW(NotificationType.FOLLOW,
-            misskey4j.entity.contant.NotificationType.FOLLOW.code()),
-    RENOTE(NotificationType.SHARE,
-            misskey4j.entity.contant.NotificationType.RENOTE.code()),
+    FOLLOW(NotificationActionType.FOLLOW, NotificationType.FOLLOW.code()),
+    RENOTE(NotificationActionType.SHARE, NotificationType.RENOTE.code()),
 
-    REACTION(null, misskey4j.entity.contant.NotificationType.REACTION.code()),
-    MENTION(null, misskey4j.entity.contant.NotificationType.MENTION.code()),
-    POLL(null, misskey4j.entity.contant.NotificationType.POLL_VOTE.code()),
+    REACTION(null, NotificationType.REACTION.code()),
+    MENTION(null, NotificationType.MENTION.code()),
+    POLL(null, NotificationType.POLL_VOTE.code()),
     ;
 
-    private NotificationType type;
+    private NotificationActionType action;
     private String code;
 
     MisskeyNotificationType(
-            NotificationType type,
+            NotificationActionType action,
             String code) {
-        this.type = type;
+        this.action = action;
         this.code = code;
     }
 
@@ -33,8 +32,8 @@ public enum MisskeyNotificationType {
     }
 
     // region // Getter
-    public NotificationType getType() {
-        return type;
+    public NotificationActionType getAction() {
+        return action;
     }
 
     public String getCode() {

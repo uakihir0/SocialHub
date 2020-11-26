@@ -463,6 +463,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                     Stream.of(response.get())
                             // Remove featured notes.
                             .filter(e -> e.getFeaturedId() == null)
+                            // Remove PR notes.
+                            .filter(e -> e.getPrId() == null)
                             .toArray(Note[]::new),
                     misskey.getHost(), service, paging);
         });

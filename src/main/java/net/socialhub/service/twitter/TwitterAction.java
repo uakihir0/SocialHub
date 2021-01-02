@@ -75,6 +75,11 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterStream;
 import twitter4j.UserList;
+import work.socialhub.JTW;
+import work.socialhub.api.JTWFactory;
+import work.socialhub.api.request.UsersLookupIdRequest;
+import work.socialhub.api.response.Response;
+import work.socialhub.api.response.Root;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -142,6 +147,8 @@ public class TwitterAction extends AccountActionImpl {
     private boolean useWebClient = true;
 
     private TwitterWebClient webClient = null;
+
+    private JTW v2Client = null;
 
     // ============================================================== //
     // Account
@@ -1337,7 +1344,36 @@ public class TwitterAction extends AccountActionImpl {
      * ユーザーのピンされたコメントを取得
      */
     public List<Comment> getUserPinedComments(Identify id) {
+        return proceed(() -> {
+            JTW v2 = getV2Client();
+            Twitter twitter = auth.getAccessor();
+            Service service = getAccount().getService();
 
+            Response<Root<work.socialhub.api.response.User>> response =
+                    v2.show(UsersLookupIdRequest.builder(id.getId().toString()).build());
+
+            // ユーザーの PIN ツイートが見つからない場合は空リストを返す
+            String pinnedTweetId = response.getValue().getData().getPinnedTweetId();
+            if (pinnedTweetId == null) {
+                return emptyList();
+            }
+
+            // 個々のツイートの取得
+            ResponseList<Status> statuses = twitter.tweets().lookup(
+                    Stream.of(pinnedTweetId).mapToLong(Long::parseLong).toArray());
+
+            // モデルにマッピングして返却
+            return statuses.stream().map(e -> TwitterMapper.comment(e, service))
+                    .sorted(Comparator.comparing(Comment::getCreateAt).reversed())
+                    .collect(toList());
+        });
+    }
+
+    /**
+     * Get user pinned comments. (from web client)
+     * ユーザーのピンされたコメントを取得
+     */
+    public List<Comment> getUserPinedCommentsFromWeb(Identify id) {
         return proceed(() -> {
             Twitter twitter = auth.getAccessor();
             Service service = getAccount().getService();
@@ -1880,6 +1916,13 @@ public class TwitterAction extends AccountActionImpl {
             webClient = new TwitterWebClient.Builder().build();
         }
         return webClient;
+    }
+
+    private JTW getV2Client(){
+        if (v2Client == null) {
+            v2Client = JTWFactory.fromTwitter4J(auth.getAccessor());
+        }
+        return v2Client;
     }
 
     public void setUseWebClient(boolean useWebClient) {

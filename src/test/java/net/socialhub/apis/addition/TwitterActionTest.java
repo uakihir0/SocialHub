@@ -18,6 +18,8 @@ import net.socialhub.service.twitter.TwitterAction;
 import net.socialhub.service.twitter.TwitterRequest;
 import org.junit.Test;
 
+import java.util.List;
+
 public class TwitterActionTest extends AbstractTimelineTest {
 
     @Test
@@ -139,6 +141,18 @@ public class TwitterActionTest extends AbstractTimelineTest {
         System.out.println("// Retweet //");
         for (User user : retweetUsers.getUsers(new Paging(100L)).getEntities()) {
             System.out.println(user.getName());
+        }
+    }
+
+    @Test
+    public void getUserPinedComments() {
+        Account account = SocialAuthUtil.getTwitterAccount();
+        TwitterAction action = (TwitterAction) account.action();
+
+        User me = action.getUserMe();
+        List<Comment> comments = action.getUserPinedComments(me);
+        for (Comment comment : comments) {
+            printComment(comment);
         }
     }
 }

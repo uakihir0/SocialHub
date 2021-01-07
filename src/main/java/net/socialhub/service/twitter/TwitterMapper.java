@@ -66,7 +66,9 @@ public class TwitterMapper {
     private final static List<Class<?>> ClassLoader = Arrays.asList(
             net.socialhub.twitter.web.entity.response.ExtendedMedia.class,
             net.socialhub.twitter.web.entity.response.Content.class,
-            net.socialhub.twitter.web.entity.response.Media.class
+            net.socialhub.twitter.web.entity.response.Media.class,
+            work.socialhub.api.response.Hashtag.class,
+            work.socialhub.api.response.Url.class
     );
 
     /**

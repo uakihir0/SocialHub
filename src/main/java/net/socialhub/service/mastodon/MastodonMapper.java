@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.stream.Stream;
@@ -55,7 +56,9 @@ public class MastodonMapper {
 
     private static Logger logger = Logger.getLogger(MastodonMapper.class);
 
-    private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    /** 時間のパーサーオブジェクト */
+    private static SimpleDateFormat dateParser = null;
+    private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
     private static final XmlConvertRule XML_RULE = xmlConvertRule();
 
@@ -65,8 +68,6 @@ public class MastodonMapper {
             mastodon4j.entity.Mention.class,
             mastodon4j.entity.Tag.class);
 
-    /** 時間のパーサーオブジェクト */
-    private static SimpleDateFormat dateParser = null;
 
     // ============================================================== //
     // Single Object Mapper
@@ -102,10 +103,10 @@ public class MastodonMapper {
         // プロフィールページの設定
         model.setProfileUrl(AttributedString.plain(account.getUrl()));
 
+        model.setFields(new ArrayList<>());
         if ((account.getFields() != null) &&  //
                 (account.getFields().length > 0)) {
 
-            model.setFields(new ArrayList<>());
             for (Field field : account.getFields()) {
                 AttributedFiled f = new AttributedFiled();
 
@@ -145,7 +146,7 @@ public class MastodonMapper {
         try {
             model.setId(status.getId());
             model.setUser(user(status.getAccount(), service));
-            model.setCreateAt(getDateParser().parse(status.getCreatedAt()));
+            model.setCreateAt(parseDate(status.getCreatedAt()));
             model.setApplication(application(status.getApplication()));
             model.setPossiblySensitive(status.isSensitive());
             model.setVisibility(status.getVisibility());
@@ -156,6 +157,10 @@ public class MastodonMapper {
             model.setLiked(status.isFavourited());
             model.setShared(status.isReblogged());
 
+            // リプライの数はメンションの数を参照
+            model.setReplyCount((status.getMentions() != null) ?
+                    status.getMentions().length : 0L);
+            
             // リツイートの場合は内部を展開
             if (status.getReblog() != null) {
                 model.setSharedComment(comment(status.getReblog(), service));
@@ -205,7 +210,7 @@ public class MastodonMapper {
             }
             return model;
 
-        } catch (MalformedURLException | ParseException e) {
+        } catch (MalformedURLException e) {
 
             logger.error(e);
             throw new IllegalStateException(e);
@@ -263,53 +268,47 @@ public class MastodonMapper {
             return null;
         }
 
-        try {
-            MastodonPoll model = new MastodonPoll(service);
+        MastodonPoll model = new MastodonPoll(service);
 
-            model.setId(poll.getId());
-            model.setVoted(poll.isVoted());
-            model.setMultiple(poll.isMultiple());
-            model.setExpired(poll.isExpired());
+        model.setId(poll.getId());
+        model.setVoted(poll.isVoted());
+        model.setMultiple(poll.isMultiple());
+        model.setExpired(poll.isExpired());
 
-            model.setVotesCount(poll.getVotesCount());
-            model.setVotersCount(poll.getVotersCount());
+        model.setVotesCount(poll.getVotesCount());
+        model.setVotersCount(poll.getVotersCount());
 
-            // 通行期限
-            if (poll.getExpiresAt() != null) {
-                model.setExpireAt(getDateParser().parse(poll.getExpiresAt()));
-            }
-
-            // 絵文字の追加
-            model.setEmojis(emojis(poll.getEmojis()));
-
-            // 投票候補の追加
-            List<PollOption> options = new ArrayList<>();
-            model.setOptions(options);
-
-            long index = 0;
-            for (Option option : poll.getOptions()) {
-                PollOption op = new PollOption();
-                options.add(op);
-
-                // 投票のインデックスを記録
-                op.setIndex(index);
-                index += 1;
-
-                op.setTitle(option.getTitle());
-                op.setCount(option.getVotesCount());
-
-                // 投票済みかどうかを確認
-                if (poll.getOwnVotes() != null) {
-                    op.setVoted(Stream.of(poll.getOwnVotes())
-                            .anyMatch(e -> (e.equals(op.getIndex()))));
-                }
-            }
-            return model;
-
-        } catch (ParseException e) {
-            logger.error(e);
-            throw new IllegalStateException(e);
+        // 通行期限
+        if (poll.getExpiresAt() != null) {
+            model.setExpireAt(parseDate(poll.getExpiresAt()));
         }
+
+        // 絵文字の追加
+        model.setEmojis(emojis(poll.getEmojis()));
+
+        // 投票候補の追加
+        List<PollOption> options = new ArrayList<>();
+        model.setOptions(options);
+
+        long index = 0;
+        for (Option option : poll.getOptions()) {
+            PollOption op = new PollOption();
+            options.add(op);
+
+            // 投票のインデックスを記録
+            op.setIndex(index);
+            index += 1;
+
+            op.setTitle(option.getTitle());
+            op.setCount(option.getVotesCount());
+
+            // 投票済みかどうかを確認
+            if (poll.getOwnVotes() != null) {
+                op.setVoted(Stream.of(poll.getOwnVotes())
+                        .anyMatch(e -> (e.equals(op.getIndex()))));
+            }
+        }
+        return model;
     }
 
 
@@ -351,40 +350,34 @@ public class MastodonMapper {
             mastodon4j.entity.Notification notification,
             Service service) {
 
-        try {
-            Notification model = new Notification(service);
-            model.setCreateAt(getDateParser().parse(notification.getCreatedAt()));
-            model.setId(notification.getId());
+        Notification model = new Notification(service);
+        model.setCreateAt(parseDate(notification.getCreatedAt()));
+        model.setId(notification.getId());
 
-            MastodonNotificationType type =
-                    MastodonNotificationType
-                            .of(notification.getType());
+        MastodonNotificationType type =
+                MastodonNotificationType
+                        .of(notification.getType());
 
-            // 存在する場合のみ設定
-            if (type != null) {
-                model.setType(type.getCode());
-                if (type.getAction() != null) {
-                    model.setAction(type.getAction().getCode());
-                }
+        // 存在する場合のみ設定
+        if (type != null) {
+            model.setType(type.getCode());
+            if (type.getAction() != null) {
+                model.setAction(type.getAction().getCode());
             }
-
-            // ステータス情報
-            if (notification.getStatus() != null) {
-                model.setComments(Collections.singletonList(
-                        comment(notification.getStatus(), service)));
-            }
-
-            // ユーザー情報
-            if (notification.getAccount() != null) {
-                model.setUsers(Collections.singletonList(
-                        user(notification.getAccount(), service)));
-            }
-            return model;
-
-        } catch (ParseException e) {
-            logger.error(e);
-            throw new IllegalStateException(e);
         }
+
+        // ステータス情報
+        if (notification.getStatus() != null) {
+            model.setComments(Collections.singletonList(
+                    comment(notification.getStatus(), service)));
+        }
+
+        // ユーザー情報
+        if (notification.getAccount() != null) {
+            model.setUsers(Collections.singletonList(
+                    user(notification.getAccount(), service)));
+        }
+        return model;
     }
 
     /**
@@ -543,11 +536,17 @@ public class MastodonMapper {
     // Support
     // ============================================================== //
 
-    public static SimpleDateFormat getDateParser() {
+    public static Date parseDate(String str) {
         if (dateParser == null) {
             dateParser = new SimpleDateFormat(DATE_FORMAT);
             dateParser.setTimeZone(TimeZone.getTimeZone("UTC"));
         }
-        return dateParser;
+        try {
+            return dateParser.parse(str);
+
+        } catch (ParseException e) {
+            logger.error(e);
+            throw new IllegalStateException(e);
+        }
     }
 }

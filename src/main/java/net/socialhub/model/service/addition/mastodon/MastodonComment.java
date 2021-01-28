@@ -55,10 +55,12 @@ public class MastodonComment extends MiniBlogComment {
     public List<Reaction> getReactions() {
         List<Reaction> reactions = new ArrayList<>();
 
-        Reaction reply = new Reaction();
-        reply.setCount(replyCount);
-        reply.setName("reply");
-        reactions.add(reply);
+        if (replyCount != null && replyCount > 0) {
+            Reaction reply = new Reaction();
+            reply.setCount(replyCount);
+            reply.setName("reply");
+            reactions.add(reply);
+        }
 
         reactions.addAll(super.getReactions());
         return reactions;

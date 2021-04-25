@@ -26,9 +26,9 @@ jobs:
 
       - name: Download J2Objc
         run: |
-          wget -q https://github.com/google/j2objc/releases/download/2.7/j2objc-2.7.zip
-          unzip -q j2objc-2.7.zip
-          echo "j2objc.home=./j2objc-2.7/" > local.properties
+          wget -q https://github.com/google/j2objc/releases/download/2.8/j2objc-2.8.zip
+          unzip -q j2objc-2.8.zip
+          echo "j2objc.home=./j2objc-2.8/" > local.properties
 
       - name: Build with Gradle
         run: ./gradlew -b j2objc.gradle clean :j2objcAssemble${RUN_TARGET} -x test

@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: macos-11.0
+    runs-on: macos-latest
 
     strategy:
       matrix:
@@ -30,6 +30,11 @@ jobs:
           wget -q https://github.com/google/j2objc/releases/download/$J2OBJC/j2objc-$J2OBJC.zip
           unzip -q j2objc-$J2OBJC.zip
           echo "j2objc.home=./j2objc-$J2OBJC/" > local.properties
+
+      - name: Output Info
+        run: |
+          java --version
+          ls -la
 
       - name: Build with Gradle
         run: ./gradlew -b j2objc.gradle clean :j2objcAssemble${RUN_TARGET} -x test

@@ -33,6 +33,7 @@ jobs:
 
       - name: Output Info
         run: |
+          $JAVA_HOME/bin/java --version
           ls -la
 
       - name: Build with Gradle

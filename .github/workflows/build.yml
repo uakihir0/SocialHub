@@ -15,6 +15,7 @@ jobs:
     env:
       RUN_TARGET: ${{ matrix.target }}
       AZ_TOKEN: ${{ secrets.AZ_TOKEN }}
+      J2OBJC: 2.7
 
     steps:
       - uses: actions/checkout@v1
@@ -26,9 +27,9 @@ jobs:
 
       - name: Download J2Objc
         run: |
-          wget -q https://github.com/google/j2objc/releases/download/2.8/j2objc-2.8.zip
-          unzip -q j2objc-2.8.zip
-          echo "j2objc.home=./j2objc-2.8/" > local.properties
+          wget -q https://github.com/google/j2objc/releases/download/$J2OBJC/j2objc-$J2OBJC.zip
+          unzip -q j2objc-$J2OBJC.zip
+          echo "j2objc.home=./j2objc-$J2OBJC/" > local.properties
 
       - name: Build with Gradle
         run: ./gradlew -b j2objc.gradle clean :j2objcAssemble${RUN_TARGET} -x test

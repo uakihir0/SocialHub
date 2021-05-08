@@ -31,11 +31,6 @@ jobs:
           unzip -q j2objc-$J2OBJC.zip
           echo "j2objc.home=./j2objc-$J2OBJC/" > local.properties
 
-      - name: Output Info
-        run: |
-          $JAVA_HOME/bin/java --version
-          ls -la
-
       - name: Build with Gradle
         run: ./gradlew -b j2objc.gradle clean :j2objcAssemble${RUN_TARGET} -x test
 

@@ -17,6 +17,7 @@ group 'SocialHub'
 version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 idea {
     module {
@@ -45,25 +46,25 @@ dependencies {
     compile('org.apache.commons:commons-lang3:3.7')
     compile('commons-codec:commons-codec:1.11')
     compile('com.google.code.gson:gson:2.8.2')
-    compile('org.scribe:scribe:1.3.3')
 
     // J2ObjC Common Library
     compile('com.github.uakihir0:JLogger:1.4')
     compile('com.github.uakihir0:JHttpClient:1.1.8')
+    compile('com.github.uakihir0:scribejava:0.0.1')
 
     // J2ObjC Network Library
     compile('com.github.uakihir0.twitter4j:twitter4j-core:4.0.8.4')
     compile('com.github.uakihir0.twitter4j:twitter4j-stream:4.0.8.4')
-    compile('com.github.uakihir0:twitter-web-client:0.5')
+    compile('com.github.uakihir0:twitter-web-client:0.6')
     compile('com.github.uakihir0:twitter-text:3.0.1.1')
     compile('com.github.uakihir0:jtw:0.0.1')
     compile('com.github.uakihir0.facebook4j:facebook4j-core:2.4.11.3')
-    compile('com.github.uakihir0.jslack:jslack-api-client:3.2.2.2')
-    compile('com.github.uakihir0.jslack:jslack-api-model:3.2.2.2')
+    compile('com.github.uakihir0.jslack:jslack-api-client:3.2.2.3')
+    compile('com.github.uakihir0.jslack:jslack-api-model:3.2.2.3')
     compile('com.github.uakihir0:msinstance4j:0.0.3')
     compile('com.github.uakihir0:mastodon4j:0.2.45')
-    compile('com.github.uakihir0:jumblr:0.0.13.10')
-    compile('com.github.uakihir0:misskey4j:0.2.13')
+    compile('com.github.uakihir0:jumblr:0.0.13.11')
+    compile('com.github.uakihir0:misskey4j:0.2.14')
 
     // Test
     testCompile('junit:junit:4.12')

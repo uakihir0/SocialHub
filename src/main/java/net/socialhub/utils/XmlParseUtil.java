@@ -37,11 +37,15 @@ public class XmlParseUtil {
         string = string.replaceAll("<script async", "<script");
 
         // Regex like: <(br|BR)(.*?)/?>
-        String[] tags = { "br", "img", "hr" };
+        String[] tags = {"br", "img", "hr"};
         for (String tag : tags) {
             string = replace(string, "<(" + tag + "|" + //
                     tag.toUpperCase() + ")(.*?)/?>", "<$1$2/>");
         }
+
+        // Remove Target Attributes
+        string = string.replaceAll(" _blank ", " ");
+        string = string.replaceAll("target=\"_blank\"", "");
 
         // Some Tumblr Post NOT escaped & in href in a tag.
         string = string.replaceAll("&(?![#a-zA-Z0-9]+;)", "&amp;");
@@ -50,9 +54,8 @@ public class XmlParseUtil {
         for (SpecialCharType sp : SpecialCharType.values()) {
             string = string.replaceAll(sp.getEntityRepl(), sp.getNumberRepl());
         }
-        
-        try {
 
+        try {
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser parser = factory.newSAXParser();
 

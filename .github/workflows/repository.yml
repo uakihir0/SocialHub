@@ -8,7 +8,7 @@ on:
 
 jobs:
   repository:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     env:
       AZ_TOKEN: ${{ secrets.AZ_TOKEN }}

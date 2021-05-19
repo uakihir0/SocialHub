@@ -113,8 +113,8 @@ j2objcPodspec.doLast {
                         '''Pod::Spec.new do |spec|
   spec.authors = 'Akihiro Urushihara'
   spec.license = 'MIT'
-  spec.homepage = 'https://twitter.com/U_Akihir0'
-  spec.source = { :git => 'git@bitbucket.org:your/repo.git' }''')
+  spec.homepage = 'https://twitter.com/uakihir0'
+  spec.source = { :git => 'git@github.com:uakihir0/SocialHub.git' }''')
                 .replace(
                         "icucore",
                         "icucore', 'iconv")

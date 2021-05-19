@@ -1,0 +1,54 @@
+name: CocoaPods Repository
+
+on:
+  workflow_run:
+    workflows: ["J2ObjC Build"]
+    types:
+      - completed
+
+jobs:
+  repository:
+    runs-on: ubuntu-latest
+
+    env:
+      AZ_TOKEN: ${{ secrets.AZ_TOKEN }}
+      J2OBJC: 2.7
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Download J2Objc
+        run: |
+          wget -q https://github.com/google/j2objc/releases/download/$J2OBJC/j2objc-$J2OBJC.zip
+          unzip -q j2objc-$J2OBJC.zip
+
+      - name: Checkout and Copy Binary
+        run: |
+          mkdir work
+          mkdir binary
+          cd ~/binary
+          git clone -b Debug https://dev.azure.com/SocialHub/ObjCBinary/_git/ObjCBinary
+          rsync -av ./ObjCBinary/ ~/work/ --exclude '/.git/'
+          cd ./ObjCBinary && git checkout Release && cd ../
+          rsync -av ./ObjCBinary/ ~/work/ --exclude '/.git/'
+
+      - name: Make Cocoapod Repository
+        run: |
+          cd ~/work
+          sh ~/tool/buildpod.sh
+          mkdir -p j2objc/lib
+          mkdir -p j2objc/include
+          cp -R ~/j2objc-$J2OBJC/lib ./j2objc/lib
+          cp -R ~/j2objc-$J2OBJC/include ./j2objc/include
+
+      - name: Push Repository
+        run: |
+          cd ~/work
+          git config --global user.email "a.urusihara@gmail.com"
+          git config --global user.name "Akihiro Urushihara"
+          git init
+          git checkout -b main
+          git add --all
+          git commit -m "by GitHub Action CI (SHA ${GITHUB_SHA})"
+          git remote add origin https://${AZ_TOKEN}@dev.azure.com/SocialHub/CocoaPods/_git/CocoaPods
+          git push -f origin main

@@ -30,4 +30,4 @@ sed -i -e "22s|^|    'LIBRARY_SEARCH_PATHS' => '\$(PODS_ROOT)/j2objc/lib'|" j2ob
 
 # ---------------------------------------------------------------------------------- #
 # Delete Back
-rm *.podspec-e
+rm -f *.podspec-e

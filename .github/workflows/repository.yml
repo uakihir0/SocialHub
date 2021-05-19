@@ -24,16 +24,16 @@ jobs:
 
       - name: Checkout and Copy Binary
         run: |
-          mkdir work
+          mkdir repository
           mkdir binary && cd ./binary
           git clone -b Debug https://dev.azure.com/SocialHub/ObjCBinary/_git/ObjCBinary
-          rsync -av ./ObjCBinary/ ../work/ --exclude '/.git/'
+          rsync -av ./ObjCBinary/ ../repository/ --exclude '/.git/'
           cd ./ObjCBinary && git checkout Release && cd ../
-          rsync -av ./ObjCBinary/ ../work/ --exclude '/.git/'
+          rsync -av ./ObjCBinary/ ../repository/ --exclude '/.git/'
 
       - name: Make Cocoapod Repository
         run: |
-          cd ./work
+          cd ./repository
           sh ../tool/buildpod.sh
           mkdir -p j2objc/lib
           mkdir -p j2objc/include
@@ -42,7 +42,7 @@ jobs:
 
       - name: Push Repository
         run: |
-          cd ./work
+          cd ./repository
           git config --global user.email "a.urusihara@gmail.com"
           git config --global user.name "Akihiro Urushihara"
           git init

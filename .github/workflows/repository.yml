@@ -35,8 +35,7 @@ jobs:
         run: |
           cd ./repository
           sh ../tool/buildpod.sh
-          mkdir -p j2objc/lib
-          mkdir -p j2objc/include
+          mkdir j2objc
           cp -R ../j2objc-$J2OBJC/lib ./j2objc/
           cp -R ../j2objc-$J2OBJC/include ./j2objc/
 

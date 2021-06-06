@@ -15,7 +15,7 @@ jobs:
     env:
       RUN_TARGET: ${{ matrix.target }}
       AZ_TOKEN: ${{ secrets.AZ_TOKEN }}
-      J2OBJC: 2.7
+      J2OBJC: 2.8
 
     steps:
       - uses: actions/checkout@v1

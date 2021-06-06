@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 cd "$(dirname "$0")"
-J2OBJC="2.7"
+J2OBJC="2.8"
 
 # !! Change for Your Environment !!
 J2OBJC_PATH=$HOME/Documents/j2objc/$J2OBJC

@@ -30,11 +30,12 @@ public class XmlParseUtil {
         string = "<xml>" + string + "</xml>";
 
         // Delete System NewLine
-        string = string.replaceAll("\n", "");
-        string = string.replaceAll("\r", "");
+        string = string.replace("\n", "");
+        string = string.replace("\r", "");
 
         // Remove Script Async
-        string = string.replaceAll("<script async", "<script");
+        string = string.replace(" async", " ");
+        string = string.replace(" allowfullscreen", " ");
 
         // Regex like: <(br|BR)(.*?)/?>
         String[] tags = {"br", "img", "hr"};
@@ -44,8 +45,8 @@ public class XmlParseUtil {
         }
 
         // Remove Target Attributes
-        string = string.replaceAll(" _blank ", " ");
-        string = string.replaceAll("target=\"_blank\"", "");
+        string = string.replace(" _blank ", " ");
+        string = string.replace("target=\"_blank\"", "");
 
         // Some Tumblr Post NOT escaped & in href in a tag.
         string = string.replaceAll("&(?![#a-zA-Z0-9]+;)", "&amp;");

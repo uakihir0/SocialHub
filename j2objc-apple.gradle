@@ -2,13 +2,16 @@ buildscript {
     repositories {
         mavenCentral()
     }
+    // dependencies {
+    //     classpath files('j2objc-gradle-0.7.3.jar')
+    // }
 }
 
 plugins {
     id 'java'
     id 'idea'
     id 'maven'
-    id 'net.socialhub.j2objccontrib.j2objcgradle' version '0.7.2'
+    id 'net.socialhub.j2objccontrib.j2objcgradle' version '0.7.3'
 }
 
 apply plugin: 'net.socialhub.j2objccontrib.j2objcgradle'
@@ -88,7 +91,8 @@ j2objcConfig {
     // TODO: 'ios_arm64e' should be support
     supportedArchs = [
             'ios_arm64',
-            'ios_x86_64'
+            'ios_sim_x86_64',
+            'ios_sim_arm64'
     ]
 
     translateArgs '--build-closure'

@@ -8,15 +8,6 @@ env:
     - RUN_TARGET=Debug
     - RUN_TARGET=Release
 
-before_cache:
-  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
-
-cache:
-  directories:
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
-
 before_script:
   - wget -q https://github.com/google/j2objc/releases/download/2.8/j2objc-2.8.zip
   - unzip -q j2objc-2.8.zip

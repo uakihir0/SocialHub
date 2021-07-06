@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-11
 
     strategy:
       matrix:
@@ -33,7 +33,7 @@ jobs:
           echo "j2objc.home=./j2objc-$J2OBJC/" > local.properties
 
       - name: Build with Gradle
-        run: ./gradlew -b j2objc.gradle clean :j2objcAssemble${RUN_TARGET} -x test
+        run: ./gradlew -b j2objc-apple.gradle clean :j2objcAssemble${RUN_TARGET} -x test
 
       - name: Push Binary
         run: |

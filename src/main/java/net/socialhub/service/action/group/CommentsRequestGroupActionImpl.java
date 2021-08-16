@@ -34,6 +34,14 @@ public class CommentsRequestGroupActionImpl implements CommentsRequestGroupActio
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CommentGroup getComments(int count) {
+        return getComments(new Paging((long) count));
+    }
+
+    /**
      * コメント情報をページング付きで取得
      */
     private CommentGroup getComments(Paging paging) {

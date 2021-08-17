@@ -38,8 +38,12 @@ public class RateLimit implements Serializable {
      * (For Mastodon)
      */
     public void addInfo(ActionType action, mastodon4j.entity.share.Response<?> response) {
-        RateLimitValue value = new RateLimitValue(response);
-        dictionary.put(action, value);
+
+        // PixelFed は RateLimit に未対応
+        if (response.getRateLimit() != null) {
+            RateLimitValue value = new RateLimitValue(response);
+            dictionary.put(action, value);
+        }
     }
 
     /**

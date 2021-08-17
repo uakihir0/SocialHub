@@ -160,7 +160,7 @@ public class MastodonMapper {
             // リプライの数はメンションの数を参照
             model.setReplyCount((status.getMentions() != null) ?
                     status.getMentions().length : 0L);
-            
+
             // リツイートの場合は内部を展開
             if (status.getReblog() != null) {
                 model.setSharedComment(comment(status.getReblog(), service));
@@ -542,7 +542,9 @@ public class MastodonMapper {
             dateParser.setTimeZone(TimeZone.getTimeZone("UTC"));
         }
         try {
-            return dateParser.parse(str);
+            // PixelFed の時刻表記を Mastodon の表記に変換
+            String reformat = str.replace("000Z", "+00:00");
+            return dateParser.parse(reformat);
 
         } catch (ParseException e) {
             logger.error(e);

@@ -37,6 +37,7 @@ public class GetUserMeTest extends AbstractApiTest {
         User user = account.action().getUserMe();
         System.out.println(user.getName());
         System.out.println(user.getWebUrl());
+        System.out.println(user.getIconImageUrl());
 
         if (user instanceof MastodonUser) {
             MastodonUser mastodonUser = (MastodonUser) user;

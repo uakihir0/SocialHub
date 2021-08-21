@@ -85,8 +85,17 @@ public class MastodonMapper {
         model.setId(account.getId());
         model.setName(account.getDisplayName());
         model.setScreenName(account.getAccount());
+
+        // AvatarStatic が PixelFed 等では存在しない
         model.setIconImageUrl(account.getAvatarStatic());
+        if (model.getIconImageUrl() == null) {
+            model.setIconImageUrl(account.getAvatar());
+        }
+        // HeaderStatic が PixelFed 等では存在しない
         model.setCoverImageUrl(account.getHeaderStatic());
+        if (model.getCoverImageUrl() == null) {
+            model.setCoverImageUrl(account.getHeader());
+        }
 
         // 絵文字の追加
         model.setEmojis(emojis(account.getEmojis()));

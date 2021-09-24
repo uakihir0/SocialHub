@@ -63,7 +63,7 @@ public class BorderPaging extends Paging {
         if (entities != null && !entities.isEmpty()) {
 
             Long offset = sinceInclude ? 1L : 0L;
-            Long id = (Long) entities.get(0).getId();
+            Long id = parseNumber(entities.get(0).getId());
             newPage.setSinceId(id + (offset * idUnit));
             return newPage;
 
@@ -107,7 +107,7 @@ public class BorderPaging extends Paging {
 
             Long offset = maxInclude ? -1L : 0L;
             T last = entities.get(entities.size() - 1);
-            Long id = (Long) last.getId();
+            Long id = parseNumber(last.getId());
             newPage.setMaxId(id + (offset * idUnit));
             return newPage;
 
@@ -146,6 +146,21 @@ public class BorderPaging extends Paging {
                 && (getSinceId() == null)
                 && (getCount() > 0)) {
             setHasPast(false);
+        }
+    }
+
+    private Long parseNumber(Object id) {
+        try {
+            if (id instanceof Long) {
+                return (Long) id;
+            }
+            if (id instanceof String) {
+                return Long.parseLong((String) id);
+            }
+            throw new IllegalStateException("invalid format id: " + id);
+
+        } catch (Exception e) {
+            throw new IllegalStateException("invalid format id: " + id, e);
         }
     }
 

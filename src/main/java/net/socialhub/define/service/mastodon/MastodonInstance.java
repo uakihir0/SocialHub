@@ -15,4 +15,6 @@ public class MastodonInstance {
     public final static String FEDIBIRD_COM = "https://fedibird.com";
 
     public final static String PIXELFED_TOKYO = "https://pixelfed.tokyo";
+
+    public final static String PLEROMA_NOELLABO_JP = "https://pleroma.noellabo.jp";
 }

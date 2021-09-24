@@ -552,7 +552,9 @@ public class MastodonMapper {
         }
         try {
             // PixelFed の時刻表記を Mastodon の表記に変換
-            String reformat = str.replace("000Z", "+00:00");
+            String reformat = str
+                    .replace("Z", "+00:00") // for Pleroma
+                    .replace("000Z", "+00:00"); // for PixelFed
             return dateParser.parse(reformat);
 
         } catch (ParseException e) {

@@ -137,7 +137,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<mastodon4j.entity.Account> account = mastodon.getAccount((Long) id.getId());
+            Response<mastodon4j.entity.Account> account = mastodon.getAccount((String) id.getId());
 
             service.getRateLimit().addInfo(GetUser, account);
             return MastodonMapper.user(account.get(), service);
@@ -194,7 +194,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<?> relationship = mastodon.follow((Long) id.getId());
+            Response<?> relationship = mastodon.follow((String) id.getId());
 
             service.getRateLimit().addInfo(FollowUser, relationship);
         });
@@ -208,7 +208,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<?> relationship = mastodon.unfollow((Long) id.getId());
+            Response<?> relationship = mastodon.unfollow((String) id.getId());
 
             service.getRateLimit().addInfo(UnfollowUser, relationship);
         });
@@ -222,7 +222,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<?> relationship = mastodon.mute((Long) id.getId());
+            Response<?> relationship = mastodon.mute((String) id.getId());
 
             service.getRateLimit().addInfo(MuteUser, relationship);
         });
@@ -236,7 +236,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<?> relationship = mastodon.unmute((Long) id.getId());
+            Response<?> relationship = mastodon.unmute((String) id.getId());
 
             service.getRateLimit().addInfo(UnmuteUser, relationship);
         });
@@ -250,7 +250,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<?> relationship = mastodon.block((Long) id.getId());
+            Response<?> relationship = mastodon.block((String) id.getId());
 
             service.getRateLimit().addInfo(BlockUser, relationship);
         });
@@ -264,7 +264,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<?> relationship = mastodon.unblock((Long) id.getId());
+            Response<?> relationship = mastodon.unblock((String) id.getId());
 
             service.getRateLimit().addInfo(UnblockUser, relationship);
         });
@@ -279,7 +279,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
             Response<mastodon4j.entity.Relationship[]> relationships = //
-                    mastodon.relationships((Long) id.getId());
+                    mastodon.relationships((String) id.getId());
 
             service.getRateLimit().addInfo(GetRelationship, relationships);
             return MastodonMapper.relationship(relationships.get()[0]);
@@ -302,7 +302,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Range range = getRange(paging);
 
             Response<mastodon4j.entity.Account[]> accounts = //
-                    mastodon.accounts().getFollowing((Long) id.getId(), range);
+                    mastodon.accounts().getFollowing((String) id.getId(), range);
 
             service.getRateLimit().addInfo(GetFollowingUsers, accounts);
             return MastodonMapper.users(accounts.get(), service, paging);
@@ -320,7 +320,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Range range = getRange(paging);
 
             Response<mastodon4j.entity.Account[]> accounts = //
-                    mastodon.accounts().getFollowers((Long) id.getId(), range);
+                    mastodon.accounts().getFollowers((String) id.getId(), range);
 
             service.getRateLimit().addInfo(GetFollowerUsers, accounts);
             return MastodonMapper.users(accounts.get(), service, paging);
@@ -378,9 +378,9 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Response<mastodon4j.entity.Notification[]> status = //
                     mastodon.notifications() //
                             .getNotifications(range, Arrays.asList( //
-                                    MastodonNotificationType.FOLLOW.getCode(), //
-                                    MastodonNotificationType.FAVOURITE.getCode(), //
-                                    MastodonNotificationType.REBLOG.getCode()), //
+                                            MastodonNotificationType.FOLLOW.getCode(), //
+                                            MastodonNotificationType.FAVOURITE.getCode(), //
+                                            MastodonNotificationType.REBLOG.getCode()), //
                                     null);
 
             List<Status> statuses = Stream.of(status.get()) //
@@ -403,7 +403,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Range range = getRange(paging);
 
             Response<Status[]> status = mastodon.accounts().getStatuses( //
-                    (Long) id.getId(), false, false, false, false, range);
+                    (String) id.getId(), false, false, false, false, range);
 
             service.getRateLimit().addInfo(UserCommentTimeLine, status);
             return MastodonMapper.timeLine(status.get(), service, paging);
@@ -448,7 +448,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Range range = getRange(paging);
 
             Response<Status[]> status = mastodon.accounts().getStatuses( //
-                    (Long) id.getId(), false, true, false, false, range);
+                    (String) id.getId(), false, true, false, false, range);
 
             service.getRateLimit().addInfo(UserMediaTimeLine, status);
             return MastodonMapper.timeLine(status.get(), service, paging);
@@ -508,7 +508,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
             // 返信の処理
             if (req.getReplyId() != null) {
-                update.setInReplyToId((Long) req.getReplyId());
+                update.setInReplyToId((String) req.getReplyId());
             }
 
             // 公開範囲
@@ -560,7 +560,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
     public Comment getComment(Identify id) {
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
-            Response<Status> status = mastodon.statuses().getStatus((Long) id.getId());
+            Response<Status> status = mastodon.statuses().getStatus((String) id.getId());
 
             Service service = getAccount().getService();
             service.getRateLimit().addInfo(GetComment, status);
@@ -610,7 +610,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Status> status = mastodon.statuses().favourite((Long) id.getId());
+            Response<Status> status = mastodon.statuses().favourite((String) id.getId());
 
             service.getRateLimit().addInfo(LikeComment, status);
         });
@@ -624,7 +624,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Status> status = mastodon.statuses().unfavourite((Long) id.getId());
+            Response<Status> status = mastodon.statuses().unfavourite((String) id.getId());
 
             service.getRateLimit().addInfo(UnlikeComment, status);
         });
@@ -638,7 +638,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Status> status = mastodon.statuses().reblog((Long) id.getId());
+            Response<Status> status = mastodon.statuses().reblog((String) id.getId());
 
             service.getRateLimit().addInfo(ShareComment, status);
         });
@@ -652,7 +652,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Status> status = mastodon.statuses().unreblog((Long) id.getId());
+            Response<Status> status = mastodon.statuses().unreblog((String) id.getId());
 
             service.getRateLimit().addInfo(UnShareComment, status);
         });
@@ -706,7 +706,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
-            Response<Void> voids = mastodon.statuses().deleteStatus((Long) id.getId());
+            Response<Void> voids = mastodon.statuses().deleteStatus((String) id.getId());
 
             service.getRateLimit().addInfo(DeleteComment, voids);
         });
@@ -729,7 +729,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
 
-            Long displayId = (Long) ((id instanceof Comment) ? //
+            String displayId = (String) ((id instanceof Comment) ? //
                     ((Comment) id).getDisplayComment().getId() : id.getId());
 
             Response<mastodon4j.entity.Context> response = mastodon.getContext(displayId);
@@ -871,18 +871,18 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
     @Override
     public Pageable<Comment> getMessageTimeLine(Identify id, Paging paging) {
         return proceed(() -> {
-            Long commentId = null;
+            String commentId = null;
             Mastodon mastodon = auth.getAccessor();
             Service service = getAccount().getService();
 
             // Identify を直接作成した場合
-            if (id.getId() instanceof Long) {
-                commentId = (Long) id.getId();
+            if (id.getId() instanceof String) {
+                commentId = (String) id.getId();
             }
             // MastodonThread から呼び出した場合
             if (id instanceof MastodonThread) {
                 MastodonThread th = (MastodonThread) id;
-                commentId = (Long) (th.getLastComment().getId());
+                commentId = (String) (th.getLastComment().getId());
             }
 
             // ID が発見できない場合
@@ -986,7 +986,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Mastodon mastodon = auth.getAccessor();
 
             long[] array = choices.stream().mapToLong(e -> e).toArray();
-            mastodon.votePoll((Long) id.getId(), array);
+            mastodon.votePoll((String) id.getId(), array);
         });
     }
 
@@ -1039,8 +1039,8 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Response<mastodon4j.entity.Notification[]> notifications =
                     mastodon.notifications()
                             .getNotifications(range, Arrays.asList(
-                                    MastodonNotificationType.MENTION.getCode(),
-                                    MastodonNotificationType.POLL.getCode()),
+                                            MastodonNotificationType.MENTION.getCode(),
+                                            MastodonNotificationType.POLL.getCode()),
                                     null);
 
             return MastodonMapper.notifications(
@@ -1059,7 +1059,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
             Response<mastodon4j.entity.Notification> notification =
                     mastodon.notifications()
-                            .getNotification((Long) identify.getId());
+                            .getNotification((String) identify.getId());
 
             return MastodonMapper.notification(
                     notification.get(), service);
@@ -1190,7 +1190,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             range.setLimit(100);
 
             Response<Status[]> status = mastodon.accounts().getStatuses( //
-                    (Long) id.getId(), true, false, false, false, range);
+                    (String) id.getId(), true, false, false, false, range);
 
             return Stream.of(status.get())
                     .map(s -> MastodonMapper.comment(s, service))
@@ -1214,13 +1214,13 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
             if (border.getSinceId() != null) {
                 if (border.getHintNewer() == Boolean.TRUE) {
-                    range.setMinId(border.getSinceId());
+                    range.setMinId(border.getSinceId().toString());
                 } else {
-                    range.setSinceId(border.getSinceId());
+                    range.setSinceId(border.getSinceId().toString());
                 }
             }
             if (border.getMaxId() != null) {
-                range.setMaxId(border.getMaxId());
+                range.setMaxId(border.getMaxId().toString());
             }
         }
         return range;

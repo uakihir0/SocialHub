@@ -12,6 +12,8 @@ import net.socialhub.model.Account;
 import net.socialhub.model.service.Service;
 import net.socialhub.service.ServiceAuth;
 
+import java.util.Date;
+
 /**
  * Mastodon Authorization Functions
  */
@@ -22,10 +24,15 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
 
     private static Logger logger = Logger.getLogger(MastodonAuth.class);
 
+    /** Mastodon PixelFed Pleroma */
+    private mastodon4j.domain.Service service;
+
     private String host;
     private String clientId;
     private String clientSecret;
     private String accessToken;
+    private String refreshToken;
+    private Date expired;
 
     public MastodonAuth(String host) {
         this.host = host;
@@ -45,9 +52,15 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
      * Authentication with AccessToken
      * アクセストークンから生成
      */
-    public Account getAccountWithAccessToken(String accessToken) {
+    public Account getAccountWithAccessToken(
+            String accessToken,
+            String refreshToken,
+            Date expired) {
 
         this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.expired = expired;
+
         Account account = new Account();
 
         ServiceType type = ServiceType.Mastodon;
@@ -63,8 +76,8 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
      * Set Client Info
      * 申請済みクライアント情報を設定
      */
-    public void setClientInfo( //
-            String clientId, //
+    public void setClientInfo(
+            String clientId,
             String clientSecret) {
 
         this.clientId = clientId;
@@ -75,10 +88,10 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
      * Request Client Application
      * クライアント情報を申請して設定
      */
-    public void requestClientApplication( //
-            String appName, //
-            String website, //
-            String redirectUris, //
+    public void requestClientApplication(
+            String appName,
+            String website,
+            String redirectUris,
             String scopes) {
 
         Application application = new Application();
@@ -97,10 +110,10 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
      * Get Authorization URL
      * Mastodon の認証ページの URL を取得
      */
-    public String getAuthorizationURL( //
-            String redirectUri, //
-            String scopes) {
-
+    public String getAuthorizationURL(
+            String redirectUri,
+            String scopes
+    ) {
         Mastodon mastodon = MastodonFactory.getInstance(this.host, null);
         return mastodon.getAuthorizationUrl(this.clientId, redirectUri, scopes);
     }
@@ -109,15 +122,43 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
      * Authentication with Code
      * 認証コードよりアカウントモデルを生成
      */
-    public Account getAccountWithCode( //
-            String redirectUri, //
+    public Account getAccountWithCode(
+            String redirectUri,
             String code) {
 
-        Response<AccessToken> accessToken = //
-                MastodonFactory.getInstance(this.host, null).oauth() //
+        Response<AccessToken> accessToken =
+                MastodonFactory.getInstance(this.host, null).oauth()
                         .issueAccessToken(this.clientId, this.clientSecret, redirectUri, code);
 
-        return getAccountWithAccessToken(accessToken.get().getAccessToken());
+        return getAccountWithAccessToken(
+                accessToken.get().getAccessToken(),
+                accessToken.get().getRefreshToken(),
+                getExpireAt(accessToken.get().getExpiresIn())
+        );
+    }
+
+    /**
+     * Refresh AccessToken with RefreshToken.
+     * トークン情報を更新
+     */
+    public Account refreshToken() {
+        Response<AccessToken> accessToken =
+                MastodonFactory.getInstance(this.host, this.accessToken)
+                        .oauth().refreshAccessToken(
+                                this.clientId,
+                                this.clientSecret,
+                                this.refreshToken);
+
+        return getAccountWithAccessToken(
+                accessToken.get().getAccessToken(),
+                accessToken.get().getRefreshToken(),
+                getExpireAt(accessToken.get().getExpiresIn())
+        );
+    }
+
+    private Date getExpireAt(Long expireInSec) {
+        return (expireInSec == null) ? null :
+                new Date(System.currentTimeMillis() + (expireInSec * 1000));
     }
 
     //region // Getter&Setter
@@ -151,6 +192,22 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
 
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public Date getExpired() {
+        return expired;
+    }
+
+    public void setExpired(Date expired) {
+        this.expired = expired;
     }
     //endregion
 }

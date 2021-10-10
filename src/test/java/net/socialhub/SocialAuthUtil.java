@@ -1,6 +1,5 @@
 package net.socialhub;
 
-import misskey4j.Misskey;
 import net.socialhub.model.Account;
 import net.socialhub.service.facebook.FacebookAuth;
 import net.socialhub.service.mastodon.MastodonAuth;
@@ -38,7 +37,10 @@ public class SocialAuthUtil {
                 TestProperty.MastodonProperty.Host);
 
         return auth.getAccountWithAccessToken( //
-                TestProperty.MastodonProperty.AccessToken);
+                TestProperty.MastodonProperty.AccessToken,
+                null,
+                null
+        );
     }
 
     public static Account getMisskeyAccount() {

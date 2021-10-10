@@ -32,13 +32,14 @@ public class MastodonActionTest extends AbstractTimelineTest {
     public void getNotifications() {
         Account account = SocialAuthUtil.getMastodonAccount();
         MastodonAction action = (MastodonAction) account.action();
-        Pageable<Notification> models = action.getNotification(new Paging(100L));
 
-        for (Notification notification : models.getEntities()) {
-            System.out.println("--------------------------");
-            System.out.println(notification.getType());
-            System.out.println(notification.getCreateAt());
-        }
+        Pageable<Notification> now = action.getNotification(new Paging(10L));
+        Pageable<Notification> next = action.getNotification(now.nextPage());
+
+        System.out.println("[NOW]");
+        printNotification(now.getEntities());
+        System.out.println("[NEXT]");
+        printNotification(next.getEntities());
     }
 
     @Test
@@ -50,6 +51,14 @@ public class MastodonActionTest extends AbstractTimelineTest {
         List<Comment> comments = action.getUserPinedComments(me);
         for (Comment comment : comments) {
             printComment(comment);
+        }
+    }
+
+    private void printNotification(List<Notification> notifications) {
+        for (Notification notification : notifications) {
+            System.out.println("--------------------------");
+            System.out.println(notification.getType());
+            System.out.println(notification.getCreateAt());
         }
     }
 }

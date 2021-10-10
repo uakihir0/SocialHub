@@ -40,6 +40,7 @@ import net.socialhub.model.service.Service;
 import net.socialhub.model.service.Thread;
 import net.socialhub.model.service.Trend;
 import net.socialhub.model.service.User;
+import net.socialhub.model.service.addition.mastodon.MastodonPaging;
 import net.socialhub.model.service.addition.mastodon.MastodonStream;
 import net.socialhub.model.service.addition.mastodon.MastodonThread;
 import net.socialhub.model.service.event.CommentEvent;
@@ -303,9 +304,14 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
             Response<mastodon4j.entity.Account[]> accounts = //
                     mastodon.accounts().getFollowing((String) id.getId(), range);
-
             service.getRateLimit().addInfo(GetFollowingUsers, accounts);
-            return MastodonMapper.users(accounts.get(), service, paging);
+
+            return MastodonMapper.users(
+                    accounts.get(),
+                    service,
+                    paging,
+                    accounts.getLink()
+            );
         });
     }
 
@@ -319,11 +325,16 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Service service = getAccount().getService();
             Range range = getRange(paging);
 
-            Response<mastodon4j.entity.Account[]> accounts = //
+            Response<mastodon4j.entity.Account[]> accounts =
                     mastodon.accounts().getFollowers((String) id.getId(), range);
-
             service.getRateLimit().addInfo(GetFollowerUsers, accounts);
-            return MastodonMapper.users(accounts.get(), service, paging);
+
+            return MastodonMapper.users(
+                    accounts.get(),
+                    service,
+                    paging,
+                    accounts.getLink()
+            );
         });
     }
 
@@ -337,11 +348,16 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Service service = getAccount().getService();
             Page page = getPage(paging);
 
-            Response<Results> results = mastodon.search().search( //
+            Response<Results> results = mastodon.search().search(
                     query, false, false, page);
-
             service.getRateLimit().addInfo(SearchUsers, results);
-            return MastodonMapper.users(results.get().getAccounts(), service, paging);
+
+            return MastodonMapper.users(
+                    results.get().getAccounts(),
+                    service,
+                    paging,
+                    results.getLink()
+            );
         });
     }
 
@@ -361,7 +377,13 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
             Response<Status[]> status = mastodon.getHomeTimeline(range);
             service.getRateLimit().addInfo(HomeTimeLine, status);
-            return MastodonMapper.timeLine(status.get(), service, paging);
+
+            return MastodonMapper.timeLine(
+                    status.get(),
+                    service,
+                    paging,
+                    status.getLink()
+            );
         });
     }
 
@@ -375,20 +397,28 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Service service = getAccount().getService();
             Range range = getRange(paging);
 
-            Response<mastodon4j.entity.Notification[]> status = //
-                    mastodon.notifications() //
-                            .getNotifications(range, Arrays.asList( //
-                                            MastodonNotificationType.FOLLOW.getCode(), //
-                                            MastodonNotificationType.FAVOURITE.getCode(), //
-                                            MastodonNotificationType.REBLOG.getCode()), //
-                                    null);
+            Response<mastodon4j.entity.Notification[]> status =
+                    mastodon.notifications().getNotifications(
+                            range,
+                            Arrays.asList(
+                                    MastodonNotificationType.FOLLOW.getCode(),
+                                    MastodonNotificationType.FAVOURITE.getCode(),
+                                    MastodonNotificationType.REBLOG.getCode()
+                            ),
+                            null);
 
-            List<Status> statuses = Stream.of(status.get()) //
+            List<Status> statuses = Stream.of(status.get())
                     .map(mastodon4j.entity.Notification::getStatus)
                     .collect(toList());
 
             service.getRateLimit().addInfo(MentionTimeLine, status);
-            return MastodonMapper.timeLine(statuses, service, paging);
+
+            return MastodonMapper.timeLine(
+                    statuses,
+                    service,
+                    paging,
+                    status.getLink()
+            );
         });
     }
 
@@ -402,11 +432,16 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Service service = getAccount().getService();
             Range range = getRange(paging);
 
-            Response<Status[]> status = mastodon.accounts().getStatuses( //
+            Response<Status[]> status = mastodon.accounts().getStatuses(
                     (String) id.getId(), false, false, false, false, range);
-
             service.getRateLimit().addInfo(UserCommentTimeLine, status);
-            return MastodonMapper.timeLine(status.get(), service, paging);
+
+            return MastodonMapper.timeLine(
+                    status.get(),
+                    service,
+                    paging,
+                    status.getLink()
+            );
         });
     }
 
@@ -426,13 +461,18 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
                     Range range = getRange(paging);
 
                     Response<Status[]> status = mastodon.favourites().getFavourites(range);
-
                     service.getRateLimit().addInfo(UserLikeTimeLine, status);
-                    return MastodonMapper.timeLine(status.get(), service, paging);
+
+                    return MastodonMapper.timeLine(
+                            status.get(),
+                            service,
+                            paging,
+                            status.getLink()
+                    );
                 }
             }
 
-            throw new NotSupportedException( //
+            throw new NotSupportedException(
                     "Sorry, user favorites timeline is only support only verified account on Mastodon.");
         });
     }
@@ -447,11 +487,16 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Service service = getAccount().getService();
             Range range = getRange(paging);
 
-            Response<Status[]> status = mastodon.accounts().getStatuses( //
+            Response<Status[]> status = mastodon.accounts().getStatuses(
                     (String) id.getId(), false, true, false, false, range);
-
             service.getRateLimit().addInfo(UserMediaTimeLine, status);
-            return MastodonMapper.timeLine(status.get(), service, paging);
+
+            return MastodonMapper.timeLine(
+                    status.get(),
+                    service,
+                    paging,
+                    status.getLink()
+            );
         });
     }
 
@@ -468,19 +513,29 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
                 // ハッシュタグのクエリの場合
                 Range range = getRange(paging);
-                Response<Status[]> results = mastodon.getHashtagTimeline( //
+                Response<Status[]> results = mastodon.getHashtagTimeline(
                         query.substring(1), false, false, range);
 
-                return MastodonMapper.timeLine(results.get(), service, paging);
+                return MastodonMapper.timeLine(
+                        results.get(),
+                        service,
+                        paging,
+                        results.getLink()
+                );
 
             } else {
 
                 // それ以外は通常の検索を実施
                 Page page = getPage(paging);
-                Response<Results> results = mastodon.search().search( //
+                Response<Results> results = mastodon.search().search(
                         query, false, false, page);
 
-                return MastodonMapper.timeLine(results.get().getStatuses(), service, paging);
+                return MastodonMapper.timeLine(
+                        results.get().getStatuses(),
+                        service,
+                        paging,
+                        results.getLink()
+                );
             }
         });
     }
@@ -737,11 +792,11 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             service.getRateLimit().addInfo(GetContext, response);
 
             Context context = new Context();
-            context.setDescendants(Arrays.stream(response.get().getDescendants()) //
-                    .map(e -> MastodonMapper.comment(e, service)) //
+            context.setDescendants(Arrays.stream(response.get().getDescendants())
+                    .map(e -> MastodonMapper.comment(e, service))
                     .collect(toList()));
-            context.setAncestors(Arrays.stream(response.get().getAncestors()) //
-                    .map(e -> MastodonMapper.comment(e, service)) //
+            context.setAncestors(Arrays.stream(response.get().getAncestors())
+                    .map(e -> MastodonMapper.comment(e, service))
                     .collect(toList()));
 
             MapperUtil.sortContext(context);
@@ -788,9 +843,14 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
             Response<Status[]> status = mastodon.timelines()
                     .getListTimeline((String) id.getId(), range);
-
             service.getRateLimit().addInfo(ChannelTimeLine, status);
-            return MastodonMapper.timeLine(status.get(), service, paging);
+
+            return MastodonMapper.timeLine(
+                    status.get(),
+                    service,
+                    paging,
+                    status.getLink()
+            );
         });
     }
 
@@ -804,11 +864,16 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Service service = getAccount().getService();
             Long limit = (paging != null) ? paging.getCount() : null;
 
-            Response<mastodon4j.entity.Account[]> status = mastodon
+            Response<mastodon4j.entity.Account[]> users = mastodon
                     .list().getListAccounts((String) id.getId(), limit);
+            service.getRateLimit().addInfo(ChannelTimeLine, users);
 
-            service.getRateLimit().addInfo(ChannelTimeLine, status);
-            return MastodonMapper.users(status.get(), service, paging);
+            return MastodonMapper.users(
+                    users.get(),
+                    service,
+                    paging,
+                    users.getLink()
+            );
         });
     }
 
@@ -855,12 +920,12 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
                 }
             }
 
-            BorderPaging border = BorderPaging.fromPaging(paging);
-            MastodonMapper.beMastodonPaging(border);
+            MastodonPaging mpg = MastodonPaging.fromPaging(paging);
+            MastodonMapper.withLink(mpg, response.getLink());
 
             Pageable<Thread> results = new Pageable<>();
             results.setEntities(threads);
-            results.setPaging(border);
+            results.setPaging(mpg);
             return results;
         });
     }
@@ -1037,14 +1102,20 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Range range = getRange(paging);
 
             Response<mastodon4j.entity.Notification[]> notifications =
-                    mastodon.notifications()
-                            .getNotifications(range, Arrays.asList(
-                                            MastodonNotificationType.MENTION.getCode(),
-                                            MastodonNotificationType.POLL.getCode()),
-                                    null);
+                    mastodon.notifications().getNotifications(
+                            range,
+                            Arrays.asList(
+                                    MastodonNotificationType.MENTION.getCode(),
+                                    MastodonNotificationType.POLL.getCode()
+                            ),
+                            null);
 
             return MastodonMapper.notifications(
-                    notifications.get(), service, paging);
+                    notifications.get(),
+                    service,
+                    paging,
+                    notifications.getLink()
+            );
         });
     }
 
@@ -1094,7 +1165,13 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
             Response<Status[]> status = mastodon.getPublicTimeline(true, false, range);
             service.getRateLimit().addInfo(MicroBlogActionType.LocalTimeLine, status);
-            return MastodonMapper.timeLine(status.get(), service, paging);
+
+            return MastodonMapper.timeLine(
+                    status.get(),
+                    service,
+                    paging,
+                    status.getLink()
+            );
         });
     }
 
@@ -1110,7 +1187,13 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
             Response<Status[]> status = mastodon.getPublicTimeline(false, false, range);
             service.getRateLimit().addInfo(MicroBlogActionType.FederationTimeLine, status);
-            return MastodonMapper.timeLine(status.get(), service, paging);
+
+            return MastodonMapper.timeLine(
+                    status.get(),
+                    service,
+                    paging,
+                    status.getLink()
+            );
         });
     }
 
@@ -1125,9 +1208,12 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Service service = getAccount().getService();
 
             MastodonStream model = new MastodonStream();
-            PublicStream stream = mastodon.streaming().publicStream(true).register(
-                    new MastodonCommentListener(callback, service),
-                    new MastodonConnectionListener(callback, model));
+            PublicStream stream = mastodon.streaming()
+                    .publicStream(true)
+                    .register(
+                            new MastodonCommentListener(callback, service),
+                            new MastodonConnectionListener(callback, model)
+                    );
 
             model.setStream(stream);
             return model;
@@ -1145,9 +1231,12 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Service service = getAccount().getService();
 
             MastodonStream model = new MastodonStream();
-            PublicStream stream = mastodon.streaming().publicStream(false).register(
-                    new MastodonCommentListener(callback, service),
-                    new MastodonConnectionListener(callback, model));
+            PublicStream stream = mastodon.streaming()
+                    .publicStream(false)
+                    .register(
+                            new MastodonCommentListener(callback, service),
+                            new MastodonConnectionListener(callback, model)
+                    );
 
             model.setStream(stream);
             return model;
@@ -1189,7 +1278,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Range range = new Range();
             range.setLimit(100);
 
-            Response<Status[]> status = mastodon.accounts().getStatuses( //
+            Response<Status[]> status = mastodon.accounts().getStatuses(
                     (String) id.getId(), true, false, false, false, range);
 
             return Stream.of(status.get())
@@ -1209,20 +1298,34 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         Range range = new Range();
         range.setLimit(paging.getCount());
 
+        // BorderPaging
         if (paging instanceof BorderPaging) {
-            BorderPaging border = (BorderPaging) paging;
+            BorderPaging pg = (BorderPaging) paging;
 
-            if (border.getSinceId() != null) {
-                if (border.getHintNewer() == Boolean.TRUE) {
-                    range.setMinId(border.getSinceId().toString());
+            if (pg.getSinceId() != null) {
+                if (pg.getHintNewer() == Boolean.TRUE) {
+                    range.setMinId(pg.getSinceId().toString());
                 } else {
-                    range.setSinceId(border.getSinceId().toString());
+                    range.setSinceId(pg.getSinceId().toString());
                 }
             }
-            if (border.getMaxId() != null) {
-                range.setMaxId(border.getMaxId().toString());
+            if (pg.getMaxId() != null) {
+                range.setMaxId(pg.getMaxId().toString());
             }
         }
+
+        // MastodonPaging
+        if (paging instanceof MastodonPaging) {
+            MastodonPaging pg = (MastodonPaging) paging;
+
+            if (pg.getMinId() != null) {
+                range.setMinId(pg.getMinId());
+            }
+            if (pg.getMaxId() != null) {
+                range.setMaxId(pg.getMaxId());
+            }
+        }
+
         return range;
     }
 

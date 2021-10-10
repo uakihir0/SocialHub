@@ -2,7 +2,6 @@ package net.socialhub.apis;
 
 import net.socialhub.SocialHub;
 import net.socialhub.TestProperty;
-import net.socialhub.define.service.mastodon.MastodonInstance;
 import net.socialhub.define.service.mastodon.MastodonScope;
 import net.socialhub.define.service.slack.SlackScope;
 import net.socialhub.model.Account;
@@ -33,16 +32,53 @@ public class AuthorizationTest extends AbstractApiTest {
     @Test
     public void testMastodonAppRegister() {
 
-        MastodonAuth auth = SocialHub.getMastodonAuth(MastodonInstance.MSTDN_JP);
+        MastodonAuth auth = SocialHub.getMastodonAuth(
+                TestProperty.MastodonProperty.Host);
 
         auth.requestClientApplication("SocialHub", null,
-                MastodonAuth.REDIRECT_NONE,
+                TestProperty.MastodonProperty.RedirectUrl,
                 MastodonScope.FULL_ACCESS);
 
         System.out.println(auth.getClientId());
         System.out.println(auth.getClientSecret());
     }
 
+    @Test
+    public void testMastodonAuthorizationUrl() {
+
+        MastodonAuth auth = SocialHub.getMastodonAuth(
+                TestProperty.MastodonProperty.Host);
+
+        auth.setClientInfo(
+                TestProperty.MastodonProperty.ClientId,
+                TestProperty.MastodonProperty.ClientSecret
+        );
+
+        System.out.println(auth.getAuthorizationURL(
+                TestProperty.MastodonProperty.RedirectUrl,
+                MastodonScope.FULL_ACCESS
+        ));
+    }
+
+
+    @Test
+    public void testMastodonAuthorizeWithCode() {
+
+        MastodonAuth auth = SocialHub.getMastodonAuth(
+                TestProperty.MastodonProperty.Host);
+
+        auth.setClientInfo(
+                TestProperty.MastodonProperty.ClientId,
+                TestProperty.MastodonProperty.ClientSecret
+        );
+
+        String code = "PLEASE SET CODE HERE";
+        Account account = auth.getAccountWithCode(
+                TestProperty.MastodonProperty.RedirectUrl, code);
+
+        System.out.println(auth.getAccessToken());
+        System.out.println(account.action().getUserMe().getName());
+    }
 
     @Test
     public void testSlackAuthorizationUrl() {

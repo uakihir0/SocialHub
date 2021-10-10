@@ -6,6 +6,7 @@ import mastodon4j.entity.Field;
 import mastodon4j.entity.Mention;
 import mastodon4j.entity.Poll.Option;
 import mastodon4j.entity.Status;
+import mastodon4j.entity.share.Link;
 import net.socialhub.define.EmojiCategoryType;
 import net.socialhub.define.MediaType;
 import net.socialhub.define.service.mastodon.MastodonMediaType;
@@ -31,9 +32,9 @@ import net.socialhub.model.service.Relationship;
 import net.socialhub.model.service.Service;
 import net.socialhub.model.service.User;
 import net.socialhub.model.service.addition.mastodon.MastodonComment;
+import net.socialhub.model.service.addition.mastodon.MastodonPaging;
 import net.socialhub.model.service.addition.mastodon.MastodonPoll;
 import net.socialhub.model.service.addition.mastodon.MastodonUser;
-import net.socialhub.model.service.paging.BorderPaging;
 import net.socialhub.model.service.support.PollOption;
 import net.socialhub.model.service.support.ReactionCandidate;
 
@@ -421,29 +422,35 @@ public class MastodonMapper {
      * タイムラインマッピング
      */
     public static Pageable<Comment> timeLine(
-            Status[] statuses, //
-            Service service, //
-            Paging paging) {
+            Status[] statuses,
+            Service service,
+            Paging paging,
+            Link link) {
 
-        return timeLine(Arrays.asList(statuses),
+        return timeLine(
+                Arrays.asList(statuses),
                 service,
-                paging);
+                paging,
+                link
+        );
     }
 
     /**
      * タイムラインマッピング
      */
     public static Pageable<Comment> timeLine(
-            List<Status> statuses, //
-            Service service, //
-            Paging paging) {
+            List<Status> statuses,
+            Service service,
+            Paging paging,
+            Link link) {
 
         Pageable<Comment> model = new Pageable<>();
-        model.setEntities(statuses.stream().map(e -> comment(e, service)) //
-                .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
+        model.setEntities(statuses.stream().map(e -> comment(e, service))
+                .sorted(Comparator.comparing(Comment::getCreateAt).reversed())
                 .collect(toList()));
 
-        model.setPaging(beMastodonPaging(BorderPaging.fromPaging(paging)));
+        MastodonPaging mpg = MastodonPaging.fromPaging(paging);
+        model.setPaging(withLink(mpg, link));
         return model;
     }
 
@@ -453,14 +460,15 @@ public class MastodonMapper {
     public static Pageable<User> users(
             Account[] accounts,
             Service service,
-            Paging paging) {
+            Paging paging,
+            Link link) {
 
         Pageable<User> model = new Pageable<>();
         model.setEntities(Stream.of(accounts)
                 .map(a -> user(a, service))
                 .collect(toList()));
 
-        model.setPaging(beMastodonPaging(BorderPaging.fromPaging(paging)));
+        model.setPaging(withLink(MastodonPaging.fromPaging(paging), link));
         return model;
     }
 
@@ -484,14 +492,15 @@ public class MastodonMapper {
     public static Pageable<Notification> notifications(
             mastodon4j.entity.Notification[] notifications,
             Service service,
-            Paging paging) {
+            Paging paging,
+            Link link) {
 
         Pageable<Notification> model = new Pageable<>();
         model.setEntities(Stream.of(notifications)
                 .map(a -> notification(a, service))
                 .collect(toList()));
 
-        model.setPaging(beMastodonPaging(BorderPaging.fromPaging(paging)));
+        model.setPaging(withLink(MastodonPaging.fromPaging(paging), link));
         return model;
     }
 
@@ -535,13 +544,14 @@ public class MastodonMapper {
     // ============================================================== //
 
     /**
-     * for Mastodon Timeline
+     * add link paging options.
      */
-    public static BorderPaging beMastodonPaging(BorderPaging bp) {
-        bp.setMaxInclude(false);
-        bp.setSinceInclude(false);
-        bp.setIdUnit(4L);
-        return bp;
+    public static MastodonPaging withLink(MastodonPaging mbp, Link link) {
+        if (link != null) {
+            mbp.setMinIdInLink(link.getPrevMinId());
+            mbp.setMaxIdInLink(link.getNextMaxId());
+        }
+        return mbp;
     }
 
     // ============================================================== //

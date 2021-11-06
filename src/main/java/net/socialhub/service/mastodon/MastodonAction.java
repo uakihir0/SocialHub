@@ -1287,6 +1287,17 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
         });
     }
 
+    /**
+     * Get Service Type.
+     * サービスの種類を取得
+     */
+    public mastodon4j.domain.Service getService() {
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            return mastodon.service();
+        });
+    }
+
     // ============================================================== //
     // Paging
     // ============================================================== //

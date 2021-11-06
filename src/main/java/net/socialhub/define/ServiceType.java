@@ -12,6 +12,8 @@ public enum ServiceType {
     Slack,
     Tumblr,
     Misskey,
+    Pleroma,
+    PixelFed,
 
     /* Future Work */
     // Discord,

@@ -1,5 +1,6 @@
 package net.socialhub;
 
+import net.socialhub.define.ServiceType;
 import net.socialhub.j2objc.J2ObjcExtension;
 import net.socialhub.j2objc.J2ObjcExtensions;
 import net.socialhub.service.Supports;
@@ -38,12 +39,26 @@ public final class SocialHub {
 
     /**
      * Get Mastodon Authentication Model
-     * (Also can use as PixelFed and Pleroma)
-     * Mastodon の認証オブジェクトを取得
-     * PixelFed と Pleroma にも使用可能
+     * Mastodon と認証オブジェクトを取得
      */
     public static MastodonAuth getMastodonAuth(String host) {
-        return new MastodonAuth(host);
+        return new MastodonAuth(host, ServiceType.Mastodon);
+    }
+
+    /**
+     * Get Pleroma Authentication Model
+     * Pleroma と認証オブジェクトを取得
+     */
+    public static MastodonAuth getPleromaAuth(String host) {
+        return new MastodonAuth(host, ServiceType.Pleroma);
+    }
+
+    /**
+     * Get Pixel Authentication Model
+     * Pixel と認証オブジェクトを取得
+     */
+    public static MastodonAuth getPixelFedAuth(String host) {
+        return new MastodonAuth(host, ServiceType.PixelFed);
     }
 
     /**
@@ -68,6 +83,22 @@ public final class SocialHub {
      */
     public static MisskeyAuth getMisskeyAuth(String host) {
         return new MisskeyAuth(host);
+    }
+
+    /**
+     * Get Mastodon Compatible Authentication Model
+     * Mastodon と互換認証オブジェクトを取得
+     *
+     * @see SocialHub#getMastodonAuth
+     * @see SocialHub#getPixelFedAuth
+     * @see SocialHub#getPleromaAuth
+     * @deprecated Use only services other than Mastodon, PixelFed, and Pleroma
+     * 互換性の問題があるため、Mastodon, PixelFed, Pleroma の場合すでに定義された関数を使用推奨
+     */
+    @Deprecated
+    public static MastodonAuth getMastodonCompatibleAuth(String host) {
+        // Masotodon の互換の場合は、サービスは未指定
+        return new MastodonAuth(host, null);
     }
 
     /**

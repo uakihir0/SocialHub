@@ -34,9 +34,32 @@ public class Service implements Serializable {
         return (ServiceType.Twitter == type);
     }
 
-    /** Is Mastodon Account ? */
+    /**
+     * Is Mastodon Account ?
+     * !! Mastodon compatibility account is always true.
+     * !! if pixelfed, use SocialHub#getPixelFedAuth to make account object.
+     * !! if pleroma, use SocialHub#getPleromaAuth to make account object.
+     */
     public boolean isMastodon() {
         return (ServiceType.Mastodon == type);
+    }
+
+    /**
+     * Is PixelFed Account ?
+     * !! Mastodon compatibility account is always false.
+     * !! Use SocialHub#getPixelFedAuth to make account object.
+     */
+    public boolean isPixelFed() {
+        return (ServiceType.PixelFed == type);
+    }
+
+    /**
+     * Is Pleroma Account ?
+     * !! Mastodon compatibility account is always false.
+     * !! Use SocialHub#getPleromaAuth to make account object.
+     */
+    public boolean isPleroma() {
+        return (ServiceType.Pleroma == type);
     }
 
     /** Is Slack Account ? */

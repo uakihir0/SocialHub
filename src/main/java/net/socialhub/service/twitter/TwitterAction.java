@@ -1865,7 +1865,7 @@ public class TwitterAction extends AccountActionImpl {
     // ============================================================== //
 
     // FIXME: TwitterException
-    private <T> T proceed(ActionCaller<T, Exception> runner) {
+    private static <T> T proceed(ActionCaller<T, Exception> runner) {
         try {
             return runner.proceed();
         } catch (Exception e) {
@@ -1874,7 +1874,7 @@ public class TwitterAction extends AccountActionImpl {
         }
     }
 
-    private void proceed(ActionRunner<Exception> runner) {
+    private static void proceed(ActionRunner<Exception> runner) {
         try {
             runner.proceed();
         } catch (Exception e) {
@@ -1918,7 +1918,7 @@ public class TwitterAction extends AccountActionImpl {
         return webClient;
     }
 
-    private JTW getV2Client(){
+    private JTW getV2Client() {
         if (v2Client == null) {
             v2Client = JTWFactory.fromTwitter4J(auth.getAccessor());
         }

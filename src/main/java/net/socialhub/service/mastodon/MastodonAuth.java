@@ -24,18 +24,17 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
 
     private static Logger logger = Logger.getLogger(MastodonAuth.class);
 
-    /** Mastodon PixelFed Pleroma */
-    private mastodon4j.domain.Service service;
-
     private String host;
     private String clientId;
     private String clientSecret;
     private String accessToken;
     private String refreshToken;
+    private ServiceType type;
     private Date expired;
 
-    public MastodonAuth(String host) {
+    public MastodonAuth(String host, ServiceType type) {
         this.host = host;
+        this.type = type;
     }
 
     /**
@@ -45,7 +44,7 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
     @Override
     public Mastodon getAccessor() {
         return MastodonFactory.getInstance( //
-                this.host, this.accessToken);
+                getService(), this.host, this.accessToken);
     }
 
     /**
@@ -62,8 +61,8 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
         this.expired = expired;
 
         Account account = new Account();
-
-        ServiceType type = ServiceType.Mastodon;
+        ServiceType type = (this.type != null)
+                ? this.type : ServiceType.Mastodon;
         Service service = new Service(type, account);
         service.setApiHost(host);
 
@@ -98,8 +97,7 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
         application.setName(appName);
         application.setWebsite(website);
 
-        Mastodon mastodon = MastodonFactory.getInstance(this.host, null);
-        Response<ClientCredential> credential = mastodon.apps() //
+        Response<ClientCredential> credential = getAccessor().apps()
                 .registerApplication(application, redirectUris, scopes);
 
         this.clientId = credential.get().getClientId();
@@ -114,8 +112,8 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
             String redirectUri,
             String scopes
     ) {
-        Mastodon mastodon = MastodonFactory.getInstance(this.host, null);
-        return mastodon.getAuthorizationUrl(this.clientId, redirectUri, scopes);
+        return getAccessor().getAuthorizationUrl(
+                this.clientId, redirectUri, scopes);
     }
 
     /**
@@ -126,9 +124,8 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
             String redirectUri,
             String code) {
 
-        Response<AccessToken> accessToken =
-                MastodonFactory.getInstance(this.host, null).oauth()
-                        .issueAccessToken(this.clientId, this.clientSecret, redirectUri, code);
+        Response<AccessToken> accessToken = getAccessor().oauth()
+                .issueAccessToken(this.clientId, this.clientSecret, redirectUri, code);
 
         return getAccountWithAccessToken(
                 accessToken.get().getAccessToken(),
@@ -142,12 +139,8 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
      * トークン情報を更新
      */
     public Account refreshToken() {
-        Response<AccessToken> accessToken =
-                MastodonFactory.getInstance(this.host, this.accessToken)
-                        .oauth().refreshAccessToken(
-                                this.clientId,
-                                this.clientSecret,
-                                this.refreshToken);
+        Response<AccessToken> accessToken = getAccessor().oauth()
+                .refreshAccessToken(this.clientId, this.clientSecret, this.refreshToken);
 
         return getAccountWithAccessToken(
                 accessToken.get().getAccessToken(),
@@ -159,6 +152,19 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
     private Date getExpireAt(Long expireInSec) {
         return (expireInSec == null) ? null :
                 new Date(System.currentTimeMillis() + (expireInSec * 1000));
+    }
+
+    private mastodon4j.domain.Service getService() {
+        if (type == ServiceType.Mastodon) {
+            return mastodon4j.domain.Service.MASTODON;
+        }
+        if (type == ServiceType.PixelFed) {
+            return mastodon4j.domain.Service.PIXELFED;
+        }
+        if (type == ServiceType.Pleroma) {
+            return mastodon4j.domain.Service.PLEROMA;
+        }
+        return null;
     }
 
     //region // Getter&Setter
@@ -208,6 +214,14 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
 
     public void setExpired(Date expired) {
         this.expired = expired;
+    }
+
+    public ServiceType getType() {
+        return type;
+    }
+
+    public void setType(ServiceType type) {
+        this.type = type;
     }
     //endregion
 }

@@ -35,6 +35,7 @@ public class XmlParseUtil {
 
         // Remove Script Async
         string = string.replace(" async", " ");
+        string = string.replace(" allowfullscreen=\"\"", " ");
         string = string.replace(" allowfullscreen", " ");
 
         // Regex like: <(br|BR)(.*?)/?>

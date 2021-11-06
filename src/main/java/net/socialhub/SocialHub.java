@@ -38,7 +38,9 @@ public final class SocialHub {
 
     /**
      * Get Mastodon Authentication Model
+     * (Also can use as PixelFed and Pleroma)
      * Mastodon の認証オブジェクトを取得
+     * PixelFed と Pleroma にも使用可能
      */
     public static MastodonAuth getMastodonAuth(String host) {
         return new MastodonAuth(host);

@@ -3,8 +3,8 @@ cd "$(dirname "$0")"
 J2OBJC="2.8"
 
 # !! Change for Your Environment !!
-J2OBJC_PATH=$HOME/Documents/j2objc/$J2OBJC
-COCOAPODS_PATH=$HOME/Documents/Repository/cocoapod/
+J2OBJC_PATH=$HOME/Documents/library/j2objc/$J2OBJC
+COCOAPODS_PATH=$HOME/Documents/library/cocoapods
 
 # Set Output
 cd ../build/j2objcOutputs/

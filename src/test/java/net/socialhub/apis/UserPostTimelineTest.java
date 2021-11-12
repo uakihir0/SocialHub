@@ -25,6 +25,19 @@ public class UserPostTimelineTest extends AbstractTimelineTest {
     }
 
     @Test
+    public void testUserPostTimelinePixelFed() {
+
+        Paging paging = new Paging();
+        paging.setCount(10L);
+
+        Account account = SocialAuthUtil.getPixelFedAccount();
+        User me = account.action().getUserMe();
+
+        Pageable<Comment> comments = account.action().getUserCommentTimeLine(me, paging);
+        printTimeline("MyComment:", comments);
+    }
+
+    @Test
     public void testUserPostTimelineTumblr() {
 
         Paging paging = new Paging();

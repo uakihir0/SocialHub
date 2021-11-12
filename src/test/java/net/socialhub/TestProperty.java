@@ -17,10 +17,8 @@ public class TestProperty {
 
         public static final String ConsumerKey = "";
         public static final String ConsumerSecret = "";
-
         public static final String AccessToken = "";
         public static final String AccessSecret = "";
-
         public static final String RedirectUrl = "";
     }
 
@@ -28,7 +26,6 @@ public class TestProperty {
 
         public static final String AppId = "";
         public static final String AppSecret = "";
-
         public static final String AccessToken = "";
     }
 
@@ -41,14 +38,30 @@ public class TestProperty {
         public static final String AccessToken = "";
     }
 
+    public static class PixelFedProperty {
+
+        public static final String Host = "";
+        public static final String RedirectUrl = "";
+        public static final String ClientId = "";
+        public static final String ClientSecret = "";
+        public static final String AccessToken = "";
+    }
+
+    public static class PleromaProperty {
+
+        public static final String Host = "";
+        public static final String RedirectUrl = "";
+        public static final String ClientId = "";
+        public static final String ClientSecret = "";
+        public static final String AccessToken = "";
+    }
+
     public static class TumblrProperty {
 
         public static final String ConsumerKey = "";
         public static final String ConsumerSecret = "";
-
         public static final String AccessToken = "";
         public static final String AccessSecret = "";
-
         public static final String RedirectUrl = "";
     }
 

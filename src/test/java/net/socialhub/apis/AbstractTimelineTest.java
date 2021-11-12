@@ -27,8 +27,9 @@ public class AbstractTimelineTest extends AbstractApiTest {
 
     protected void printComment(Comment c) {
 
-        System.out.println(c.getId());
-        System.out.println(c.getCreateAt());
+        System.out.println("------------------------");
+        System.out.println("ID > " + c.getId());
+        System.out.println("Date > " + c.getCreateAt());
 
         Comment dc = c.getDisplayComment();
         System.out.println("Text > " + dc.getText().getDisplayText());

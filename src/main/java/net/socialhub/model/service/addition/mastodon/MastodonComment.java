@@ -37,6 +37,18 @@ public class MastodonComment extends MiniBlogComment {
 
     @Override
     public String getWebUrl() {
+        if (getService().isPixelFed()) {
+            return "https://"
+                    + requesterHost
+                    + "/p/" + getUser().getScreenName()
+                    + "/" + getId().toString();
+        }
+        if (getService().isPleroma()) {
+            return "https://"
+                    + requesterHost
+                    + "/notice/"
+                    + getId().toString();
+        }
         return "https://"
                 + requesterHost
                 + "/web/statuses/"

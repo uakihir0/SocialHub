@@ -21,8 +21,9 @@ public enum MastodonMediaType {
     }
 
     public static MastodonMediaType of(String code) {
-        return Stream.of(values()) //
-                .filter((e) -> e.getCodes().contains(code)) //
+        return Stream.of(values())
+                .filter((e) -> e.getCodes().stream()
+                        .anyMatch(c -> c.equalsIgnoreCase(code)))
                 .findFirst().orElse(null);
     }
 }

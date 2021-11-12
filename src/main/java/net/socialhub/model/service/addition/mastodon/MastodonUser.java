@@ -90,6 +90,10 @@ public class MastodonUser extends MiniBlogUser {
     public String getWebUrl() {
         String host = getAccountIdentify().split("@")[2];
         String identify = getAccountIdentify().split("@")[1];
+
+        if (getService().isPleroma()) {
+            return "https://" + host + "/" + identify;
+        }
         return "https://" + host + "/@" + identify;
     }
 

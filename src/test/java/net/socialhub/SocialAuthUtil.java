@@ -43,6 +43,28 @@ public class SocialAuthUtil {
         );
     }
 
+    public static Account getPleromaAccount() {
+        MastodonAuth auth = SocialHub.getPleromaAuth( //
+                TestProperty.PleromaProperty.Host);
+
+        return auth.getAccountWithAccessToken( //
+                TestProperty.PleromaProperty.AccessToken,
+                null,
+                null
+        );
+    }
+
+    public static Account getPixelFedAccount() {
+        MastodonAuth auth = SocialHub.getPixelFedAuth( //
+                TestProperty.PixelFedProperty.Host);
+
+        return auth.getAccountWithAccessToken( //
+                TestProperty.PixelFedProperty.AccessToken,
+                null,
+                null
+        );
+    }
+
     public static Account getMisskeyAccount() {
         MisskeyAuth auth = SocialHub.getMisskeyAuth( //
                 TestProperty.MisskeyProperty.Host);

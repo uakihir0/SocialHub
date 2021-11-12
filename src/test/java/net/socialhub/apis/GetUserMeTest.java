@@ -14,30 +14,52 @@ public class GetUserMeTest extends AbstractApiTest {
 
     @Test
     public void testGetUserMeTwitter() {
-
-        Account account = SocialAuthUtil.getTwitterAccount();
-        User user = account.action().getUserMe();
-        System.out.println(user.getName());
-        System.out.println(user.getWebUrl());
+        execUser(SocialAuthUtil.getTwitterAccount());
     }
 
     @Test
     @Ignore
     public void testGetUserMeFacebook() {
-
-        Account account = SocialAuthUtil.getFacebookAccount();
-        User user = account.action().getUserMe();
-        System.out.println(user.getName());
+        execUser(SocialAuthUtil.getFacebookAccount());
     }
 
     @Test
     public void testGetUserMastodon() {
+        execUser(SocialAuthUtil.getMastodonAccount());
+    }
 
-        Account account = SocialAuthUtil.getMastodonAccount();
+    @Test
+    public void testGetUserPixelFed() {
+        execUser(SocialAuthUtil.getPixelFedAccount());
+    }
+
+    @Test
+    public void testGetUserPleroma() {
+        execUser(SocialAuthUtil.getPleromaAccount());
+    }
+
+    @Test
+    public void testGetUserMisskey() {
+        execUser(SocialAuthUtil.getMisskeyAccount());
+    }
+
+    @Test
+    public void testGetUserMeTumblr() {
+        // System.setProperty("javax.net.debug","all");
+        execUser(SocialAuthUtil.getTumblrAccount());
+    }
+
+    @Test
+    public void testGetUserSlack() {
+        execUser(SocialAuthUtil.getSlackAccount());
+    }
+
+    private void execUser(Account account) {
+
         User user = account.action().getUserMe();
-        System.out.println(user.getName());
-        System.out.println(user.getWebUrl());
-        System.out.println(user.getIconImageUrl());
+        System.out.println("Name > " + user.getName());
+        System.out.println("Url > " + user.getWebUrl());
+        System.out.println("Icon > " + user.getIconImageUrl());
 
         if (user instanceof MastodonUser) {
             MastodonUser mastodonUser = (MastodonUser) user;
@@ -45,47 +67,19 @@ public class GetUserMeTest extends AbstractApiTest {
                 System.out.println(filed.getName() + ":" + filed.getValue());
             }
         }
-    }
-
-    @Test
-    public void testGetUserMisskey() {
-
-        Account account = SocialAuthUtil.getMisskeyAccount();
-        User user = account.action().getUserMe();
-        System.out.println(user.getName());
-        System.out.println(user.getWebUrl());
 
         if (user instanceof MisskeyUser) {
             MisskeyUser misskeyUser = (MisskeyUser) user;
             for (AttributedFiled filed : misskeyUser.getFields()) {
-                System.out.println(filed.getName() + ":" + filed.getValue());
+                System.out.println(filed.getName() + ":" + filed.getValue().getDisplayText());
             }
             if (misskeyUser.getAvatarColor() != null) {
                 System.out.println("RGB:" + misskeyUser.getAvatarColor().toJavaScriptFormat());
             }
         }
-    }
-
-    @Test
-    public void testGetUserMeTumblr() {
-        // System.setProperty("javax.net.debug","all");
-
-        Account account = SocialAuthUtil.getTumblrAccount();
-        User user = account.action().getUserMe();
-        System.out.println(user.getName());
-        System.out.println(user.getCoverImageUrl());
 
         if (user instanceof TumblrUser) {
             System.out.println(((TumblrUser) user).getBlogUrl());
         }
-    }
-
-    @Test
-    public void testGetUserSlack() {
-
-        Account account = SocialAuthUtil.getSlackAccount();
-        User user = account.action().getUserMe();
-        System.out.println(user.getName());
-        System.out.println(user.getWebUrl());
     }
 }

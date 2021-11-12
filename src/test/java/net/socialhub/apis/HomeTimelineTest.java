@@ -11,131 +11,77 @@ public class HomeTimelineTest extends AbstractTimelineTest {
 
     @Test
     public void testHomeTimelineTwitter_New() {
-
-        Paging paging = new Paging();
-        paging.setCount(10L);
-
-        Account account = SocialAuthUtil.getTwitterAccount();
-
-        Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
-        Pageable<Comment> news = account.action().getHomeTimeLine(comments.newPage());
-
-        printTimeline("New", news);
-        printTimeline("Now", comments);
+        execNew(SocialAuthUtil.getTwitterAccount());
     }
 
     @Test
     public void testHomeTimelineTwitter_Past() {
-
-        Paging paging = new Paging();
-        paging.setCount(10L);
-
-        Account account = SocialAuthUtil.getTwitterAccount();
-
-        Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
-        Pageable<Comment> pasts = account.action().getHomeTimeLine(comments.pastPage());
-
-        printTimeline("Now", comments);
-        printTimeline("Past", pasts);
+        execPast(SocialAuthUtil.getTwitterAccount());
     }
 
     @Test
     public void testHomeTimelineMastodon_New() {
-
-        Paging paging = new Paging();
-        paging.setCount(10L);
-
-        Account account = SocialAuthUtil.getMastodonAccount();
-
-        Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
-        Pageable<Comment> news = account.action().getHomeTimeLine(comments.newPage());
-
-        printTimeline("New", news);
-        printTimeline("Now", comments);
+        execNew(SocialAuthUtil.getMastodonAccount());
     }
 
     @Test
     public void testHomeTimelineMastodon_Past() {
+        execPast(SocialAuthUtil.getMastodonAccount());
+    }
 
-        Paging paging = new Paging();
-        paging.setCount(10L);
+    @Test
+    public void testHomeTimelinePixelFed_New() {
+        execNew(SocialAuthUtil.getPixelFedAccount());
+    }
 
-        Account account = SocialAuthUtil.getMastodonAccount();
+    @Test
+    public void testHomeTimelinePixelFed_Past() {
+        execPast(SocialAuthUtil.getPixelFedAccount());
+    }
 
-        Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
-        Pageable<Comment> pasts = account.action().getHomeTimeLine(comments.pastPage());
+    @Test
+    public void testHomeTimelinePleroma_New() {
+        execNew(SocialAuthUtil.getPleromaAccount());
+    }
 
-        printTimeline("Now", comments);
-        printTimeline("Past", pasts);
+    @Test
+    public void testHomeTimelinePleroma_Past() {
+        execPast(SocialAuthUtil.getPleromaAccount());
     }
 
     @Test
     public void testHomeTimelineMisskey_New() {
-
-        Paging paging = new Paging();
-        paging.setCount(10L);
-
-        Account account = SocialAuthUtil.getMisskeyAccount();
-
-        Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
-        Pageable<Comment> news = account.action().getHomeTimeLine(comments.newPage());
-
-        printTimeline("New", news);
-        printTimeline("Now", comments);
+        execNew(SocialAuthUtil.getMisskeyAccount());
     }
 
     @Test
     public void testHomeTimelineMisskey_Past() {
-
-        Paging paging = new Paging();
-        paging.setCount(10L);
-
-        Account account = SocialAuthUtil.getMisskeyAccount();
-
-        Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
-        Pageable<Comment> pasts = account.action().getHomeTimeLine(comments.pastPage());
-
-        printTimeline("Now", comments);
-        printTimeline("Past", pasts);
+        execPast(SocialAuthUtil.getMisskeyAccount());
     }
 
     @Test
     public void testHomeTimelineSlack_New() {
-
-        Paging paging = new Paging();
-        paging.setCount(10L);
-
-        Account account = SocialAuthUtil.getSlackAccount();
-
-        Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
-        Pageable<Comment> news = account.action().getHomeTimeLine(comments.newPage());
-
-        printTimeline("New", news);
-        printTimeline("Now", comments);
+        execNew(SocialAuthUtil.getSlackAccount());
     }
 
     @Test
     public void testHomeTimelineSlack_Past() {
-
-        Paging paging = new Paging();
-        paging.setCount(10L);
-
-        Account account = SocialAuthUtil.getSlackAccount();
-
-        Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
-        Pageable<Comment> pasts = account.action().getHomeTimeLine(comments.pastPage());
-
-        printTimeline("Now", comments);
-        printTimeline("Past", pasts);
+        execPast(SocialAuthUtil.getSlackAccount());
     }
 
     @Test
     public void testHomeTimelineTumblr_New() {
+        execNew(SocialAuthUtil.getTumblrAccount());
+    }
 
+    @Test
+    public void testHomeTimelineTumblr_Past() {
+        execPast(SocialAuthUtil.getTumblrAccount());
+    }
+
+    private void execNew(Account account) {
         Paging paging = new Paging();
         paging.setCount(10L);
-
-        Account account = SocialAuthUtil.getTumblrAccount();
 
         Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
         Pageable<Comment> news = account.action().getHomeTimeLine(comments.newPage());
@@ -144,13 +90,9 @@ public class HomeTimelineTest extends AbstractTimelineTest {
         printTimeline("Now", comments);
     }
 
-    @Test
-    public void testHomeTimelineTumblr_Past() {
-
+    private void execPast(Account account) {
         Paging paging = new Paging();
         paging.setCount(10L);
-
-        Account account = SocialAuthUtil.getTumblrAccount();
 
         Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
         Pageable<Comment> pasts = account.action().getHomeTimeLine(comments.pastPage());

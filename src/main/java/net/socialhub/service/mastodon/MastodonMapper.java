@@ -47,7 +47,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.stream.Stream;
 
@@ -58,8 +60,13 @@ public class MastodonMapper {
     private static Logger logger = Logger.getLogger(MastodonMapper.class);
 
     /** 時間のパーサーオブジェクト */
-    private static SimpleDateFormat dateParser = null;
-    private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+    private static final Map<String, SimpleDateFormat> dateParsers = new HashMap<>();
+
+    /** 時間のフォーマットの種類一覧 */
+    private static final List<String> DATE_FORMATS = Arrays.asList(
+            "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+            "yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX"
+    );
 
     private static final XmlConvertRule XML_RULE = xmlConvertRule();
 
@@ -559,20 +566,19 @@ public class MastodonMapper {
     // ============================================================== //
 
     public static Date parseDate(String str) {
-        if (dateParser == null) {
-            dateParser = new SimpleDateFormat(DATE_FORMAT);
-            dateParser.setTimeZone(TimeZone.getTimeZone("UTC"));
-        }
-        try {
-            // PixelFed の時刻表記を Mastodon の表記に変換
-            String reformat = str
-                    .replace("Z", "+00:00") // for Pleroma
-                    .replace("000Z", "+00:00"); // for PixelFed
-            return dateParser.parse(reformat);
+        for (String dateFormat : DATE_FORMATS) {
+            SimpleDateFormat dateParser = dateParsers.get(dateFormat);
 
-        } catch (ParseException e) {
-            logger.error(e);
-            throw new IllegalStateException(e);
+            if (dateParser == null) {
+                dateParser = new SimpleDateFormat(dateFormat);
+                dateParser.setTimeZone(TimeZone.getTimeZone("UTC"));
+                dateParsers.put(dateFormat, dateParser);
+            }
+            try {
+                return dateParser.parse(str);
+            } catch (ParseException ignore) {
+            }
         }
+        throw new IllegalStateException("Unparseable date: " + str);
     }
 }

@@ -65,7 +65,8 @@ public class MastodonMapper {
     /** 時間のフォーマットの種類一覧 */
     private static final List<String> DATE_FORMATS = Arrays.asList(
             "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
-            "yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX"
+            "yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX",
+            "yyyy-MM-dd'T'HH:mm:ssXXX"
     );
 
     private static final XmlConvertRule XML_RULE = xmlConvertRule();

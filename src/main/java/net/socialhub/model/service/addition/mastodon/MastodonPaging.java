@@ -34,8 +34,11 @@ public class MastodonPaging extends Paging {
     @Override
     public <T extends Identify> Paging newPage(List<T> entities) {
         MastodonPaging pg = copy();
-        pg.setMaxId(null);
+        if (entities == null || entities.isEmpty()) {
+            return pg;
+        }
 
+        pg.setMaxId(null);
         if (getMinIdInLink() != null) {
             pg.setMinId(getMinIdInLink());
         } else {
@@ -51,8 +54,11 @@ public class MastodonPaging extends Paging {
     @Override
     public <T extends Identify> Paging pastPage(List<T> entities) {
         MastodonPaging pg = copy();
-        pg.setMinId(null);
+        if (entities == null || entities.isEmpty()) {
+            return pg;
+        }
 
+        pg.setMinId(null);
         if (getMaxIdInLink() != null) {
             pg.setMaxId(getMaxIdInLink());
         } else {

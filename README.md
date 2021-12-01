@@ -14,7 +14,7 @@ by [J2ObjC]. and we can also use it with **Kotlin** and **Swift** too.
 * [**Mastodon**](https://github.com/tootsuite/mastodon) ( use [library](https://github.com/uakihir0/mastodon4j) based
   on [mastodon4j](https://github.com/hecateball/mastodon4j) )
     * [**Pleroma**](https://pleroma.social/) (Mastodon API compatibility)
-    * [**Pixelfed**](https://pixelfed.org/) (Mastodon API compatibility)
+    * [**PixelFed**](https://pixelfed.org/) (Mastodon API compatibility)
 * [**Tumblr**](https://www.tumblr.com/) ( use [library](https://github.com/uakihir0/jumblr) based
   on [jumblr](https://github.com/tumblr/jumblr) )
 * [**Misskey**](https://join.misskey.page/ja/) ( use [library](https://github.com/uakihir0/misskey4j) )
@@ -38,10 +38,10 @@ with [J2ObjC].
 ### Difficult to Handle
 
 * [**Discord**](https://discordapp.com/)
-    * [Discord API](https://discordapp.com) does not provide the way to write messege api as user to channel.
+    * [Discord API](https://discordapp.com) does not provide the way to write message api as user to channel.
 * [**Instagram**](https://www.instagram.com/)
-    * [Instagram API](https://www.instagram.com/developer/) is deplicated,
-      and [new Graph API](https://developers.facebook.com/products/instagram/) is buissiness use.
+    * [Instagram API](https://www.instagram.com/developer/) is duplicated,
+      and [new Graph API](https://developers.facebook.com/products/instagram/) is business use.
 
 ## Detail Documents
 
@@ -53,40 +53,40 @@ with [J2ObjC].
 
 Code sample to authorize account and get account information.
 
-```java
+```
 /* JAVA */
 // 1. Make Authorized Account Object
 
 // For Twitter
-TwitterAuth auth=SocialHub.getTwitterAuth(CONSUMER_KEY,CONSUMER_SECRET);
-        Account account=auth.getAccountWithAccessToken(ACCESS_TOKEN,ACCESS_SECRET);
+TwitterAuth auth = SocialHub.getTwitterAuth(CONSUMER_KEY, CONSUMER_SECRET);
+Account account = auth.getAccountWithAccessToken(ACCESS_TOKEN, ACCESS_SECRET);
 
 // For Mastodon
-        MastodonAuth auth=SocialHub.getMastodonAuth(HOST);
-        Account account=auth.getAccountWithAccessToken(ACCESS_TOKEN);
+MastodonAuth auth = SocialHub.getMastodonAuth(HOST);
+Account account = auth.getAccountWithAccessToken(ACCESS_TOKEN);
 
 
 // 2. Request To SNS (all sns same interface)
-        User user=account.action().getUserMe();
-        System.out.println(user.getName());
+User user = account.action().getUserMe();
+System.out.println(user.getName());
 ```
 
 ### Group Timeline
 
 Code sample to get unified timeline comments from account group (two or more accounts).
 
-```java
+```
 /* JAVA */
 // 1. Make Account Group
-AccountGroup accounts=new AccountGroup();
-        accounts.addAccount((Account)twitterAccount);
-        accounts.addAccount((Account)mastodonAccount);
+AccountGroup accounts = new AccountGroup();
+accounts.addAccount((Account)twitterAccount);
+accounts.addAccount((Account)mastodonAccount);
 
 // 2. Get Home New Timeline
-        CommentGroup comments=accounts.action().getHomeTimeLine();
+CommentGroup comments = accounts.action().getHomeTimeLine();
 
 // 3. Get Past Timeline
-        CommentGroup pasts=comments.action().getPastComments();
+CommentGroup pasts = comments.action().getPastComments();
 ```
 
 if you want more samples, please see [detail documents](./docs/README.md) and test code.
@@ -96,18 +96,18 @@ if you want more samples, please see [detail documents](./docs/README.md) and te
 [J2ObjC] is project aim to compile **Java** code to **Objective-C** code. SocialHub is adapted with J2ObjC compilation
 So, you can use SocialHub as an Objective-C library (also use in Swift) in MacOS or iOS application development. Travis
 CI compiles SocialHub and make [**SocialHub CocoaPods Repository**](https://dev.azure.com/SocialHub/_git/ObjCBinary).
-It's easy way to use this repository rather than compiling yourself.
+It's an easy way to use this repository rather than compiling yourself.
 
 ### Compile to Objective-C
 
-To compile SocialHub to Objective-C framework, do following instructions. **It's only executable on MacOS
+To compile SocialHub to Objective-C framework, do next instructions. **It's only executable on MacOS
 environment** ([This file](./.github/workflows/build.yml) is script of followings.)
 
 1. Download latest J2ObjC builds and unzip
 
    See: <https://github.com/google/j2objc/releases>
 
-2. Set J2ObjC path in ```local.properties``` file
+2. Set J2ObjC path in `local.properties` file
 
     ```shell
     j2objc.home=${PATH}
@@ -115,8 +115,8 @@ environment** ([This file](./.github/workflows/build.yml) is script of following
 
 3. Build Objective-C libraries
 
-   Build commands is written in ```j2objc.sh``` file. so execute it or do following commands. ```j2objc.gradle``` is
-   gradle settings to make Objective-C library.
+   Build commands is written in `j2objc.sh` file. so execute it or do next instructions. ```j2objc.gradle``` is gradle
+   settings to make Objective-C library.
 
     ```shell
     ./gradlew -b j2objc.gradle clean :j2objcAssemble -x test
@@ -124,8 +124,8 @@ environment** ([This file](./.github/workflows/build.yml) is script of following
 
 4. Add dependency in your project
 
-   After J2ObjC comple, ```cocoapod.spec``` will be created in ```./build/j2objcOutputs``` folder, so you write
-   SocialHub dependency in your CocoaPods project's ```Podfile``` like
+   After J2ObjC compile, `cocoapod.spec` will be created in `./build/j2objcOutputs` folder, so you write SocialHub
+   dependency in your CocoaPods project's `Podfile` like
 
     ```
     def j2objc_socialhub
@@ -160,6 +160,5 @@ GitHub: [uakihir0](https://github.com/uakihir0)
 ## License
 
 **MIT**
-
 
 [J2ObjC]: https://developers.google.com/j2objc/

@@ -27,12 +27,25 @@ public class PostCommentTest extends AbstractApiTest {
         account.action().postComment(req);
     }
 
-
     @Test
     @Ignore
     public void testPostWithMediaMastodon() {
 
         Account account = SocialAuthUtil.getMastodonAccount();
+        InputStream stream = getClass().getResourceAsStream("/image/icon.png");
+
+        CommentForm req = new CommentForm() //
+                .addImage(convertFile(stream), "icon.png") //
+                .text("SocialHub Test");
+
+        account.action().postComment(req);
+    }
+
+    @Test
+    @Ignore
+    public void testPostWithMediaPixelFed() {
+
+        Account account = SocialAuthUtil.getPixelFedAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
         CommentForm req = new CommentForm() //

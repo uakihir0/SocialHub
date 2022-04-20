@@ -3,15 +3,16 @@ package net.socialhub.model.service.addition.twitter;
 import net.socialhub.model.service.Stream;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class TwitterStream implements Stream {
 
-    private boolean connecting = false;
-    private twitter4j.TwitterStream stream;
+    private twitter4j.TwitterStream streaming = null;
+    private Supplier<twitter4j.TwitterStream> stream;
     private Consumer<twitter4j.TwitterStream> open;
 
     public TwitterStream(
-            twitter4j.TwitterStream stream,
+            Supplier<twitter4j.TwitterStream> stream,
             Consumer<twitter4j.TwitterStream> open) {
         this.stream = stream;
         this.open = open;
@@ -19,18 +20,23 @@ public class TwitterStream implements Stream {
 
     @Override
     public void open() {
-        open.accept(stream);
-        connecting = true;
+        if (streaming != null) {
+            close();
+        }
+        streaming = stream.get();
+        open.accept(streaming);
     }
 
     @Override
     public void close() {
-        stream.cleanUp();
-        connecting = false;
+        if (streaming != null) {
+            streaming.shutdown();
+            streaming = null;
+        }
     }
 
     @Override
     public boolean isOpened() {
-        return connecting;
+        return streaming != null;
     }
 }

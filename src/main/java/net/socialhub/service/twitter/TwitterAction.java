@@ -1274,16 +1274,17 @@ public class TwitterAction extends AccountActionImpl {
                 idList.remove(id);
             }
 
-            TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
-            stream.addConnectionLifeCycleListener(new TwitterConnectionListener(callback));
-            stream.addListener(new TwitterCommentListener(callback, idList, service));
-
-            return new net.socialhub.model.service.addition
-                    .twitter.TwitterStream(stream, (s) -> {
-                FilterQuery q = new FilterQuery(idList.stream()
-                        .mapToLong(e -> e).toArray());
-                s.filter(q);
-            });
+            return new net.socialhub.model.service.addition.twitter.TwitterStream(
+                    () -> {
+                        TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
+                        stream.addConnectionLifeCycleListener(new TwitterConnectionListener(callback));
+                        stream.addListener(new TwitterCommentListener(callback, idList, service));
+                        return stream;
+                    },
+                    (s) -> {
+                        long[] ids = idList.stream().mapToLong(e -> e).toArray();
+                        s.filter(new FilterQuery(ids));
+                    });
         });
     }
 
@@ -1295,15 +1296,16 @@ public class TwitterAction extends AccountActionImpl {
     setSearchTimeLineStream(EventCallback callback, String query) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
-            stream.addConnectionLifeCycleListener(new TwitterConnectionListener(callback));
-            stream.addListener(new TwitterCommentListener(callback, null, service));
-
-            return new net.socialhub.model.service.addition
-                    .twitter.TwitterStream(stream, (s) -> {
-                FilterQuery q = new FilterQuery(query);
-                s.filter(q);
-            });
+            return new net.socialhub.model.service.addition.twitter.TwitterStream(
+                    () -> {
+                        TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
+                        stream.addConnectionLifeCycleListener(new TwitterConnectionListener(callback));
+                        stream.addListener(new TwitterCommentListener(callback, null, service));
+                        return stream;
+                    },
+                    (s) -> {
+                        s.filter(new FilterQuery(query));
+                    });
         });
     }
 
@@ -1321,17 +1323,18 @@ public class TwitterAction extends AccountActionImpl {
             // 自分自身を取得
             User me = getUserMeWithCache();
             idList.add((Long) me.getId());
-
-            TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
-            stream.addConnectionLifeCycleListener(new TwitterConnectionListener(callback));
-            stream.addListener(new TwitterNotificationListener(callback, service, me));
-
-            return new net.socialhub.model.service.addition
-                    .twitter.TwitterStream(stream, (s) -> {
-                FilterQuery q = new FilterQuery(idList.stream()
-                        .mapToLong(e -> e).toArray());
-                s.filter(q);
-            });
+            
+            return new net.socialhub.model.service.addition.twitter.TwitterStream(
+                    () -> {
+                        TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();
+                        stream.addConnectionLifeCycleListener(new TwitterConnectionListener(callback));
+                        stream.addListener(new TwitterNotificationListener(callback, service, me));
+                        return stream;
+                    },
+                    (s) -> {
+                        long[] ids = idList.stream().mapToLong(e -> e).toArray();
+                        s.filter(new FilterQuery(ids));
+                    });
         });
     }
 

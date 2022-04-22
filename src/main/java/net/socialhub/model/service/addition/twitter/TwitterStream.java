@@ -30,7 +30,7 @@ public class TwitterStream implements Stream {
     @Override
     public void close() {
         if (streaming != null) {
-            streaming.shutdown();
+            streaming.interrupt();
             streaming = null;
         }
     }

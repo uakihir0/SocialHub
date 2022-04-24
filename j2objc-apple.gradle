@@ -43,35 +43,37 @@ allprojects {
 dependencies {
 
     // Translation Exclusion Library
-    implementation('com.google.code.findbugs:jsr305:3.0.2')
+    implementation("com.google.code.findbugs:jsr305:${JSR_305_VERSION}")
 
     // Common Library
-    compile('org.apache.commons:commons-lang3:3.7')
-    compile('commons-codec:commons-codec:1.11')
-    compile('com.google.code.gson:gson:2.8.2')
+    compile("org.apache.commons:commons-lang3:${COMMONS_LANG_VERSION}")
+    compile("commons-codec:commons-codec:${COMMONS_CODEC_VERSION}")
+    compile("com.google.code.gson:gson:${GSON_VERSION}")
 
     // J2ObjC Common Library
-    compile('com.github.uakihir0:JLogger:1.4')
-    compile('com.github.uakihir0:JHttpClient:1.1.8')
-    compile('com.github.uakihir0:scribejava:0.0.1')
+    compile("com.github.uakihir0:JLogger:${JLOGGER_VERSION}")
+    compile("com.github.uakihir0:JHttpClient:${JHTTP_CLIENT_VERSION}")
+    compile("com.github.uakihir0:scribejava:${SCRIBE_VERSION}")
 
     // J2ObjC Network Library
-    compile('com.github.uakihir0.twitter4j:twitter4j-core:4.0.8.6')
-    compile('com.github.uakihir0.twitter4j:twitter4j-stream:4.0.8.6')
-    compile('com.github.uakihir0:twitter-web-client:0.6')
-    compile('com.github.uakihir0:twitter-text:3.0.1.1')
-    compile('com.github.uakihir0:jtw:0.0.1')
-    compile('com.github.uakihir0.facebook4j:facebook4j-core:2.4.11.3')
-    compile('com.github.uakihir0.jslack:jslack-api-client:3.2.2.3')
-    compile('com.github.uakihir0.jslack:jslack-api-model:3.2.2.3')
-    compile('com.github.uakihir0:msinstance4j:0.0.3')
-    compile('com.github.uakihir0:mastodon4j:0.2.45')
-    compile('com.github.uakihir0:jumblr:0.0.13.11')
-    compile('com.github.uakihir0:misskey4j:0.2.14')
+    // Twitter
+    compile("com.github.uakihir0.twitter4j:twitter4j-core:${TWITTER4J_VERSION}")
+    compile("com.github.uakihir0.twitter4j:twitter4j-stream:${TWITTER4J_VERSION}")
+    compile("com.github.uakihir0:twitter-web-client:${TWITTER_WEB_VERSION}")
+    compile("com.github.uakihir0:twitter-text:${TWITTER_TEXT_VERSION}")
+    compile("com.github.uakihir0:jtw:${TWITTER_JTW_VERSION}")
+    // Other SNS
+    compile("com.github.uakihir0.facebook4j:facebook4j-core:${FACEBOOK4J_VERSION}")
+    compile("com.github.uakihir0.jslack:jslack-api-client:${JSLACK_VERSION}")
+    compile("com.github.uakihir0.jslack:jslack-api-model:${JSLACK_VERSION}")
+    compile("com.github.uakihir0:msinstance4j:${MSINSTANCEJ_VERSION}")
+    compile("com.github.uakihir0:mastodon4j:${MASTODON4J_VERSION}")
+    compile("com.github.uakihir0:jumblr:${JUMBLR_VERSION}")
+    compile("com.github.uakihir0:misskey4j:${MISSKEY4J_VERSION}")
 
     // Test
-    testCompile('junit:junit:4.12')
-    testImplementation('org.jsoup:jsoup:1.13.1')
+    testCompile("junit:junit:${JUNIT_VERSION}")
+    testImplementation("org.jsoup:jsoup:${JSOUP_VERSION}")
 }
 
 sourceSets {

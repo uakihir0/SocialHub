@@ -47,10 +47,12 @@ import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
 import net.socialhub.service.action.callback.lifecycle.ConnectCallback;
 import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
 import net.socialhub.twitter.web.TwitterWebClient;
+import net.socialhub.twitter.web.entity.request.SearchRequest;
 import net.socialhub.twitter.web.entity.request.SpecifiedTweetRequest;
 import net.socialhub.twitter.web.entity.request.UserTimelineRequest;
 import net.socialhub.twitter.web.entity.request.graphql.ScreenNameRequest;
 import net.socialhub.twitter.web.entity.response.TopLevel;
+import net.socialhub.twitter.web.entity.response.Tweet;
 import net.socialhub.twitter.web.entity.response.graphql.GraphRoot;
 import net.socialhub.utils.HandlingUtil;
 import net.socialhub.utils.MapperUtil;
@@ -87,7 +89,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +99,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -857,93 +862,141 @@ public class TwitterAction extends AccountActionImpl {
             // ------------------------------------------------ //
             // 後の会話情報を取得
             // ------------------------------------------------ //
+            SnowflakeUtil snowflake = SnowflakeUtil.ofTwitter();
             List<Comment> descendants;
 
-            {
-                // クエリを組み上げる処理
-                User user = comment.getUser();
-                String mention = user.getScreenName();
-                Long sinceId = (Long) comment.getId();
-                Long maxId = SnowflakeUtil.ofTwitter().addHoursToID(sinceId, 2L);
+            // ツイートのユーザーを取得
+            TwitterUser user = (TwitterUser) comment.getUser();
+
+            // クエリを組み上げる処理
+            String mention = user.getScreenName();
+            Long sinceId = (Long) comment.getId();
+            Long maxId = snowflake.addHoursToID(sinceId, 2L);
+
+            // 一週間以上前のコメントについては取得することができないので WebAPI に切り替える
+            // (一週間以上前の投稿について、Twitter API では検索取得ができない)
+            long pastMSec = new Date().getTime() - comment.getCreateAt().getTime();
+            if ((pastMSec > (60 * 60 * 24 * 7) * 1000)
+                    && useWebClient && (!user.getProtected())) {
+
+                TwitterSearchQuery query = new TwitterSearchQuery();
+                query.freeword(mention + " -RT");
+
+                Function<SearchRequest, long[]> fun = req ->
+                        getWebClient().search().searchTweets(req)
+                                .get().toSearchTweetsTimeline().stream()
+                                .mapToLong(e -> Long.parseLong(e.getId()))
+                                .toArray();
 
                 // ツイート後の二時間を対象に取得
-                afterRecent = pool.submit(() -> {
-                    return proceed(() -> {
-                        Query query = new Query();
-                        query.setSinceId(sinceId);
-                        query.setMaxId(maxId);
-                        query.setQuery(mention + " -RT");
-                        query.setCount(200);
+                // -> WebAPI は時間単位の細かい制御は不可
+                afterRecent = pool.submit(() -> //
+                        proceed(() -> Collections.emptyList()));
 
-                        return twitter.search(query).getTweets();
-                    });
-                });
 
                 // 検索可能な全期間を検索
-                afterWhole = pool.submit(() -> {
-                    return proceed(() -> {
-                        Query query = new Query();
-                        query.setSinceId(sinceId);
-                        query.setQuery(mention + " -RT");
-                        query.setCount(200);
+                afterWhole = pool.submit(() -> proceed(() -> {
+                    TwitterSearchBuilder builder = new TwitterSearchBuilder();
+                    builder.since(snowflake.getDateTimeFromID(sinceId));
+                    builder.query(query);
 
-                        return twitter.search(query).getTweets();
-                    });
-                });
+                    SearchRequest request = new SearchRequest();
+                    request.setQuery(builder.buildQuery());
+                    request.setCount(200);
+
+                    return twitter.tweets().lookup(fun.apply(request));
+                }));
 
                 // 引用 RT のアカウントを取得
-                afterQuote = pool.submit(() -> {
-                    return proceed(() -> {
-                        Query query = new Query();
-                        query.setQuery(comment.getWebUrl() + " -RT");
-                        query.setCount(200);
+                afterQuote = pool.submit(() -> proceed(() -> {
+                    SearchRequest request = new SearchRequest();
+                    request.setQuery(comment.getWebUrl() + " -RT");
+                    request.setCount(200);
 
-                        return twitter.search(query).getTweets();
-                    });
-                });
+                    return twitter.tweets().lookup(fun.apply(request));
+                }));
 
-                // 結果を統合
-                List<Status> statuses = new ArrayList<>();
-                statuses.addAll(afterRecent.get());
-                statuses.addAll(afterWhole.get());
-                statuses = statuses.stream().distinct().collect(toList());
+            } else {
 
-                // 結果として扱うステータス一覧
-                List<Status> results = new ArrayList<>(afterQuote.get());
+                // ツイート後の二時間を対象に取得
+                afterRecent = pool.submit(() -> proceed(() -> {
 
-                // 返信リストを取得
-                List<Long> idList = new ArrayList<>();
-                idList.add(sinceId);
+                    Query query = new Query();
+                    query.setSinceId(sinceId);
+                    query.setMaxId(maxId);
+                    query.setQuery(mention + " -RT");
+                    query.setCount(200);
 
-                while (true) {
-                    List<Status> inserts = new ArrayList<>();
+                    return twitter.search(query).getTweets();
+                }));
 
-                    for (Status status : statuses) {
-                        if (idList.contains(status.getInReplyToStatusId())) {
-                            if (!results.contains(status)) {
-                                inserts.add(status);
-                            }
+                // 検索可能な全期間を検索
+                afterWhole = pool.submit(() -> proceed(() -> {
+
+                    Query query = new Query();
+                    query.setSinceId(sinceId);
+                    query.setQuery(mention + " -RT");
+                    query.setCount(200);
+
+                    return twitter.search(query).getTweets();
+                }));
+
+                // 引用 RT のアカウントを取得
+                afterQuote = pool.submit(() -> proceed(() -> {
+
+                    Query query = new Query();
+                    query.setQuery(comment.getWebUrl() + " -RT");
+                    query.setCount(200);
+
+                    return twitter.search(query).getTweets();
+                }));
+            }
+
+
+            // 結果を統合
+            List<Status> statuses = new ArrayList<>();
+            statuses.addAll(afterRecent.get());
+            statuses.addAll(afterWhole.get());
+            statuses = statuses.stream()
+                    // 同一の ID のツイートを対象外に指定
+                    .filter(s -> !id.getId().equals(s.getId()))
+                    .distinct().collect(toList());
+
+            // 結果として扱うステータス一覧
+            List<Status> results = new ArrayList<>(afterQuote.get());
+
+            // 返信リストを取得
+            List<Long> idList = new ArrayList<>();
+            idList.add(sinceId);
+
+            while (true) {
+                List<Status> inserts = new ArrayList<>();
+
+                for (Status status : statuses) {
+                    if (idList.contains(status.getInReplyToStatusId())) {
+                        if (!results.contains(status)) {
+                            inserts.add(status);
                         }
                     }
-
-                    // 既に全て加えてあれば終了
-                    if (inserts.isEmpty()) {
-                        break;
-                    }
-
-                    // 返信関連の ID を一覧に加える
-                    idList.addAll(inserts.stream().map(Status::getId).collect(toList()));
-                    idList = idList.stream().distinct().collect(toList());
-
-                    statuses.removeAll(inserts);
-                    results.addAll(inserts);
-                    inserts.clear();
                 }
 
-                descendants = results.stream()
-                        .map((c) -> TwitterMapper.comment(c, service))
-                        .collect(toList());
+                // 既に全て加えてあれば終了
+                if (inserts.isEmpty()) {
+                    break;
+                }
+
+                // 返信関連の ID を一覧に加える
+                idList.addAll(inserts.stream().map(Status::getId).collect(toList()));
+                idList = idList.stream().distinct().collect(toList());
+
+                statuses.removeAll(inserts);
+                results.addAll(inserts);
+                inserts.clear();
             }
+
+            descendants = results.stream()
+                    .map((c) -> TwitterMapper.comment(c, service))
+                    .collect(toList());
 
             Context context = new Context();
             context.setDescendants(descendants);
@@ -1323,7 +1376,7 @@ public class TwitterAction extends AccountActionImpl {
             // 自分自身を取得
             User me = getUserMeWithCache();
             idList.add((Long) me.getId());
-            
+
             return new net.socialhub.model.service.addition.twitter.TwitterStream(
                     () -> {
                         TwitterStream stream = ((TwitterAuth) auth).getStreamAccessor();

@@ -1,7 +1,11 @@
 package net.socialhub.define.service.twitter;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
+import java.util.logging.SimpleFormatter;
 
 /**
  * Twitter Search Support Class
@@ -25,6 +29,12 @@ public class TwitterSearchBuilder {
 
     // 最低返信数
     private Integer minReplies;
+
+    // 以降にしたツイート取得
+    private Date since;
+
+    // 以前にしたツイート取得
+    private Date until;
 
     // フィルタリングタイプ
     private List<TwitterFilterType> includeContents;
@@ -56,6 +66,18 @@ public class TwitterSearchBuilder {
         }
         if (minReplies != null) {
             parts.add("AND min_replies:" + minReplies);
+        }
+
+        if (since != null) {
+            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+            f.setTimeZone(TimeZone.getTimeZone("UTC"));
+            parts.add("AND since:" + f.format(since));
+        }
+
+        if (until != null) {
+            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+            f.setTimeZone(TimeZone.getTimeZone("UTC"));
+            parts.add("AND until:" + f.format(since));
         }
 
         if (includeContents != null) {
@@ -105,6 +127,16 @@ public class TwitterSearchBuilder {
 
     public TwitterSearchBuilder minReplies(Integer minReplies) {
         this.minReplies = minReplies;
+        return this;
+    }
+
+    public TwitterSearchBuilder since(Date since) {
+        this.since = since;
+        return this;
+    }
+
+    public TwitterSearchBuilder until(Date until) {
+        this.until = until;
         return this;
     }
 

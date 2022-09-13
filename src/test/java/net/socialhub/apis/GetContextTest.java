@@ -34,6 +34,7 @@ public class GetContextTest extends AbstractApiTest {
     }
 
     @Test
+    @Ignore
     public void testMisskeyGetContext() {
         String id = "";
         Identify identify = new Identify(null, id);

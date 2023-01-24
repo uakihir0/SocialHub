@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.model.common.AttributedKind;
 import net.socialhub.model.service.Comment;
 import net.socialhub.model.service.Media;
 import net.socialhub.model.service.Pageable;
@@ -36,12 +35,6 @@ public class AbstractTimelineTest extends AbstractApiTest {
         System.out.println("Text > " + dc.getText().getDisplayText());
         System.out.println("Url > " + dc.getWebUrl());
 
-        dc.getText().getElements().forEach(e -> {
-            if (e.getKind() == AttributedKind.EMOJI) {
-                System.out.println("Emoji URL > " + e.getExpandedText());
-            }
-        });
-
         if (c instanceof SlackComment) {
             System.out.println("Channel > " + ((SlackComment) c).getChannel());
         }
@@ -68,7 +61,7 @@ public class AbstractTimelineTest extends AbstractApiTest {
 
         for (Reaction m : dc.getReactions()) {
             if (m.getCount() > 0) {
-                System.out.println("Reaction > " + m.getName() + " : " + m.getCount() + " : " + m.getIconUrl());
+                System.out.println("Reaction > " + m.getName() + " : " + m.getCount());
             }
         }
     }

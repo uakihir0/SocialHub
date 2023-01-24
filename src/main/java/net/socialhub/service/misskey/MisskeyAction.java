@@ -19,7 +19,6 @@ import misskey4j.api.request.i.IRequest;
 import misskey4j.api.request.messages.MessagingHistoryRequest;
 import misskey4j.api.request.messages.MessagingMessagesCreateRequest;
 import misskey4j.api.request.messages.MessagingMessagesRequest;
-import misskey4j.api.request.meta.EmojisRequest;
 import misskey4j.api.request.meta.MetaRequest;
 import misskey4j.api.request.mutes.MutesCreateRequest;
 import misskey4j.api.request.mutes.MutesDeleteRequest;
@@ -56,7 +55,6 @@ import misskey4j.api.response.i.INotificationsResponse;
 import misskey4j.api.response.i.IResponse;
 import misskey4j.api.response.messages.MessagingHistoryResponse;
 import misskey4j.api.response.messages.MessagingMessagesResponse;
-import misskey4j.api.response.meta.EmojisResponse;
 import misskey4j.api.response.meta.MetaResponse;
 import misskey4j.api.response.notes.NotesChildrenResponse;
 import misskey4j.api.response.notes.NotesConversationResponse;
@@ -73,7 +71,6 @@ import misskey4j.api.response.users.UsersFollowingsResponse;
 import misskey4j.api.response.users.UsersRelationResponse;
 import misskey4j.api.response.users.UsersSearchResponse;
 import misskey4j.api.response.users.UsersShowResponse;
-import misskey4j.entity.Emoji;
 import misskey4j.entity.Error.ErrorDetail;
 import misskey4j.entity.Follow;
 import misskey4j.entity.Message;
@@ -163,9 +160,6 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
     /** Reaction Candidate Cache */
     private List<ReactionCandidate> reactionCandidate;
 
-    /** List of Emoji */
-    private List<Emoji> emojisCache;
-
     // ============================================================== //
     // Account
     // ============================================================== //
@@ -195,23 +189,23 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
         return proceed(() -> {
             Misskey misskey = auth.getAccessor();
             Service service = getAccount().getService();
-            UsersShowResponse user;
+            UsersShowResponse users;
 
             // User のアカウント名で取得する場合
             if (((String) id.getId()).startsWith("@")) {
                 String[] elem = ((String) id.getId()).split("@");
                 String host = (elem.length > 2) ? elem[2] : misskey.getHost();
 
-                user = misskey.users().show(UsersShowSingleRequest.builder()
+                users = misskey.users().show(UsersShowSingleRequest.builder()
                         .username(elem[1]).host(host)
                         .build()).get();
             } else {
-                user = misskey.users().show(UsersShowSingleRequest.builder()
+                users = misskey.users().show(UsersShowSingleRequest.builder()
                         .userId((String) id.getId())
                         .build()).get();
             }
 
-            return MisskeyMapper.user(user,
+            return MisskeyMapper.user(users,
                     misskey.getHost(), service);
         });
     }
@@ -437,11 +431,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                     misskey.users().search(builder.build());
 
             Pageable<User> results = MisskeyMapper.users(
-                    Stream.of(response.get())
-                            .collect(toList()),
-                    misskey.getHost(),
-                    service,
-                    paging);
+                    Stream.of(response.get()).collect(toList()),
+                    misskey.getHost(), service, paging);
 
             results.setPaging(OffsetPaging.fromPaging(paging));
             return results;
@@ -475,9 +466,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                             // Remove PR notes.
                             .filter(e -> e.getPrId() == null)
                             .toArray(Note[]::new),
-                    misskey.getHost(),
-                    service,
-                    paging);
+                    misskey.getHost(), service, paging);
         });
     }
 
@@ -500,11 +489,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Response<INotificationsResponse[]> response =
                     misskey.accounts().iNotifications(builder.build());
 
-            return MisskeyMapper.mentions(
-                    response.get(),
-                    misskey.getHost(),
-                    service,
-                    paging);
+            return MisskeyMapper.mentions(response.get(),
+                    misskey.getHost(), service, paging);
         });
     }
 
@@ -526,11 +512,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Response<UsersNotesResponse[]> response =
                     misskey.notes().users(builder.build());
 
-            return MisskeyMapper.timeLine(
-                    response.get(),
-                    misskey.getHost(),
-                    service,
-                    paging);
+            return MisskeyMapper.timeLine(response.get(),
+                    misskey.getHost(), service, paging);
         });
     }
 
@@ -560,9 +543,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                                 .map(IFavoritesResponse::getNote)
                                 .filter(Objects::nonNull)
                                 .toArray(Note[]::new),
-                        misskey.getHost(),
-                        service,
-                        paging);
+                        misskey.getHost(), service, paging);
             }
         }
 
@@ -589,11 +570,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Response<UsersNotesResponse[]> response =
                     misskey.notes().users(builder.build());
 
-            return MisskeyMapper.timeLine(
-                    response.get(),
-                    misskey.getHost(),
-                    service,
-                    paging);
+            return MisskeyMapper.timeLine(response.get(),
+                    misskey.getHost(), service, paging);
         });
     }
 
@@ -615,11 +593,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Response<NotesSearchResponse[]> response =
                     misskey.notes().search(builder.build());
 
-            return MisskeyMapper.timeLine(
-                    response.get(),
-                    misskey.getHost(),
-                    service,
-                    paging);
+            return MisskeyMapper.timeLine(response.get(),
+                    misskey.getHost(), service, paging);
         });
     }
 
@@ -683,7 +658,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                         })).collect(toList());
 
                 fileIds.addAll(medias.stream().map( //
-                                (e) -> HandlingUtil.runtime(e::get)) //
+                        (e) -> HandlingUtil.runtime(e::get)) //
                         .collect(toList()));
             }
 
@@ -877,37 +852,16 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             return this.reactionCandidate;
         }
 
-        this.reactionCandidate = MisskeyMapper.reactionCandidates(getEmojis());
-        return this.reactionCandidate;
-    }
-
-    /**
-     * Get List of Emojis
-     */
-    public List<Emoji> getEmojis() {
-        if (this.emojisCache != null) {
-            return this.emojisCache;
-        }
-
         return proceed(() -> {
             Misskey misskey = auth.getAccessor();
-            Response<MetaResponse> metaResponse =
+            Response<MetaResponse> response =
                     misskey.meta().meta(MetaRequest.builder()
                             .detail(true)
                             .build());
 
-            // V12 以前は meta エンドポイントから取得
-            this.emojisCache = metaResponse.get().getEmojis();
-
-            if (this.emojisCache == null) {
-                // V13 からは emojis エンドポイントから取得
-                Response<EmojisResponse> emojisResponse =
-                        misskey.meta().emojis(EmojisRequest.builder()
-                                .build());
-                this.emojisCache = emojisResponse.get().getEmojis();
-            }
-
-            return this.emojisCache;
+            this.reactionCandidate = MisskeyMapper.reactionCandidates(
+                    response.get().getEmojis());
+            return this.reactionCandidate;
         });
     }
 
@@ -1058,11 +1012,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Response<NotesUserListTimelineResponse[]> response =
                     misskey.notes().userListTimeline(builder.build());
 
-            return MisskeyMapper.timeLine(
-                    response.get(),
-                    misskey.getHost(),
-                    service,
-                    paging);
+            return MisskeyMapper.timeLine(response.get(),
+                    misskey.getHost(), service, paging);
         });
     }
 
@@ -1088,11 +1039,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                                     .build());
 
             return MisskeyMapper.users(
-                    Stream.of(users.get())
-                            .collect(toList()),
-                    misskey.getHost(),
-                    service,
-                    null);
+                    Stream.of(users.get()).collect(toList()),
+                    misskey.getHost(), service, null);
         });
     }
 
@@ -1142,10 +1090,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                                         .build());
 
                 for (misskey4j.entity.User user : users.get()) {
-                    User model = MisskeyMapper.user(
-                            user,
-                            misskey.getHost(),
-                            service);
+                    User model = MisskeyMapper.user(user, misskey.getHost(), service);
                     userMap.put(user.getId(), model);
                 }
             });
@@ -1197,11 +1142,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                     misskey.messages().messages(builder.build());
 
             return MisskeyMapper.messages(
-                    response.get(),
-                    misskey.getHost(),
-                    service,
-                    getEmojis(),
-                    paging);
+                    response.get(), misskey.getHost(),
+                    service, getReactionCandidates(), paging);
         });
     }
 
@@ -1351,12 +1293,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             List<ReactionCandidate> reaction = reactionFuture.get();
             Response<INotificationsResponse[]> response = responseFuture.get();
 
-            return MisskeyMapper.notifications(
-                    response.get(),
-                    reaction,
-                    misskey.getHost(),
-                    service,
-                    paging);
+            return MisskeyMapper.notifications(response.get(),
+                    reaction, misskey.getHost(), service, paging);
         });
     }
 
@@ -1439,11 +1377,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Response<NotesLocalTimelineResponse[]> response =
                     misskey.notes().localTimeline(builder.build());
 
-            return MisskeyMapper.timeLine(
-                    response.get(),
-                    misskey.getHost(),
-                    service,
-                    paging);
+            return MisskeyMapper.timeLine(response.get(),
+                    misskey.getHost(), service, paging);
         });
     }
 
@@ -1463,11 +1398,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Response<NotesGlobalTimelineResponse[]> response =
                     misskey.notes().globalTimeline(builder.build());
 
-            return MisskeyMapper.timeLine(
-                    response.get(),
-                    misskey.getHost(),
-                    service,
-                    paging);
+            return MisskeyMapper.timeLine(response.get(),
+                    misskey.getHost(), service, paging);
         });
     }
 
@@ -1501,10 +1433,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                     misskey.notes().featured(builder.build());
 
             Pageable<Comment> results = MisskeyMapper.timeLine(
-                    response.get(),
-                    misskey.getHost(),
-                    service,
-                    paging);
+                    response.get(), misskey.getHost(), service, paging);
 
             results.setPaging(OffsetPaging.fromPaging(paging));
             results.getPaging().setHasNew(false);

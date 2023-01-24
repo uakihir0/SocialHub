@@ -963,7 +963,10 @@ public class TwitterAction extends AccountActionImpl {
                     .distinct().collect(toList());
 
             // 結果として扱うステータス一覧
-            List<Status> results = new ArrayList<>(afterQuote.get());
+            List<Status> results = afterQuote.get().stream()
+                    // 同一の ID のツイートを対象外に指定
+                    .filter(s -> !id.getId().equals(s.getId()))
+                    .collect(toList());
 
             // 返信リストを取得
             List<Long> idList = new ArrayList<>();

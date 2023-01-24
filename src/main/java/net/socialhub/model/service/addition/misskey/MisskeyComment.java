@@ -33,9 +33,6 @@ public class MisskeyComment extends MiniBlogComment {
     /** Reactions */
     private List<Reaction> reactions;
 
-    /** emojis which contains */
-    private List<Emoji> emojis;
-
     public MisskeyComment(Service service) {
         super(service);
     }
@@ -138,14 +135,6 @@ public class MisskeyComment extends MiniBlogComment {
 
     public void setReactions(List<Reaction> reactions) {
         this.reactions = reactions;
-    }
-
-    public List<Emoji> getEmojis() {
-        return emojis;
-    }
-
-    public void setEmojis(List<Emoji> emojis) {
-        this.emojis = emojis;
     }
     // endregion
 }

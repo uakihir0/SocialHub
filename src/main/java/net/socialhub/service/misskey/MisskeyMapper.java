@@ -9,6 +9,7 @@ import misskey4j.entity.Relation;
 import net.socialhub.define.EmojiType;
 import net.socialhub.define.EmojiVariationType;
 import net.socialhub.define.MediaType;
+import net.socialhub.define.service.misskey.MisskeyInstance;
 import net.socialhub.define.service.misskey.MisskeyNotificationType;
 import net.socialhub.define.service.misskey.MisskeyVisibility;
 import net.socialhub.logger.Logger;
@@ -52,6 +53,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -104,7 +107,10 @@ public class MisskeyMapper {
         }
 
         // 絵文字の追加
-        model.setEmojis(emojis(account.getEmojis()));
+        model.setEmojis(selectEmojis(
+                account.getEmojis(),
+                account.getName(),
+                host));
 
         // 説明文字列がない場合はシンプルオブジェクトと判定
         if (account.getDescription() == null) {
@@ -113,7 +119,10 @@ public class MisskeyMapper {
 
         // ユーザー説明分の設定
         model.setDescription(AttributedString.plain(account.getDescription()));
-        model.getDescription().addEmojiElement(model.getEmojis());
+        model.getDescription().addEmojiElement(selectEmojis(
+                account.getEmojis(),
+                account.getDescription(),
+                host));
 
         model.setFollowersCount(account.getFollowersCount());
         model.setFollowingsCount(account.getFollowingCount());
@@ -148,7 +157,10 @@ public class MisskeyMapper {
                 AttributedFiled f = new AttributedFiled();
 
                 f.setValue(AttributedString.plain(field.getValue()));
-                f.getValue().addEmojiElement(model.getEmojis());
+                f.getValue().addEmojiElement(selectEmojis(
+                        account.getEmojis(),
+                        field.getValue(),
+                        host));
                 f.setName(field.getName());
                 model.getFields().add(f);
             }
@@ -175,9 +187,6 @@ public class MisskeyMapper {
             model.setReplyCount(note.getRepliesCount());
             model.setVisibility(note.getVisibility());
 
-            // 絵文字の追加
-            model.setEmojis(emojis(note.getEmojis()));
-
             // Misskey ではファイル単位でセンシティブかを判断
             model.setPossiblySensitive(note.getFiles()
                     .stream().anyMatch(File::getSensitive));
@@ -191,12 +200,18 @@ public class MisskeyMapper {
             // 注釈の設定
             if (note.getCw() != null) {
                 model.setSpoilerText(AttributedString.plain(note.getCw()));
-                model.getSpoilerText().addEmojiElement(model.getEmojis());
+                model.getSpoilerText().addEmojiElement(selectEmojis(
+                        note.getEmojis(),
+                        note.getCw(),
+                        host));
             }
 
             // 本文の設定
             model.setText(AttributedString.plain(note.getText()));
-            model.getText().addEmojiElement(model.getEmojis());
+            model.getText().addEmojiElement(selectEmojis(
+                    note.getEmojis(),
+                    note.getText(),
+                    host));
 
             // メディアの設定
             model.setMedias(medias(note.getFiles()));
@@ -208,7 +223,8 @@ public class MisskeyMapper {
             model.setReactions(reactions(
                     note.getReactions(),
                     note.getEmojis(),
-                    note.getMyReaction()));
+                    note.getMyReaction(),
+                    host));
 
             // リクエストホストを記録
             URL url = new URL(service.getApiHost());
@@ -350,12 +366,23 @@ public class MisskeyMapper {
             model.setReaction(notification.getReaction());
             model.setId(notification.getId());
 
+            MisskeyNotificationType type =
+                    MisskeyNotificationType.of(notification.getType());
+
+            // ローカルアイコンの取得
             reactions.stream()
                     .filter(e -> e.getAllNames().contains(notification.getReaction()))
                     .findFirst().ifPresent(c -> model.setIconUrl(c.getIconUrl()));
 
-            MisskeyNotificationType type =
-                    MisskeyNotificationType.of(notification.getType());
+            // リモートアイコンの取得
+            String reaction = model.getReaction();
+            if ((type == MisskeyNotificationType.REACTION) &&
+                    reaction.startsWith(":") &&
+                    (model.getIconUrl() == null)) {
+
+                String code = reaction.replaceAll(":", "");
+                model.setIconUrl(getEmojiURL(host, code));
+            }
 
             // 存在する場合のみ設定
             if (type != null) {
@@ -443,7 +470,7 @@ public class MisskeyMapper {
      */
     public static Comment message(
             Message message,
-            List<Emoji> emojis,
+            List<misskey4j.entity.Emoji> emojis,
             String host,
             Service service) {
 
@@ -461,7 +488,10 @@ public class MisskeyMapper {
 
             // 本文の設定
             model.setText(AttributedString.plain(message.getText()));
-            model.getText().addEmojiElement(emojis);
+            model.getText().addEmojiElement(selectEmojis(
+                    emojis,
+                    message.getText(),
+                    host));
 
             // メディアの設定
             model.setMedias(emptyList());
@@ -623,14 +653,10 @@ public class MisskeyMapper {
             Message[] messages,
             String host,
             Service service,
-            List<ReactionCandidate> candidates,
+            List<misskey4j.entity.Emoji> emojis,
             Paging paging) {
 
         Pageable<Comment> model = new Pageable<>();
-        List<Emoji> emojis = candidates.stream()
-                .filter(e -> (e.getIconUrl() != null))
-                .map(MisskeyMapper::emoji)
-                .collect(toList());
 
         model.setEntities(Stream.of(messages).map(e -> message(e, emojis, host, service)) //
                 .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
@@ -646,7 +672,9 @@ public class MisskeyMapper {
     public static List<Reaction> reactions(
             Map<String, Long> reactions,
             List<misskey4j.entity.Emoji> emojis,
-            String myReaction) {
+            String myReaction,
+            String host
+    ) {
 
         List<Reaction> models = new ArrayList<>();
         reactions.forEach((k, v) -> {
@@ -654,21 +682,32 @@ public class MisskeyMapper {
             // カスタム絵文字の場合
             if (k.startsWith(":")) {
                 String name = k.split(":")[1];
+                if (emojis != null) {
 
-                // 該当する絵文字の内容を取得
-                Optional<misskey4j.entity.Emoji> emoji = emojis.stream()
-                        .filter(e -> e.getName().equals(name)).findFirst();
+                    // 該当する絵文字の内容を取得
+                    Optional<misskey4j.entity.Emoji> emoji = emojis.stream()
+                            .filter(e -> e.getName().equals(name))
+                            .findFirst();
 
-                if (emoji.isPresent()) {
+                    if (emoji.isPresent()) {
 
-                    // リアクションの追加
-                    Reaction model = new Reaction();
-                    model.setReacting(k.equals(myReaction));
-                    model.setIconUrl(emoji.get().getUrl());
-                    model.setName(k);
-                    model.setCount(v);
-                    models.add(model);
+                        // リアクションの追加
+                        Reaction model = new Reaction();
+                        model.setReacting(k.equals(myReaction));
+                        model.setIconUrl(emoji.get().getUrl());
+                        model.setName(k);
+                        model.setCount(v);
+                        models.add(model);
+                    }
                 }
+
+                // V13 からリモート絵文字の取得方法が変更
+                Reaction model = new Reaction();
+                model.setReacting(k.equals(myReaction));
+                model.setIconUrl(getEmojiURL(host, name));
+                model.setName(k);
+                model.setCount(v);
+                models.add(model);
 
             } else {
 
@@ -803,5 +842,73 @@ public class MisskeyMapper {
             dateParser.setTimeZone(TimeZone.getTimeZone("UTC"));
         }
         return dateParser;
+    }
+
+    // ============================================================== //
+    // Emojis
+    // ============================================================== //
+
+    public static List<Emoji> selectEmojis(
+            List<misskey4j.entity.Emoji> emojis,
+            String text,
+            String host) {
+
+        if (emojis != null) {
+            return emojis(emojis);
+        }
+        return extractEmojis(text, host);
+    }
+
+    public static List<Emoji> extractEmojis(
+            String text,
+            String host
+    ) {
+        List<Emoji> results = new ArrayList<>();
+        String regex = ":([a-zA-Z0-9_]+(@[a-zA-Z0-9-.]+)?):";
+        Pattern p = Pattern.compile(regex);
+
+        if (text == null || text.isEmpty()) {
+            return results;
+        }
+
+        while (true) {
+            Matcher m = p.matcher(text);
+            if (!m.find()) {
+                break;
+            }
+
+            int i = m.start();
+            String found = m.group();
+            if (i < 0) {
+                break;
+            }
+
+            text = text.substring(i + found.length());
+            String code = found.replaceAll(":", "");
+
+            Emoji emoji = new Emoji();
+            emoji.setUrl(getEmojiURL(host, code));
+            emoji.setCode(code);
+            results.add(emoji);
+        }
+
+        return results;
+    }
+
+
+    /**
+     * (from v13)
+     * 絵文字の URL を取得
+     * code としては以下のような文字列を想定
+     * * emoji
+     * * emoji@example.com
+     * * emoji@.
+     */
+    private static String getEmojiURL(String host, String code) {
+        code = code.replaceAll(":", "");
+        if (code.endsWith("@.")) {
+            code = code.substring(0, code.length() - 2);
+        }
+        return "https://" + host + "/emoji/" + code + ".webp";
     }
 }

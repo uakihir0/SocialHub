@@ -42,7 +42,7 @@ public class MiInstancesService {
      * インスタンスマッピング
      * Instance mapping
      */
-    private Instance mappingInstance(misskey4j.entity.Instance instance) {
+    private Instance mappingInstance(misskey4j.entity.join.Instance instance) {
         Service service = new Service(ServiceType.Misskey, null);
         Instance model = new Instance(service);
 

@@ -18,12 +18,6 @@ public class GetUserMeTest extends AbstractApiTest {
     }
 
     @Test
-    @Ignore
-    public void testGetUserMeFacebook() {
-        execUser(SocialAuthUtil.getFacebookAccount());
-    }
-
-    @Test
     public void testGetUserMastodon() {
         execUser(SocialAuthUtil.getMastodonAccount());
     }

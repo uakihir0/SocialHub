@@ -5,7 +5,6 @@ import net.socialhub.j2objc.J2ObjcExtension;
 import net.socialhub.j2objc.J2ObjcExtensions;
 import net.socialhub.service.Supports;
 import net.socialhub.service.Utils;
-import net.socialhub.service.facebook.FacebookAuth;
 import net.socialhub.service.mastodon.MastodonAuth;
 import net.socialhub.service.misskey.MisskeyAuth;
 import net.socialhub.service.slack.SlackAuth;
@@ -27,14 +26,6 @@ public final class SocialHub {
      */
     public static TwitterAuth getTwitterAuth(String consumerKey, String consumerSecret) {
         return new TwitterAuth(consumerKey, consumerSecret);
-    }
-
-    /**
-     * Get Facebook Authentication Model
-     * Facebook の認証オブジェクトを取得
-     */
-    public static FacebookAuth getFacebookAuth(String appId, String appSecret) {
-        return new FacebookAuth(appId, appSecret);
     }
 
     /**

@@ -60,7 +60,6 @@ dependencies {
     compile("com.github.uakihir0:twitter-text:${TWITTER_TEXT_VERSION}")
     compile("com.github.uakihir0:jtw:${TWITTER_JTW_VERSION}")
     // Other SNS
-    compile("com.github.uakihir0.facebook4j:facebook4j-core:${FACEBOOK4J_VERSION}")
     compile("com.github.uakihir0.jslack:jslack-api-client:${JSLACK_VERSION}")
     compile("com.github.uakihir0.jslack:jslack-api-model:${JSLACK_VERSION}")
     compile("com.github.uakihir0:msinstance4j:${MSINSTANCEJ_VERSION}")

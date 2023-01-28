@@ -8,6 +8,7 @@ public enum MastodonNotificationType {
 
     MENTION(NotificationActionType.MENTION, "mention"),
     FOLLOW(NotificationActionType.FOLLOW, "follow"),
+    FOLLOW_REQUEST(NotificationActionType.FOLLOW_REQUEST, "follow_request"),
     REBLOG(NotificationActionType.SHARE, "reblog"),
     FAVOURITE(NotificationActionType.LIKE, "favourite"),
 

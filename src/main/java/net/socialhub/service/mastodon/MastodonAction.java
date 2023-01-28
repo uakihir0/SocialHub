@@ -68,6 +68,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -400,8 +401,14 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Response<mastodon4j.entity.Notification[]> status =
                     mastodon.notifications().getNotifications(
                             range,
+                            // v3.5 から取得するものを指定可能
+                            Collections.singletonList(
+                                    MastodonNotificationType.MENTION.getCode()
+                            ),
+                            // 互換性のために記述
                             Arrays.asList(
                                     MastodonNotificationType.FOLLOW.getCode(),
+                                    MastodonNotificationType.FOLLOW_REQUEST.getCode(),
                                     MastodonNotificationType.FAVOURITE.getCode(),
                                     MastodonNotificationType.REBLOG.getCode()
                             ),
@@ -1104,6 +1111,13 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
             Response<mastodon4j.entity.Notification[]> notifications =
                     mastodon.notifications().getNotifications(
                             range,
+                            // v3.5 から取得するものを指定可能
+                            Arrays.asList(
+                                    MastodonNotificationType.FOLLOW.getCode(),
+                                    MastodonNotificationType.REBLOG.getCode(),
+                                    MastodonNotificationType.FAVOURITE.getCode()
+                            ),
+                            // 互換性のために記述
                             Arrays.asList(
                                     MastodonNotificationType.MENTION.getCode(),
                                     MastodonNotificationType.POLL.getCode()

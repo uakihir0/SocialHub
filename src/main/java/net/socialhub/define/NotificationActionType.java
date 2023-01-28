@@ -7,6 +7,7 @@ public enum NotificationActionType {
 
     MENTION("mention"),
     FOLLOW("follow"),
+    FOLLOW_REQUEST("follow_request"),
     SHARE("share"),
     LIKE("like"),
     ;

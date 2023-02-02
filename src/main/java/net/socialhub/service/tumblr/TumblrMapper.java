@@ -248,7 +248,7 @@ public class TumblrMapper {
                 post.getTrail().stream()
                         .filter(Trail::isCurrentItem)
                         .findFirst().ifPresent((trail) ->
-                        textMedia(model, removeSharedBlogLink(trail.getContentRaw())));
+                                textMedia(model, removeSharedBlogLink(trail.getContentRaw())));
             }
         }
 
@@ -478,7 +478,16 @@ public class TumblrMapper {
      * Get blog host from url
      */
     public static String getBlogIdentify(Blog blog) {
-        return getUrlHost(blog.getUrl());
+        String url = blog.getUrl();
+        String host = getUrlHost(url);
+
+        // ドメイン設定していないブログは www.tumblr.com になる (?)
+        if (host != null && host.equals("www.tumblr.com")) {
+            String[] elements = url.split("/");
+            String uid = elements[elements.length - 1];
+            host = host.replace("www", uid);
+        }
+        return host;
     }
 
     /**

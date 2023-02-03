@@ -491,9 +491,14 @@ public class TumblrMapper {
         // ドメイン設定していないブログは www.tumblr.com になる (?)
         if (host != null && host.equals("www.tumblr.com")) {
             String[] elements = blogUrl.split("/");
-            if (elements.length > 1) {
-                String uid = elements[elements.length - 1];
-                host = host.replace("www", uid);
+
+            // 最後の三要素について確認するので、ループ回数を制限
+            for (int i = 0; i < (elements.length - 2); i++) {
+
+                // https://www.tumblr.com/blog/view/{uid}/xxx の形式で UID を取得
+                if (elements[i].equals("blog") && elements[i + 1].equals("view")) {
+                    host = host.replace("www", elements[i + 2]);
+                }
             }
         }
         return host;

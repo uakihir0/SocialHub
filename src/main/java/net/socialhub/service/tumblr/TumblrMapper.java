@@ -48,7 +48,7 @@ import static net.socialhub.define.service.tumblr.TumblrIconSize.S512;
 
 public class TumblrMapper {
 
-    /** J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
+    /// J2ObjC はダイナミックロードできない為に使用を明示するために使用
     private final static List<Class<?>> ClassLoader = Arrays.asList( //
             com.tumblr.jumblr.types.TextPost.class, //
             com.tumblr.jumblr.types.Video.class, //
@@ -156,7 +156,7 @@ public class TumblrMapper {
 
         TumblrUser model = new TumblrUser(service);
 
-        String host = getUrlHost(post.getRebloggedRootUrl());
+        String host = getBlogIdentify(post.getRebloggedRootUrl());
         String name = post.getRebloggedRootName();
 
         model.setIconImageUrl(getAvatarUrl(host, S512));
@@ -478,14 +478,23 @@ public class TumblrMapper {
      * Get blog host from url
      */
     public static String getBlogIdentify(Blog blog) {
-        String url = blog.getUrl();
-        String host = getUrlHost(url);
+        return getBlogIdentify(blog.getUrl());
+    }
+
+    /**
+     * ホスト名を取得
+     * Get blog host from url
+     */
+    public static String getBlogIdentify(String blogUrl) {
+        String host = getUrlHost(blogUrl);
 
         // ドメイン設定していないブログは www.tumblr.com になる (?)
         if (host != null && host.equals("www.tumblr.com")) {
-            String[] elements = url.split("/");
-            String uid = elements[elements.length - 1];
-            host = host.replace("www", uid);
+            String[] elements = blogUrl.split("/");
+            if (elements.length > 1) {
+                String uid = elements[elements.length - 1];
+                host = host.replace("www", uid);
+            }
         }
         return host;
     }

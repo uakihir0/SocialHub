@@ -1144,7 +1144,7 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
             Response<mastodon4j.entity.Notification> notification =
                     mastodon.notifications()
-                            .getNotification((String) identify.getId());
+                            .getNotification(identify.getId().toString());
 
             return MastodonMapper.notification(
                     notification.get(), service);

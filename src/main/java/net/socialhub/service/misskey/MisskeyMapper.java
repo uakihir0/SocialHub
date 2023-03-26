@@ -362,7 +362,6 @@ public class MisskeyMapper {
 
         try {
             MisskeyNotification model = new MisskeyNotification(service);
-            model.setCreateAt(getDateParser().parse(notification.getCreatedAt()));
             model.setReaction(notification.getReaction());
             model.setId(notification.getId());
 

@@ -366,6 +366,12 @@ public class MisskeyMapper {
             model.setReaction(notification.getReaction());
             model.setId(notification.getId());
 
+            // アンテナの通知などは時刻が含まれないので確認
+            if (notification.getCreatedAt() != null) {
+                String createdAt = notification.getCreatedAt();
+                model.setCreateAt(getDateParser().parse(createdAt));
+            }
+
             MisskeyNotificationType type =
                     MisskeyNotificationType.of(notification.getType());
 

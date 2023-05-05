@@ -1,2 +1,15 @@
-rootProject.name = 'SocialHub'
+rootProject.name = 'socialhub'
+
+include("all")
+include("core")
+
+// MicroBlog
+include("microblog")
+include("twitter")
+include("mastodon")
+include("misskey")
+
+// Others
+include("tumblr")
+include("slack")
 

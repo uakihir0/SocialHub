@@ -13,7 +13,7 @@ plugins {
 
 apply plugin: 'net.socialhub.j2objccontrib.j2objcgradle'
 
-group 'SocialHub'
+group 'socialhub'
 version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8

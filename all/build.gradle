@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'maven'
+}
+
+group 'socialhub-all'
+version '1.0-SNAPSHOT'
+
+dependencies {
+
+    // Translation Exclusion Library
+    implementation("com.google.code.findbugs:jsr305:${JSR_305_VERSION}")
+
+    // Projects
+    compile(project(":core"))
+    compile(project(":microblog"))
+    compile(project(":twitter"))
+    compile(project(":mastodon"))
+    compile(project(":misskey"))
+    compile(project(":tumblr"))
+    compile(project(":slack"))
+
+    // Test
+    testCompile("junit:junit:${JUNIT_VERSION}")
+    testImplementation("org.jsoup:jsoup:${JSOUP_VERSION}")
+}

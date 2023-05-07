@@ -37,41 +37,6 @@ allprojects {
     }
 }
 
-dependencies {
-
-    // Translation Exclusion Library
-    implementation("com.google.code.findbugs:jsr305:${JSR_305_VERSION}")
-
-    // Common Library
-    compile("org.apache.commons:commons-lang3:${COMMONS_LANG_VERSION}")
-    compile("commons-codec:commons-codec:${COMMONS_CODEC_VERSION}")
-    compile("com.google.code.gson:gson:${GSON_VERSION}")
-
-    // J2ObjC Common Library
-    compile("com.github.uakihir0:JLogger:${JLOGGER_VERSION}")
-    compile("com.github.uakihir0:JHttpClient:${JHTTP_CLIENT_VERSION}")
-    compile("com.github.uakihir0:scribejava:${SCRIBE_VERSION}")
-
-    // J2ObjC Network Library
-    // Twitter
-    compile("com.github.uakihir0.twitter4j:twitter4j-core:${TWITTER4J_VERSION}")
-    compile("com.github.uakihir0.twitter4j:twitter4j-stream:${TWITTER4J_VERSION}")
-    compile("com.github.uakihir0:twitter-web-client:${TWITTER_WEB_VERSION}")
-    compile("com.github.uakihir0:twitter-text:${TWITTER_TEXT_VERSION}")
-    compile("com.github.uakihir0:jtw:${TWITTER_JTW_VERSION}")
-    // Other SNS
-    compile("com.github.uakihir0.jslack:jslack-api-client:${JSLACK_VERSION}")
-    compile("com.github.uakihir0.jslack:jslack-api-model:${JSLACK_VERSION}")
-    compile("com.github.uakihir0:msinstance4j:${MSINSTANCEJ_VERSION}")
-    compile("com.github.uakihir0:mastodon4j:${MASTODON4J_VERSION}")
-    compile("com.github.uakihir0:jumblr:${JUMBLR_VERSION}")
-    compile("com.github.uakihir0:misskey4j:${MISSKEY4J_VERSION}")
-
-    // Test
-    testCompile("junit:junit:${JUNIT_VERSION}")
-    testImplementation("org.jsoup:jsoup:${JSOUP_VERSION}")
-}
-
 sourceSets {
     test {
         java {
@@ -79,6 +44,10 @@ sourceSets {
             exclude '**/*.java'
         }
     }
+}
+dependencies {
+    // Projects
+    compile(project(":all"))
 }
 
 j2objcConfig {
@@ -101,12 +70,6 @@ j2objcConfig {
     finalConfigure()
 }
 
-j2objcTranslate.doLast {
-    exec {
-        executable "sh"
-        args './tool/buildheader.sh'
-    }
-}
 
 j2objcPodspec.doLast {
     [getPodspecDebug(), getPodspecRelease()].asList().each {

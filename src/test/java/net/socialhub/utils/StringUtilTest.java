@@ -1,17 +1,18 @@
 package net.socialhub.utils;
 
-import net.socialhub.define.service.slack.SlackAttributedTypes;
-import net.socialhub.model.common.AttributedElement;
-import net.socialhub.model.common.AttributedItem;
-import net.socialhub.model.common.AttributedKind;
-import net.socialhub.model.common.AttributedString;
+import net.socialhub.core.utils.StringUtil;
+import net.socialhub.service.slack.define.SlackAttributedTypes;
+import net.socialhub.core.model.common.AttributedElement;
+import net.socialhub.core.model.common.AttributedItem;
+import net.socialhub.core.model.common.AttributedKind;
+import net.socialhub.core.model.common.AttributedString;
 import org.junit.Test;
 
 public class StringUtilTest {
 
     @Test
     public void testDecodeUrlEncode() {
-        System.out.println(StringUtil.decodeUrl("&gt;"));
+        System.out.println(net.socialhub.core.utils.StringUtil.decodeUrl("&gt;"));
     }
 
     @Test
@@ -85,18 +86,18 @@ public class StringUtilTest {
     @Test
     public void testGetDisplayUrl() {
 
-        System.out.println(StringUtil.getDisplayUrl( //
+        System.out.println(net.socialhub.core.utils.StringUtil.getDisplayUrl( //
                 "http://www.example.com/path?query=10&query=20"));
 
-        System.out.println(StringUtil.getDisplayUrl( //
+        System.out.println(net.socialhub.core.utils.StringUtil.getDisplayUrl( //
                 "http://www.example.com/path?12345"));
-        System.out.println(StringUtil.getDisplayUrl( //
+        System.out.println(net.socialhub.core.utils.StringUtil.getDisplayUrl( //
                 "http://www.example.com/path?123456"));
     }
 
     @Test
     public void testTrimLast() {
-        System.out.print(StringUtil.trimLast("A "));
+        System.out.print(net.socialhub.core.utils.StringUtil.trimLast("A "));
         System.out.println("B");
 
         System.out.print(StringUtil.trimLast("A \n"));

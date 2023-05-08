@@ -1,14 +1,14 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialHub;
+import net.socialhub.core.SocialHub;
 import net.socialhub.TestProperty;
-import net.socialhub.define.service.mastodon.MastodonScope;
-import net.socialhub.define.service.slack.SlackScope;
-import net.socialhub.model.Account;
-import net.socialhub.service.mastodon.MastodonAuth;
-import net.socialhub.service.slack.SlackAuth;
-import net.socialhub.service.tumblr.TumblrAuth;
-import net.socialhub.service.twitter.TwitterAuth;
+import net.socialhub.core.model.Account;
+import net.socialhub.service.mastodon.action.MastodonAuth;
+import net.socialhub.service.mastodon.define.MastodonScope;
+import net.socialhub.service.slack.action.SlackAuth;
+import net.socialhub.service.slack.define.SlackScope;
+import net.socialhub.service.tumblr.action.TumblrAuth;
+import net.socialhub.service.twitter.action.TwitterAuth;
 import org.junit.Ignore;
 import org.junit.Test;
 

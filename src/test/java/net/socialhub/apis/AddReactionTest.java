@@ -1,10 +1,10 @@
 package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
-import net.socialhub.define.EmojiType;
-import net.socialhub.model.Account;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.addition.slack.SlackIdentify;
+import net.socialhub.core.define.emoji.EmojiType;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.Identify;
+import net.socialhub.service.slack.model.SlackIdentify;
 import org.junit.Ignore;
 import org.junit.Test;
 

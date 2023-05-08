@@ -1,11 +1,12 @@
 package net.socialhub;
 
-import net.socialhub.model.Account;
-import net.socialhub.service.mastodon.MastodonAuth;
-import net.socialhub.service.misskey.MisskeyAuth;
-import net.socialhub.service.slack.SlackAuth;
-import net.socialhub.service.tumblr.TumblrAuth;
-import net.socialhub.service.twitter.TwitterAuth;
+import net.socialhub.core.SocialHub;
+import net.socialhub.core.model.Account;
+import net.socialhub.service.mastodon.action.MastodonAuth;
+import net.socialhub.service.misskey.action.MisskeyAuth;
+import net.socialhub.service.slack.action.SlackAuth;
+import net.socialhub.service.tumblr.action.TumblrAuth;
+import net.socialhub.service.twitter.action.TwitterAuth;
 
 public class SocialAuthUtil {
 

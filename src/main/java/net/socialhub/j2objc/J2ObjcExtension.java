@@ -12,5 +12,4 @@ public class J2ObjcExtension {
     public static void initialize(J2ObjcExtensions... extensions) {
         initialize(Arrays.asList(extensions));
     }
-
 }

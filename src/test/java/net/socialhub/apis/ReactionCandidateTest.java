@@ -1,8 +1,8 @@
 package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
-import net.socialhub.model.Account;
-import net.socialhub.model.service.support.ReactionCandidate;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.support.ReactionCandidate;
 import org.junit.Test;
 
 import java.util.List;

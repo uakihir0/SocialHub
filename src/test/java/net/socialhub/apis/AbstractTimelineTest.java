@@ -1,16 +1,16 @@
 package net.socialhub.apis;
 
-import net.socialhub.model.common.AttributedKind;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Media;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Poll;
-import net.socialhub.model.service.Reaction;
-import net.socialhub.model.service.addition.MiniBlogComment;
-import net.socialhub.model.service.addition.slack.SlackComment;
-import net.socialhub.model.service.paging.BorderPaging;
-import net.socialhub.model.service.support.PollOption;
+import net.socialhub.core.model.common.AttributedKind;
+import net.socialhub.core.model.Comment;
+import net.socialhub.core.model.Media;
+import net.socialhub.core.model.Pageable;
+import net.socialhub.core.model.Paging;
+import net.socialhub.core.model.Poll;
+import net.socialhub.core.model.Reaction;
+import net.socialhub.service.microblog.model.MiniBlogComment;
+import net.socialhub.service.slack.model.SlackComment;
+import net.socialhub.core.model.paging.BorderPaging;
+import net.socialhub.core.model.support.PollOption;
 
 public class AbstractTimelineTest extends AbstractApiTest {
 

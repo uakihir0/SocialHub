@@ -2,10 +2,10 @@ package net.socialhub.apis;
 
 
 import net.socialhub.SocialAuthUtil;
-import net.socialhub.define.service.slack.SlackFormKey;
-import net.socialhub.model.Account;
-import net.socialhub.model.request.CommentForm;
-import net.socialhub.model.request.PollForm;
+import net.socialhub.service.slack.define.SlackFormKey;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.request.CommentForm;
+import net.socialhub.core.model.request.PollForm;
 import org.junit.Ignore;
 import org.junit.Test;
 

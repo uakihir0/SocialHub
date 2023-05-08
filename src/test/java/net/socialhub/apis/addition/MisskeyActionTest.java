@@ -2,18 +2,18 @@ package net.socialhub.apis.addition;
 
 import net.socialhub.SocialAuthUtil;
 import net.socialhub.apis.AbstractTimelineTest;
-import net.socialhub.model.Account;
-import net.socialhub.model.group.CommentGroup;
-import net.socialhub.model.group.CommentsRequestGroup;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Notification;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Trend;
-import net.socialhub.model.service.addition.misskey.MisskeyNotification;
-import net.socialhub.service.action.RequestAction;
-import net.socialhub.service.misskey.MisskeyAction;
-import net.socialhub.service.misskey.MisskeyRequest;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.group.CommentGroup;
+import net.socialhub.core.model.group.CommentsRequestGroup;
+import net.socialhub.core.model.Comment;
+import net.socialhub.core.model.Notification;
+import net.socialhub.core.model.Pageable;
+import net.socialhub.core.model.Paging;
+import net.socialhub.core.model.Trend;
+import net.socialhub.service.misskey.model.MisskeyNotification;
+import net.socialhub.core.action.RequestAction;
+import net.socialhub.service.misskey.action.MisskeyAction;
+import net.socialhub.service.misskey.action.MisskeyRequest;
 import org.junit.Test;
 
 public class MisskeyActionTest extends AbstractTimelineTest {

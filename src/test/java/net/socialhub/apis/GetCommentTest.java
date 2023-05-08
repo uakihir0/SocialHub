@@ -1,9 +1,9 @@
 package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
-import net.socialhub.model.Account;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Identify;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.Comment;
+import net.socialhub.core.model.Identify;
 import org.junit.Test;
 
 public class GetCommentTest extends AbstractTimelineTest {

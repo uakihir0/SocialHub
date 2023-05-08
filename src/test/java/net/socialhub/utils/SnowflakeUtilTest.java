@@ -1,5 +1,6 @@
 package net.socialhub.utils;
 
+import net.socialhub.core.utils.SnowflakeUtil;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -10,7 +11,7 @@ public class SnowflakeUtilTest {
     public void testTwitterIdToDate() {
         Long id = 0L;
 
-        SnowflakeUtil util = SnowflakeUtil.ofTwitter();
+        net.socialhub.core.utils.SnowflakeUtil util = SnowflakeUtil.ofTwitter();
         System.out.println(util.getDateTimeFromID(id));
         System.out.println(util.getDateTimeFromID(util.addHoursToID(id, 1L)));
     }

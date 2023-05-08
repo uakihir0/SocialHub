@@ -1,12 +1,12 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialHub;
+import net.socialhub.core.SocialHub;
 import net.socialhub.TestProperty;
-import net.socialhub.define.service.mastodon.MsInstanceOrder;
-import net.socialhub.define.service.mastodon.MsInstanceSort;
-import net.socialhub.model.service.Instance;
-import net.socialhub.service.support.MiInstancesService;
-import net.socialhub.service.support.MsInstancesService;
+import net.socialhub.service.mastodon.define.MsInstanceOrder;
+import net.socialhub.service.mastodon.define.MsInstanceSort;
+import net.socialhub.core.model.Instance;
+import net.socialhub.service.misskey.support.MiInstancesService;
+import net.socialhub.service.mastodon.support.MsInstancesService;
 import org.junit.Test;
 
 import java.util.List;

@@ -1,8 +1,9 @@
 package net.socialhub.utils;
 
-import net.socialhub.model.common.AttributedString;
-import net.socialhub.model.common.xml.XmlConvertRule;
-import net.socialhub.model.common.xml.XmlDocument;
+import net.socialhub.core.model.common.AttributedString;
+import net.socialhub.core.model.common.xml.XmlConvertRule;
+import net.socialhub.core.model.common.xml.XmlDocument;
+import net.socialhub.core.utils.XmlParseUtil;
 import org.junit.Test;
 
 public class XmlParseUtilTest {

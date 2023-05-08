@@ -1,9 +1,9 @@
 package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
-import net.socialhub.model.Account;
-import net.socialhub.model.service.Paging;
-import net.socialhub.service.action.request.CommentsRequest;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.Paging;
+import net.socialhub.core.action.request.CommentsRequest;
 import org.junit.Test;
 
 public class RequestActionTest extends AbstractTimelineTest {

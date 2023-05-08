@@ -1,11 +1,11 @@
 package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
-import net.socialhub.model.Account;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Context;
-import net.socialhub.model.service.Identify;
-import net.socialhub.model.service.addition.slack.SlackIdentify;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.Comment;
+import net.socialhub.core.model.Context;
+import net.socialhub.core.model.Identify;
+import net.socialhub.service.slack.model.SlackIdentify;
 import org.junit.Ignore;
 import org.junit.Test;
 

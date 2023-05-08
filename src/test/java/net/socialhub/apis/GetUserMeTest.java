@@ -1,13 +1,12 @@
 package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
-import net.socialhub.model.Account;
-import net.socialhub.model.common.AttributedFiled;
-import net.socialhub.model.service.User;
-import net.socialhub.model.service.addition.mastodon.MastodonUser;
-import net.socialhub.model.service.addition.misskey.MisskeyUser;
-import net.socialhub.model.service.addition.tumblr.TumblrUser;
-import org.junit.Ignore;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.common.AttributedFiled;
+import net.socialhub.core.model.User;
+import net.socialhub.service.mastodon.model.MastodonUser;
+import net.socialhub.service.misskey.model.MisskeyUser;
+import net.socialhub.service.tumblr.model.TumblrUser;
 import org.junit.Test;
 
 public class GetUserMeTest extends AbstractApiTest {

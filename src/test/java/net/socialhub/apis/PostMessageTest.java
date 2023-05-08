@@ -1,8 +1,8 @@
 package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
-import net.socialhub.model.Account;
-import net.socialhub.model.request.CommentForm;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.request.CommentForm;
 import org.junit.Ignore;
 import org.junit.Test;
 

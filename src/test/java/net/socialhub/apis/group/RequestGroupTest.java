@@ -2,9 +2,9 @@ package net.socialhub.apis.group;
 
 import net.socialhub.SocialAuthUtil;
 import net.socialhub.apis.AbstractApiTest;
-import net.socialhub.model.group.CommentGroup;
-import net.socialhub.model.group.CommentsRequestGroup;
-import net.socialhub.model.service.Comment;
+import net.socialhub.core.model.group.CommentGroup;
+import net.socialhub.core.model.group.CommentsRequestGroup;
+import net.socialhub.core.model.Comment;
 import org.junit.Test;
 
 public class RequestGroupTest extends AbstractApiTest {

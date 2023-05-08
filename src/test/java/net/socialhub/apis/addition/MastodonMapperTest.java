@@ -1,6 +1,6 @@
 package net.socialhub.apis.addition;
 
-import net.socialhub.service.mastodon.MastodonMapper;
+import net.socialhub.service.mastodon.action.MastodonMapper;
 import org.junit.Test;
 
 public class MastodonMapperTest {

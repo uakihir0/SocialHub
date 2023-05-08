@@ -1,9 +1,9 @@
 package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
-import net.socialhub.model.Account;
-import net.socialhub.model.service.Channel;
-import net.socialhub.model.service.Pageable;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.Channel;
+import net.socialhub.core.model.Pageable;
 import org.junit.Test;
 
 public class GetChannelsTest extends AbstractApiTest {

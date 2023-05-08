@@ -1,18 +1,18 @@
 package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
-import net.socialhub.model.Account;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Media;
-import net.socialhub.model.service.Stream;
-import net.socialhub.model.service.event.CommentEvent;
-import net.socialhub.model.service.event.IdentifyEvent;
-import net.socialhub.service.action.callback.comment.DeleteCommentCallback;
-import net.socialhub.service.action.callback.comment.UpdateCommentCallback;
-import net.socialhub.service.action.callback.lifecycle.DisconnectCallback;
-import net.socialhub.service.mastodon.MastodonAction;
-import net.socialhub.service.misskey.MisskeyAction;
-import net.socialhub.service.twitter.TwitterAction;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.Comment;
+import net.socialhub.core.model.Media;
+import net.socialhub.core.model.Stream;
+import net.socialhub.core.model.event.CommentEvent;
+import net.socialhub.core.model.event.IdentifyEvent;
+import net.socialhub.core.action.callback.comment.DeleteCommentCallback;
+import net.socialhub.core.action.callback.comment.UpdateCommentCallback;
+import net.socialhub.core.action.callback.lifecycle.DisconnectCallback;
+import net.socialhub.service.mastodon.action.MastodonAction;
+import net.socialhub.service.misskey.action.MisskeyAction;
+import net.socialhub.service.twitter.action.TwitterAction;
 import org.junit.Test;
 
 public class CommentStreamTest extends AbstractApiTest {

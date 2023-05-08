@@ -1,7 +1,7 @@
 package net.socialhub.utils;
 
-import net.socialhub.SocialHub;
-import net.socialhub.define.ServiceType;
+import net.socialhub.core.SocialHub;
+import net.socialhub.core.define.ServiceType;
 import org.junit.Test;
 
 public class ServiceUtilTest {

@@ -36,6 +36,7 @@ jobs:
         run: ./gradlew -b j2objc.gradle clean :j2objcAssemble${RUN_TARGET} -x test
 
       - name: Push Binary
+        if: github.ref == 'refs/heads/master'
         run: |
           git config --global user.email "a.urusihara@gmail.com"
           git config --global user.name "Akihiro Urushihara"

@@ -2,14 +2,14 @@ package net.socialhub.apis.addition;
 
 import net.socialhub.SocialAuthUtil;
 import net.socialhub.apis.AbstractTimelineTest;
-import net.socialhub.model.Account;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Notification;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.Trend;
-import net.socialhub.model.service.User;
-import net.socialhub.service.mastodon.MastodonAction;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.Comment;
+import net.socialhub.core.model.Notification;
+import net.socialhub.core.model.Pageable;
+import net.socialhub.core.model.Paging;
+import net.socialhub.core.model.Trend;
+import net.socialhub.core.model.User;
+import net.socialhub.service.mastodon.action.MastodonAction;
 import org.junit.Test;
 
 import java.util.List;

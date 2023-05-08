@@ -1,6 +1,6 @@
 package net.socialhub.utils;
 
-import net.socialhub.service.twitter.TwitterMapper;
+import net.socialhub.service.twitter.action.TwitterMapper;
 import org.junit.Test;
 
 public class TwitterMapperTest {

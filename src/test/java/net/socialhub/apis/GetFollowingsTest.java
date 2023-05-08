@@ -1,10 +1,10 @@
 package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
-import net.socialhub.model.Account;
-import net.socialhub.model.service.Pageable;
-import net.socialhub.model.service.Paging;
-import net.socialhub.model.service.User;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.Pageable;
+import net.socialhub.core.model.Paging;
+import net.socialhub.core.model.User;
 import org.junit.Test;
 
 import java.util.List;

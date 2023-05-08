@@ -1,17 +1,17 @@
 package net.socialhub.apis;
 
 import net.socialhub.SocialAuthUtil;
-import net.socialhub.model.Account;
-import net.socialhub.model.service.Comment;
-import net.socialhub.model.service.Media;
-import net.socialhub.model.service.Stream;
-import net.socialhub.model.service.User;
-import net.socialhub.model.service.event.CommentEvent;
-import net.socialhub.model.service.event.NotificationEvent;
-import net.socialhub.model.service.event.UserEvent;
-import net.socialhub.service.action.callback.comment.MentionCommentCallback;
-import net.socialhub.service.action.callback.comment.NotificationCommentCallback;
-import net.socialhub.service.action.callback.user.FollowUserCallback;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.Comment;
+import net.socialhub.core.model.Media;
+import net.socialhub.core.model.Stream;
+import net.socialhub.core.model.User;
+import net.socialhub.core.model.event.CommentEvent;
+import net.socialhub.core.model.event.NotificationEvent;
+import net.socialhub.core.model.event.UserEvent;
+import net.socialhub.core.action.callback.comment.MentionCommentCallback;
+import net.socialhub.core.action.callback.comment.NotificationCommentCallback;
+import net.socialhub.core.action.callback.user.FollowUserCallback;
 import org.junit.Test;
 
 public class NotificationStreamTest extends AbstractApiTest {

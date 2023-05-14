@@ -1,26 +1,25 @@
 package net.socialhub.apis.addition;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.apis.AbstractTimelineTest;
+import net.socialhub.core.action.RequestAction;
 import net.socialhub.core.model.Account;
-import net.socialhub.core.model.group.CommentGroup;
-import net.socialhub.core.model.group.CommentsRequestGroup;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Notification;
 import net.socialhub.core.model.Pageable;
 import net.socialhub.core.model.Paging;
 import net.socialhub.core.model.Trend;
-import net.socialhub.service.misskey.model.MisskeyNotification;
-import net.socialhub.core.action.RequestAction;
+import net.socialhub.core.model.group.CommentGroup;
+import net.socialhub.core.model.group.CommentsRequestGroup;
 import net.socialhub.service.misskey.action.MisskeyAction;
 import net.socialhub.service.misskey.action.MisskeyRequest;
+import net.socialhub.service.misskey.model.MisskeyNotification;
 import org.junit.Test;
 
 public class MisskeyActionTest extends AbstractTimelineTest {
 
     @Test
     public void getTrendsTest() {
-        Account account = SocialAuthUtil.getMisskeyAccount();
+        Account account = getMisskeyAccount();
         MisskeyAction action = (MisskeyAction) account.action();
 
         for (Trend trend : action.getTrends(10)) {
@@ -32,7 +31,7 @@ public class MisskeyActionTest extends AbstractTimelineTest {
 
     @Test
     public void getNotifications() {
-        Account account = SocialAuthUtil.getMisskeyAccount();
+        Account account = getMisskeyAccount();
         MisskeyAction action = (MisskeyAction) account.action();
         Pageable<Notification> models = action.getNotification(new Paging(100L));
 
@@ -49,9 +48,9 @@ public class MisskeyActionTest extends AbstractTimelineTest {
 
     @Test
     public void getFeaturedTimeline() {
-        
+
         CommentsRequestGroup request = CommentsRequestGroup.of();
-        RequestAction r = SocialAuthUtil.getMisskeyAccount().request();
+        RequestAction r = getMisskeyAccount().request();
         request.addCommentsRequests(((MisskeyRequest) r).getFeaturedTimeLine());
 
         CommentGroup comments = request.action().getComments();

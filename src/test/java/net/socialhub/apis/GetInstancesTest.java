@@ -1,26 +1,25 @@
 package net.socialhub.apis;
 
 import net.socialhub.core.SocialHub;
-import net.socialhub.TestProperty;
+import net.socialhub.core.model.Instance;
 import net.socialhub.service.mastodon.define.MsInstanceOrder;
 import net.socialhub.service.mastodon.define.MsInstanceSort;
-import net.socialhub.core.model.Instance;
-import net.socialhub.service.misskey.support.MiInstancesService;
 import net.socialhub.service.mastodon.support.MsInstancesService;
+import net.socialhub.service.misskey.support.MiInstancesService;
 import org.junit.Test;
 
 import java.util.List;
 
-public class GetInstancesTest {
+public class GetInstancesTest extends AbstractApiTest {
 
     @Test
     public void testMastodonListInstances() {
 
-        MsInstancesService client = SocialHub.getSupportServices().getMastodonInstances( //
-                TestProperty.MastodonInstancesProperty.AccessToken);
+        MsInstancesService client = SocialHub.getSupportServices().getMastodonInstances(
+                mastodonInstancesProperty.getAccessToken());
 
         // Get Most Users Instances
-        List<Instance> instances = client.listInstances( //
+        List<Instance> instances = client.listInstances(
                 200, MsInstanceSort.USERS, MsInstanceOrder.DESC);
 
         for (Instance instance : instances) {
@@ -31,8 +30,8 @@ public class GetInstancesTest {
     @Test
     public void testMastodonSearchInstances() {
 
-        MsInstancesService client = SocialHub.getSupportServices().getMastodonInstances( //
-                TestProperty.MastodonInstancesProperty.AccessToken);
+        MsInstancesService client = SocialHub.getSupportServices().getMastodonInstances(
+                mastodonInstancesProperty.getAccessToken());
 
         List<Instance> instances = client.searchInstances(10, "Anime");
 

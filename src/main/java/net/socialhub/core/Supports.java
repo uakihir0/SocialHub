@@ -1,7 +1,7 @@
 package net.socialhub.core;
 
-import net.socialhub.service.misskey.support.MiInstancesService;
 import net.socialhub.service.mastodon.support.MsInstancesService;
+import net.socialhub.service.misskey.support.MiInstancesService;
 
 public class Supports {
 

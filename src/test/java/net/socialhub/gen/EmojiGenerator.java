@@ -95,9 +95,9 @@ public class EmojiGenerator {
 
             // スキントーンが含まれるもの以外は一致で確認
             Integer level = frequencies.stream().filter(e ->
-                    (model.getName().contains("skin-tone-"))
-                            ? decodedEmoji.contains(e.getEmoji())
-                            : decodedEmoji.equals(e.getEmoji()))
+                            (model.getName().contains("skin-tone-"))
+                                    ? decodedEmoji.contains(e.getEmoji())
+                                    : decodedEmoji.equals(e.getEmoji()))
                     .map(EmojiFrequency::getLevel)
                     .findFirst().orElse(null);
 
@@ -117,14 +117,14 @@ public class EmojiGenerator {
                 .map(EmojiData::getCategory) //
                 .distinct().forEach((category) -> {
 
-            StringBuilder builder = new StringBuilder();
-            for (String part : category.split("\\s&?\\s?")) {
-                builder.append(caption(part));
-            }
+                    StringBuilder builder = new StringBuilder();
+                    for (String part : category.split("\\s&?\\s?")) {
+                        builder.append(caption(part));
+                    }
 
-            System.out.println(builder //
-                    + "(\"" + category + "\"),");
-        });
+                    System.out.println(builder //
+                            + "(\"" + category + "\"),");
+                });
     }
 
     @Test

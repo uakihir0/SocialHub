@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Pageable;
@@ -15,7 +14,7 @@ public class ThreadTimelineTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(50L);
 
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         Pageable<Thread> threads = account.action().getMessageThread(paging);
 
         if (threads.getEntities().size() > 0) {
@@ -30,7 +29,7 @@ public class ThreadTimelineTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(50L);
 
-        Account account = SocialAuthUtil.getSlackAccount();
+        Account account = getSlackAccount();
         Pageable<Thread> threads = account.action().getMessageThread(paging);
 
         if (threads.getEntities().size() > 0) {
@@ -49,7 +48,7 @@ public class ThreadTimelineTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(50L);
 
-        Account account = SocialAuthUtil.getSlackAccount();
+        Account account = getSlackAccount();
         Pageable<Thread> threads = account.action().getMessageThread(paging);
 
         if (threads.getEntities().size() > 0) {

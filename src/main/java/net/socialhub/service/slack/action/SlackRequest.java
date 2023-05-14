@@ -1,10 +1,10 @@
 package net.socialhub.service.slack.action;
 
-import net.socialhub.service.slack.define.SlackFormKey;
-import net.socialhub.core.model.Account;
-import net.socialhub.core.model.Identify;
 import net.socialhub.core.action.RequestActionImpl;
 import net.socialhub.core.action.request.CommentsRequest;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.Identify;
+import net.socialhub.service.slack.define.SlackFormKey;
 
 import static net.socialhub.core.define.action.TimeLineActionType.ChannelTimeLine;
 import static net.socialhub.core.define.action.TimeLineActionType.HomeTimeLine;

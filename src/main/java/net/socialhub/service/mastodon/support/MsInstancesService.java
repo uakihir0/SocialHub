@@ -3,10 +3,10 @@ package net.socialhub.service.mastodon.support;
 import msinstance4j.MastodonInstances;
 import msinstance4j.entity.Instances;
 import net.socialhub.core.define.ServiceType;
-import net.socialhub.service.mastodon.define.MsInstanceOrder;
-import net.socialhub.service.mastodon.define.MsInstanceSort;
 import net.socialhub.core.model.Instance;
 import net.socialhub.core.model.Service;
+import net.socialhub.service.mastodon.define.MsInstanceOrder;
+import net.socialhub.service.mastodon.define.MsInstanceSort;
 
 import java.util.Arrays;
 import java.util.List;

@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Pageable;
 import net.socialhub.core.model.Paging;
@@ -15,7 +14,7 @@ public class SearchUserTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = SocialAuthUtil.getMisskeyAccount();
+        Account account = getMisskeyAccount();
         Pageable<User> users = account.action().searchUsers("a", paging);
         for (User user : users.getEntities()) {
             System.out.println(user.getName());

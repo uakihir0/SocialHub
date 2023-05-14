@@ -1,12 +1,12 @@
 package net.socialhub.service.microblog.model;
 
 import net.socialhub.core.define.ReactionType;
-import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Identify;
 import net.socialhub.core.model.Poll;
 import net.socialhub.core.model.Reaction;
 import net.socialhub.core.model.Service;
+import net.socialhub.core.model.request.CommentForm;
 
 import java.util.List;
 

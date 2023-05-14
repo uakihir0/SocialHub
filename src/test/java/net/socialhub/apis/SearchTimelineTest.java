@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Pageable;
@@ -15,7 +14,7 @@ public class SearchTimelineTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         Pageable<Comment> comments = account.action().getSearchTimeLine("#NowPlaying", paging);
 
         printTimeline("Now", comments);
@@ -27,7 +26,7 @@ public class SearchTimelineTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         Pageable<Comment> comments = account.action().getSearchTimeLine("#NowPlaying", paging);
 
         printTimeline("Now", comments);

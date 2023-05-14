@@ -1,6 +1,5 @@
 package net.socialhub.apis.addition;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.apis.AbstractTimelineTest;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Comment;
@@ -18,7 +17,7 @@ public class MastodonActionTest extends AbstractTimelineTest {
 
     @Test
     public void getTrendsTest() {
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         MastodonAction action = (MastodonAction) account.action();
 
         for (Trend trend : action.getTrends(10)) {
@@ -30,7 +29,7 @@ public class MastodonActionTest extends AbstractTimelineTest {
 
     @Test
     public void getNotifications() {
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         MastodonAction action = (MastodonAction) account.action();
 
         Pageable<Notification> now = action.getNotification(new Paging(10L));
@@ -44,7 +43,7 @@ public class MastodonActionTest extends AbstractTimelineTest {
 
     @Test
     public void getUserPinedComments() {
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         MastodonAction action = (MastodonAction) account.action();
 
         User me = action.getUserMe();

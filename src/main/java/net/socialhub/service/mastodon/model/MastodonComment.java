@@ -1,10 +1,10 @@
 package net.socialhub.service.mastodon.model;
 
-import net.socialhub.service.mastodon.define.MastodonVisibility;
-import net.socialhub.core.model.common.AttributedString;
 import net.socialhub.core.model.Emoji;
 import net.socialhub.core.model.Reaction;
 import net.socialhub.core.model.Service;
+import net.socialhub.core.model.common.AttributedString;
+import net.socialhub.service.mastodon.define.MastodonVisibility;
 import net.socialhub.service.microblog.model.MiniBlogComment;
 
 import java.util.ArrayList;

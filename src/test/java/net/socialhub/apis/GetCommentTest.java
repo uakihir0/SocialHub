@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Identify;
@@ -13,7 +12,7 @@ public class GetCommentTest extends AbstractTimelineTest {
         Long id = 0L;
         Identify identify = new Identify(null, id);
 
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         Comment comment = account.action().getComment(identify);
         printComment(comment);
     }

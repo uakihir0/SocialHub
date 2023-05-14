@@ -31,7 +31,7 @@ public interface UsersRequestGroup {
      */
     @Nonnull
     List<UsersRequest> getRequests();
-    
+
     /**
      * Get Action
      */

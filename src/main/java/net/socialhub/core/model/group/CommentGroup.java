@@ -1,9 +1,9 @@
 package net.socialhub.core.model.group;
 
-import net.socialhub.core.model.Comment;
-import net.socialhub.core.model.Pageable;
 import net.socialhub.core.action.group.CommentGroupAction;
 import net.socialhub.core.action.request.CommentsRequest;
+import net.socialhub.core.model.Comment;
+import net.socialhub.core.model.Pageable;
 
 import java.util.Date;
 import java.util.Map;

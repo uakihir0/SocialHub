@@ -1,12 +1,12 @@
 package net.socialhub.service.twitter.model;
 
-import net.socialhub.service.twitter.action.TwitterMapper;
-import net.socialhub.service.twitter.define.TwitterIconSize;
+import net.socialhub.core.model.Service;
 import net.socialhub.core.model.common.AttributedFiled;
 import net.socialhub.core.model.common.AttributedString;
 import net.socialhub.core.model.request.CommentForm;
-import net.socialhub.core.model.Service;
 import net.socialhub.service.microblog.model.MiniBlogUser;
+import net.socialhub.service.twitter.action.TwitterMapper;
+import net.socialhub.service.twitter.define.TwitterIconSize;
 
 import java.util.ArrayList;
 import java.util.List;

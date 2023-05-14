@@ -6,11 +6,11 @@ import mastodon4j.entity.AccessToken;
 import mastodon4j.entity.Application;
 import mastodon4j.entity.ClientCredential;
 import mastodon4j.entity.share.Response;
+import net.socialhub.core.action.ServiceAuth;
 import net.socialhub.core.define.ServiceType;
-import net.socialhub.logger.Logger;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Service;
-import net.socialhub.core.action.ServiceAuth;
+import net.socialhub.logger.Logger;
 
 import java.util.Date;
 

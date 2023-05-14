@@ -1,10 +1,10 @@
 package net.socialhub.service.twitter.action;
 
+import net.socialhub.core.action.ServiceAuth;
 import net.socialhub.core.define.ServiceType;
 import net.socialhub.core.model.Account;
-import net.socialhub.core.model.error.SocialHubException;
 import net.socialhub.core.model.Service;
-import net.socialhub.core.action.ServiceAuth;
+import net.socialhub.core.model.error.SocialHubException;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -28,8 +28,8 @@ public class TwitterAuth implements ServiceAuth<Twitter> {
     // For Authorization
     private RequestToken requestToken;
 
-    public TwitterAuth( //
-            String consumerKey, //
+    public TwitterAuth(
+            String consumerKey,
             String consumerSecret) {
 
         this.consumerKey = consumerKey;
@@ -67,8 +67,8 @@ public class TwitterAuth implements ServiceAuth<Twitter> {
      * Authentication with AccessToken Secret
      * アクセストークンから生成
      */
-    public Account getAccountWithAccessToken( //
-            String accessToken, //
+    public Account getAccountWithAccessToken(
+            String accessToken,
             String accessSecret) {
 
         this.accessToken = accessToken;

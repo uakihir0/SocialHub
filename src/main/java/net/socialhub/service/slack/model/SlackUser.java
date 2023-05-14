@@ -1,10 +1,10 @@
 package net.socialhub.service.slack.model;
 
+import net.socialhub.core.model.Service;
+import net.socialhub.core.model.User;
 import net.socialhub.core.model.common.AttributedFiled;
 import net.socialhub.core.model.common.AttributedString;
 import net.socialhub.core.model.request.CommentForm;
-import net.socialhub.core.model.Service;
-import net.socialhub.core.model.User;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.request.CommentForm;
 import org.junit.Ignore;
@@ -14,7 +13,7 @@ public class PostMessageTest extends AbstractApiTest {
     @Ignore
     public void testPostWithMediaTwitter() {
 
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
         CommentForm req = new CommentForm()
@@ -30,7 +29,7 @@ public class PostMessageTest extends AbstractApiTest {
     @Ignore
     public void testPostWithMediaSlack() {
 
-        Account account = SocialAuthUtil.getSlackAccount();
+        Account account = getSlackAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
         CommentForm req = new CommentForm()

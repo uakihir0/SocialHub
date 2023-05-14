@@ -1,8 +1,8 @@
 package net.socialhub.service.mastodon.model;
 
 import mastodon4j.streaming.EventStream;
-import net.socialhub.core.model.error.SocialHubException;
 import net.socialhub.core.model.Stream;
+import net.socialhub.core.model.error.SocialHubException;
 
 import java.io.IOException;
 

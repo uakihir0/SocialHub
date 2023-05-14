@@ -1,6 +1,8 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
+import net.socialhub.core.action.callback.comment.MentionCommentCallback;
+import net.socialhub.core.action.callback.comment.NotificationCommentCallback;
+import net.socialhub.core.action.callback.user.FollowUserCallback;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Media;
@@ -9,9 +11,6 @@ import net.socialhub.core.model.User;
 import net.socialhub.core.model.event.CommentEvent;
 import net.socialhub.core.model.event.NotificationEvent;
 import net.socialhub.core.model.event.UserEvent;
-import net.socialhub.core.action.callback.comment.MentionCommentCallback;
-import net.socialhub.core.action.callback.comment.NotificationCommentCallback;
-import net.socialhub.core.action.callback.user.FollowUserCallback;
 import org.junit.Test;
 
 public class NotificationStreamTest extends AbstractApiTest {
@@ -19,7 +18,7 @@ public class NotificationStreamTest extends AbstractApiTest {
     @Test
     public void testNotificationStream_Twitter() throws Exception {
 
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         Stream stream = account.action().setNotificationStream(new StreamCallback());
 
         stream.open();
@@ -30,7 +29,7 @@ public class NotificationStreamTest extends AbstractApiTest {
     @Test
     public void testNotificationStream_Misskey() throws Exception {
 
-        Account account = SocialAuthUtil.getMisskeyAccount();
+        Account account = getMisskeyAccount();
         Stream stream = account.action().setNotificationStream(new StreamCallback());
 
         stream.open();
@@ -41,7 +40,7 @@ public class NotificationStreamTest extends AbstractApiTest {
     @Test
     public void testNotificationStream_Mastodon() throws Exception {
 
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         Stream stream = account.action().setNotificationStream(new StreamCallback());
 
         stream.open();

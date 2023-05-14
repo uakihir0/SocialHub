@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Pageable;
 import net.socialhub.core.model.Paging;
@@ -14,7 +13,7 @@ public class MessageThreadTest extends AbstractApiTest {
     @Test
     public void testMessageThreadTest_Twitter() {
 
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         Pageable<Thread> threads = account.action().getMessageThread(new Paging(50L));
         threads.getEntities().forEach(this::printThread);
     }
@@ -22,7 +21,7 @@ public class MessageThreadTest extends AbstractApiTest {
     @Test
     public void testMessageThreadTest_Slack() {
 
-        Account account = SocialAuthUtil.getSlackAccount();
+        Account account = getSlackAccount();
         Pageable<Thread> threads = account.action().getMessageThread(new Paging(50L));
         threads.getEntities().forEach(this::printThread);
     }
@@ -30,7 +29,7 @@ public class MessageThreadTest extends AbstractApiTest {
     @Test
     public void testMessageThreadTest_Mastodon() {
 
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         Pageable<Thread> threads = account.action().getMessageThread(new Paging(50L));
         threads.getEntities().forEach(this::printThread);
     }
@@ -38,7 +37,7 @@ public class MessageThreadTest extends AbstractApiTest {
     @Test
     public void testMessageThreadTest_Misskey() {
 
-        Account account = SocialAuthUtil.getMisskeyAccount();
+        Account account = getMisskeyAccount();
         Pageable<Thread> threads = account.action().getMessageThread(new Paging(50L));
         threads.getEntities().forEach(this::printThread);
     }

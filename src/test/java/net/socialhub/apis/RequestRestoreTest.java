@@ -1,12 +1,11 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
+import net.socialhub.core.action.request.CommentsRequest;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Pageable;
 import net.socialhub.core.model.Paging;
 import net.socialhub.core.model.Request;
-import net.socialhub.core.action.request.CommentsRequest;
 import net.socialhub.service.mastodon.action.MastodonRequest;
 import org.junit.Test;
 
@@ -17,7 +16,7 @@ public class RequestRestoreTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         String string = account.request().getHomeTimeLine().toSerializedString();
 
         System.out.println(string);
@@ -35,7 +34,7 @@ public class RequestRestoreTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         String string = ((MastodonRequest) account.request()).getLocalTimeLine().toSerializedString();
 
         System.out.println(string);
@@ -53,7 +52,7 @@ public class RequestRestoreTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = SocialAuthUtil.getSlackAccount();
+        Account account = getSlackAccount();
         String string = account.request().getHomeTimeLine().toSerializedString();
 
         System.out.println(string);

@@ -1,10 +1,9 @@
 package net.socialhub.apis.group;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.apis.AbstractApiTest;
+import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.group.CommentGroup;
 import net.socialhub.core.model.group.CommentsRequestGroup;
-import net.socialhub.core.model.Comment;
 import org.junit.Test;
 
 public class RequestGroupTest extends AbstractApiTest {
@@ -13,9 +12,9 @@ public class RequestGroupTest extends AbstractApiTest {
     public void testHomeTimeline() {
 
         CommentsRequestGroup request = CommentsRequestGroup.of();
-        request.addCommentsRequests(SocialAuthUtil.getSlackAccount().request().getHomeTimeLine());
-        request.addCommentsRequests(SocialAuthUtil.getMastodonAccount().request().getHomeTimeLine());
-        request.addCommentsRequests(SocialAuthUtil.getTwitterAccount().request().getHomeTimeLine());
+        request.addCommentsRequests(getSlackAccount().request().getHomeTimeLine());
+        request.addCommentsRequests(getMastodonAccount().request().getHomeTimeLine());
+        request.addCommentsRequests(getTwitterAccount().request().getHomeTimeLine());
 
         CommentGroup comments = request.action().getComments();
         CommentGroup pasts = comments.action().getPastComments();

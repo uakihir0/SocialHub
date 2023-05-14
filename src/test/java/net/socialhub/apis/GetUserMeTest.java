@@ -1,9 +1,8 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
-import net.socialhub.core.model.common.AttributedFiled;
 import net.socialhub.core.model.User;
+import net.socialhub.core.model.common.AttributedFiled;
 import net.socialhub.service.mastodon.model.MastodonUser;
 import net.socialhub.service.misskey.model.MisskeyUser;
 import net.socialhub.service.tumblr.model.TumblrUser;
@@ -13,38 +12,38 @@ public class GetUserMeTest extends AbstractApiTest {
 
     @Test
     public void testGetUserMeTwitter() {
-        execUser(SocialAuthUtil.getTwitterAccount());
+        execUser(getTwitterAccount());
     }
 
     @Test
     public void testGetUserMastodon() {
-        execUser(SocialAuthUtil.getMastodonAccount());
+        execUser(getMastodonAccount());
     }
 
     @Test
     public void testGetUserPixelFed() {
-        execUser(SocialAuthUtil.getPixelFedAccount());
+        execUser(getPixelFedAccount());
     }
 
     @Test
     public void testGetUserPleroma() {
-        execUser(SocialAuthUtil.getPleromaAccount());
+        execUser(getPleromaAccount());
     }
 
     @Test
     public void testGetUserMisskey() {
-        execUser(SocialAuthUtil.getMisskeyAccount());
+        execUser(getMisskeyAccount());
     }
 
     @Test
     public void testGetUserMeTumblr() {
         // System.setProperty("javax.net.debug","all");
-        execUser(SocialAuthUtil.getTumblrAccount());
+        execUser(getTumblrAccount());
     }
 
     @Test
     public void testGetUserSlack() {
-        execUser(SocialAuthUtil.getSlackAccount());
+        execUser(getSlackAccount());
     }
 
     private void execUser(Account account) {

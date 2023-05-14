@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.support.ReactionCandidate;
 import org.junit.Test;
@@ -12,7 +11,7 @@ public class ReactionCandidateTest extends AbstractApiTest {
     @Test
     public void testReactionCandidatesTwitter() {
 
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         List<ReactionCandidate> candidates = account.action().getReactionCandidates();
 
         for (ReactionCandidate candidate : candidates) {
@@ -23,7 +22,7 @@ public class ReactionCandidateTest extends AbstractApiTest {
     @Test
     public void testReactionCandidatesMastodon() {
 
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         List<ReactionCandidate> candidates = account.action().getReactionCandidates();
 
         for (ReactionCandidate candidate : candidates) {
@@ -34,7 +33,7 @@ public class ReactionCandidateTest extends AbstractApiTest {
     @Test
     public void testReactionCandidatesMisskey() {
 
-        Account account = SocialAuthUtil.getMisskeyAccount();
+        Account account = getMisskeyAccount();
         List<ReactionCandidate> candidates = account.action().getReactionCandidates();
 
         for (ReactionCandidate candidate : candidates) {
@@ -45,7 +44,7 @@ public class ReactionCandidateTest extends AbstractApiTest {
     @Test
     public void testReactionCandidatesSlack() {
 
-        Account account = SocialAuthUtil.getSlackAccount();
+        Account account = getSlackAccount();
         List<ReactionCandidate> candidates = account.action().getReactionCandidates();
 
         for (ReactionCandidate candidate : candidates) {

@@ -1,7 +1,7 @@
 package net.socialhub.apis.addition;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.apis.AbstractTimelineTest;
+import net.socialhub.core.action.request.UsersRequest;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Channel;
 import net.socialhub.core.model.Comment;
@@ -13,7 +13,6 @@ import net.socialhub.core.model.User;
 import net.socialhub.core.model.support.TrendComment;
 import net.socialhub.core.model.support.TrendCountry;
 import net.socialhub.core.model.support.TrendCountry.TrendLocation;
-import net.socialhub.core.action.request.UsersRequest;
 import net.socialhub.service.twitter.action.TwitterAction;
 import net.socialhub.service.twitter.action.TwitterRequest;
 import org.junit.Test;
@@ -24,7 +23,7 @@ public class TwitterActionTest extends AbstractTimelineTest {
 
     @Test
     public void getTrendsTest() {
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         TwitterAction action = (TwitterAction) account.action();
 
         for (Trend trend : action.getTrends(1)) {
@@ -34,7 +33,7 @@ public class TwitterActionTest extends AbstractTimelineTest {
 
     @Test
     public void getTrendLocations() {
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         TwitterAction action = (TwitterAction) account.action();
 
         for (TrendCountry trend : action.getTrendLocations()) {
@@ -49,7 +48,7 @@ public class TwitterActionTest extends AbstractTimelineTest {
 
     @Test
     public void getTrendsComment() {
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         TwitterAction action = (TwitterAction) account.action();
 
         // 23424856: Japan
@@ -64,7 +63,7 @@ public class TwitterActionTest extends AbstractTimelineTest {
 
     @Test
     public void getSavedSearch() {
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         TwitterAction action = (TwitterAction) account.action();
 
         for (String search : action.getSavedSearch()) {
@@ -74,7 +73,7 @@ public class TwitterActionTest extends AbstractTimelineTest {
 
     @Test
     public void getFollowingList() {
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         TwitterAction action = (TwitterAction) account.action();
         Pageable<Channel> channels = action.getUserFollowingChannel(action.getUserMe(), new Paging(200L));
 
@@ -85,7 +84,7 @@ public class TwitterActionTest extends AbstractTimelineTest {
 
     @Test
     public void getListedList() {
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         TwitterAction action = (TwitterAction) account.action();
         Pageable<Channel> channels = action.getUserListedChannel(action.getUserMe(), new Paging(200L));
 
@@ -96,7 +95,7 @@ public class TwitterActionTest extends AbstractTimelineTest {
 
     @Test
     public void getReactionUsers() {
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         TwitterAction action = (TwitterAction) account.action();
 
         Identify id = new Identify(account.getService(), 25073877L);
@@ -121,7 +120,7 @@ public class TwitterActionTest extends AbstractTimelineTest {
 
     @Test
     public void getReactionUsersFromRequest() {
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         TwitterAction action = (TwitterAction) account.action();
 
         Identify id = new Identify(account.getService(), 25073877L);
@@ -146,7 +145,7 @@ public class TwitterActionTest extends AbstractTimelineTest {
 
     @Test
     public void getUserPinedComments() {
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         TwitterAction action = (TwitterAction) account.action();
 
         User me = action.getUserMe();

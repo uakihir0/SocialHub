@@ -92,7 +92,7 @@ public class MastodonMapper {
      * ユーザーマッピング
      */
     public static User user(
-            Account account, //
+            Account account,
             Service service) {
 
         MastodonUser model = new MastodonUser(service);

@@ -16,23 +16,28 @@ public class GetUserMeTest extends AbstractApiTest {
     }
 
     @Test
-    public void testGetUserMastodon() {
+    public void testGetUserMeMastodon() {
         execUser(getMastodonAccount());
     }
 
     @Test
-    public void testGetUserPixelFed() {
+    public void testGetUserMePixelFed() {
         execUser(getPixelFedAccount());
     }
 
     @Test
-    public void testGetUserPleroma() {
+    public void testGetUserMePleroma() {
         execUser(getPleromaAccount());
     }
 
     @Test
-    public void testGetUserMisskey() {
+    public void testGetUserMeMisskey() {
         execUser(getMisskeyAccount());
+    }
+
+    @Test
+    public void testHetUserMeBluesky() {
+        execUser(getBlueskyAccount());
     }
 
     @Test

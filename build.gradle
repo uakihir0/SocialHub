@@ -63,6 +63,7 @@ dependencies {
     compile("com.github.uakihir0:mastodon4j:${MASTODON4J_VERSION}")
     compile("com.github.uakihir0:jumblr:${JUMBLR_VERSION}")
     compile("com.github.uakihir0:misskey4j:${MISSKEY4J_VERSION}")
+    compile("com.github.uakihir0.bsky4j:core:${BSKY4J_VERSION}")
 
     // Test
     testCompile("junit:junit:${JUNIT_VERSION}")

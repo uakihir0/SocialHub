@@ -6,6 +6,7 @@ import net.socialhub.TestProperty.ServiceProperty;
 import net.socialhub.core.SocialHub;
 import net.socialhub.core.model.Account;
 import net.socialhub.j2objc.security.HmacProvider;
+import net.socialhub.service.bluesky.action.BlueskyAuth;
 import net.socialhub.service.mastodon.action.MastodonAuth;
 import net.socialhub.service.misskey.action.MisskeyAuth;
 import net.socialhub.service.slack.action.SlackAuth;
@@ -28,7 +29,8 @@ public class AbstractApiTest {
     protected ServiceProperty slackProperty;
     protected ServiceProperty pleromaProperty;
     protected ServiceProperty pixelfedProperty;
-    protected ServiceProperty mastodonInstancesProperty;
+    protected ServiceProperty blueskyProperty;
+    protected ServiceProperty maInstancesProperty;
 
     @Before
     public void before() {
@@ -45,7 +47,9 @@ public class AbstractApiTest {
             slackProperty = getServiceProperty(props, "Slack");
             pleromaProperty = getServiceProperty(props, "Pleroma");
             pixelfedProperty = getServiceProperty(props, "Pixelfed");
-            mastodonInstancesProperty = getServiceProperty(props, "MastodonInstances");
+            blueskyProperty = getServiceProperty(props, "Bluesky");
+
+            maInstancesProperty = getServiceProperty(props, "MastodonInstances");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -171,5 +175,13 @@ public class AbstractApiTest {
                 slackProperty.getClientSecret());
         return auth.getAccountWithToken(
                 slackProperty.getAccessToken());
+    }
+
+    public Account getBlueskyAccount() {
+        BlueskyAuth auth = SocialHub.getBlueskyAuth(
+                blueskyProperty.getHost());
+        return auth.getAccountWithIdentifyAndPassword(
+                blueskyProperty.getAccessToken(),
+                blueskyProperty.getAccessSecret());
     }
 }

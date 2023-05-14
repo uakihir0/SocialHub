@@ -24,11 +24,12 @@ with [J2ObjC].
 
 ### Work in Progress
 
-* [**Facebook**](https://www.facebook.com/) ( use [library](https://github.com/uakihir0/facebook4j) based
-  on [facebook4j](https://github.com/roundrop/facebook4j) )
+* [**Bluesky**](https://blueskyweb.xyz/) ( use [library](https://github.com/uakihir0/bsky4j) )
 
 ### Future Works
 
+* [**Facebook**](https://www.facebook.com/) ( use [library](https://github.com/uakihir0/facebook4j) based
+  on [facebook4j](https://github.com/roundrop/facebook4j) )
 * [**LinkedIn**](https://www.linkedin.com/)
 * [**Pinterest**](https://www.pinterest.com/)
 * [**Snapchat**](https://www.snapchat.com/)

@@ -15,8 +15,8 @@ public class GetInstancesTest extends AbstractApiTest {
     @Test
     public void testMastodonListInstances() {
 
-        MsInstancesService client = SocialHub.getSupportServices().getMastodonInstances(
-                mastodonInstancesProperty.getAccessToken());
+        MsInstancesService client = SocialHub.getSupportServices()
+                .getMastodonInstances(maInstancesProperty.getAccessToken());
 
         // Get Most Users Instances
         List<Instance> instances = client.listInstances(
@@ -30,8 +30,8 @@ public class GetInstancesTest extends AbstractApiTest {
     @Test
     public void testMastodonSearchInstances() {
 
-        MsInstancesService client = SocialHub.getSupportServices().getMastodonInstances(
-                mastodonInstancesProperty.getAccessToken());
+        MsInstancesService client = SocialHub.getSupportServices()
+                .getMastodonInstances(maInstancesProperty.getAccessToken());
 
         List<Instance> instances = client.searchInstances(10, "Anime");
 

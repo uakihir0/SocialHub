@@ -1,12 +1,12 @@
 package net.socialhub.service.mastodon.model;
 
+import net.socialhub.core.model.Emoji;
+import net.socialhub.core.model.Service;
 import net.socialhub.core.model.common.AttributedElement;
 import net.socialhub.core.model.common.AttributedFiled;
 import net.socialhub.core.model.common.AttributedKind;
 import net.socialhub.core.model.common.AttributedString;
 import net.socialhub.core.model.request.CommentForm;
-import net.socialhub.core.model.Emoji;
-import net.socialhub.core.model.Service;
 import net.socialhub.service.microblog.model.MiniBlogUser;
 
 import java.net.URL;

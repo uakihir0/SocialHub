@@ -1,11 +1,10 @@
 package net.socialhub.apis;
 
 
-import net.socialhub.SocialAuthUtil;
-import net.socialhub.service.slack.define.SlackFormKey;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.core.model.request.PollForm;
+import net.socialhub.service.slack.define.SlackFormKey;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -17,7 +16,7 @@ public class PostCommentTest extends AbstractApiTest {
     @Ignore
     public void testPostWithMediaTwitter() {
 
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
         CommentForm req = new CommentForm() //
@@ -31,7 +30,7 @@ public class PostCommentTest extends AbstractApiTest {
     @Ignore
     public void testPostWithMediaMastodon() {
 
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
         CommentForm req = new CommentForm() //
@@ -45,7 +44,7 @@ public class PostCommentTest extends AbstractApiTest {
     @Ignore
     public void testPostWithMediaPixelFed() {
 
-        Account account = SocialAuthUtil.getPixelFedAccount();
+        Account account = getPixelFedAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
         CommentForm req = new CommentForm() //
@@ -59,7 +58,7 @@ public class PostCommentTest extends AbstractApiTest {
     @Ignore
     public void testPostWithMediaMisskey() {
 
-        Account account = SocialAuthUtil.getMisskeyAccount();
+        Account account = getMisskeyAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
         CommentForm req = new CommentForm() //
@@ -73,7 +72,7 @@ public class PostCommentTest extends AbstractApiTest {
     @Ignore
     public void testPostWithPollMisskey() {
 
-        Account account = SocialAuthUtil.getMisskeyAccount();
+        Account account = getMisskeyAccount();
 
         CommentForm req = new CommentForm() //
                 .text("SocialHub Test")
@@ -92,7 +91,7 @@ public class PostCommentTest extends AbstractApiTest {
     public void testPostWithMediaTumblr() {
         // System.setProperty("javax.net.debug","all");
 
-        Account account = SocialAuthUtil.getTumblrAccount();
+        Account account = getTumblrAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
         CommentForm req = new CommentForm() //
@@ -105,7 +104,7 @@ public class PostCommentTest extends AbstractApiTest {
     @Test
     @Ignore
     public void testPostWithMediaSlack() {
-        Account account = SocialAuthUtil.getSlackAccount();
+        Account account = getSlackAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
         CommentForm req = new CommentForm() //
@@ -119,7 +118,7 @@ public class PostCommentTest extends AbstractApiTest {
     @Test
     @Ignore
     public void testPostHomeSlackFromRequest() {
-        Account account = SocialAuthUtil.getSlackAccount();
+        Account account = getSlackAccount();
         CommentForm req = account.request().getHomeTimeLine()
                 .getCommentFrom().text("SocialHub Test");
 

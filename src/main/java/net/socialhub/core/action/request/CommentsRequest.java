@@ -1,6 +1,5 @@
 package net.socialhub.core.action.request;
 
-import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.core.action.RequestActionImpl;
 import net.socialhub.core.action.callback.EventCallback;
 import net.socialhub.core.model.Comment;
@@ -8,6 +7,7 @@ import net.socialhub.core.model.Pageable;
 import net.socialhub.core.model.Paging;
 import net.socialhub.core.model.Request;
 import net.socialhub.core.model.Stream;
+import net.socialhub.core.model.request.CommentForm;
 
 public interface CommentsRequest extends Request {
 

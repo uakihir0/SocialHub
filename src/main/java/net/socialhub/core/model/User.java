@@ -1,12 +1,12 @@
 package net.socialhub.core.model;
 
+import net.socialhub.core.action.AccountAction;
+import net.socialhub.core.action.UserAction;
+import net.socialhub.core.action.UserActionImpl;
 import net.socialhub.core.model.common.AttributedFiled;
 import net.socialhub.core.model.common.AttributedString;
 import net.socialhub.core.model.error.NotImplimentedException;
 import net.socialhub.core.model.request.CommentForm;
-import net.socialhub.core.action.UserAction;
-import net.socialhub.core.action.AccountAction;
-import net.socialhub.core.action.UserActionImpl;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;

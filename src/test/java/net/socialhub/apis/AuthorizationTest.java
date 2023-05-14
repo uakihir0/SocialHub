@@ -1,7 +1,6 @@
 package net.socialhub.apis;
 
 import net.socialhub.core.SocialHub;
-import net.socialhub.TestProperty;
 import net.socialhub.core.model.Account;
 import net.socialhub.service.mastodon.action.MastodonAuth;
 import net.socialhub.service.mastodon.define.MastodonScope;
@@ -22,21 +21,21 @@ public class AuthorizationTest extends AbstractApiTest {
     public void testTwitterAuthorizationUrl() {
 
         TwitterAuth auth = SocialHub.getTwitterAuth(
-                TestProperty.TwitterProperty.ConsumerKey,
-                TestProperty.TwitterProperty.ConsumerSecret);
+                twitterProperty.getClientId(),
+                twitterProperty.getClientSecret());
 
         System.out.println(auth.getAuthorizationURL(
-                TestProperty.TwitterProperty.RedirectUrl));
+                twitterProperty.getRedirectUri()));
     }
 
     @Test
     public void testMastodonAppRegister() {
 
         MastodonAuth auth = SocialHub.getMastodonAuth(
-                TestProperty.MastodonProperty.Host);
+                mastodonProperty.getHost());
 
         auth.requestClientApplication("SocialHub", null,
-                TestProperty.MastodonProperty.RedirectUrl,
+                mastodonProperty.getRedirectUri(),
                 MastodonScope.FULL_ACCESS);
 
         System.out.println(auth.getClientId());
@@ -47,15 +46,14 @@ public class AuthorizationTest extends AbstractApiTest {
     public void testMastodonAuthorizationUrl() {
 
         MastodonAuth auth = SocialHub.getMastodonAuth(
-                TestProperty.MastodonProperty.Host);
+                mastodonProperty.getHost());
 
         auth.setClientInfo(
-                TestProperty.MastodonProperty.ClientId,
-                TestProperty.MastodonProperty.ClientSecret
-        );
+                mastodonProperty.getClientId(),
+                mastodonProperty.getClientSecret());
 
         System.out.println(auth.getAuthorizationURL(
-                TestProperty.MastodonProperty.RedirectUrl,
+                mastodonProperty.getRedirectUri(),
                 MastodonScope.FULL_ACCESS
         ));
     }
@@ -65,16 +63,15 @@ public class AuthorizationTest extends AbstractApiTest {
     public void testMastodonAuthorizeWithCode() {
 
         MastodonAuth auth = SocialHub.getMastodonAuth(
-                TestProperty.MastodonProperty.Host);
+                mastodonProperty.getHost());
 
         auth.setClientInfo(
-                TestProperty.MastodonProperty.ClientId,
-                TestProperty.MastodonProperty.ClientSecret
-        );
+                mastodonProperty.getClientId(),
+                mastodonProperty.getClientSecret());
 
         String code = "PLEASE SET CODE HERE";
         Account account = auth.getAccountWithCode(
-                TestProperty.MastodonProperty.RedirectUrl, code);
+                mastodonProperty.getRedirectUri(), code);
 
         System.out.println(auth.getAccessToken());
         System.out.println(account.action().getUserMe().getName());
@@ -83,41 +80,43 @@ public class AuthorizationTest extends AbstractApiTest {
     @Test
     public void testSlackAuthorizationUrl() {
 
-        SlackAuth auth = SocialHub.getSlackAuth( //
-                TestProperty.SlackProperty.ClientId, //
-                TestProperty.SlackProperty.ClientSecret);
+        SlackAuth auth = SocialHub.getSlackAuth(
+                slackProperty.getClientId(),
+                slackProperty.getClientSecret());
 
         List<SlackScope> scopes = new ArrayList<>();
         scopes.add(new SlackScope().chat().write().user());
 
-        String scope = scopes.stream() //
-                .map(SlackScope::getCode) //
+        String scope = scopes.stream()
+                .map(SlackScope::getCode)
                 .collect(Collectors.joining(" "));
 
-        System.out.println(auth.getAuthorizationURL(TestProperty.SlackProperty.RedirectUrl, scope));
+        System.out.println(auth.getAuthorizationURL(
+                slackProperty.getRedirectUri(), scope));
     }
 
     @Test
     public void testTumblrAuthorizationUrl() {
 
         TumblrAuth auth = SocialHub.getTumblrAuth(
-                TestProperty.TumblrProperty.ConsumerKey,
-                TestProperty.TumblrProperty.ConsumerSecret);
+                twitterProperty.getClientId(),
+                twitterProperty.getClientSecret());
 
         System.out.println(auth.getAuthorizationURL(
-                TestProperty.TumblrProperty.RedirectUrl));
+                tumblrProperty.getRedirectUri()));
     }
 
     @Test
     @Ignore
     public void testSlackAuthorizeWithCode() {
 
-        SlackAuth auth = SocialHub.getSlackAuth( //
-                TestProperty.SlackProperty.ClientId, //
-                TestProperty.SlackProperty.ClientSecret);
+        SlackAuth auth = SocialHub.getSlackAuth(
+                slackProperty.getClientId(),
+                slackProperty.getClientSecret());
 
         String code = "PLEASE SET CODE HERE";
-        Account account = auth.getAccountWithCode(TestProperty.SlackProperty.RedirectUrl, code);
+        Account account = auth.getAccountWithCode(
+                slackProperty.getRedirectUri(), code);
         System.out.println(account.action().getUserMe().getName());
     }
 }

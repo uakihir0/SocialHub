@@ -1,10 +1,10 @@
 package net.socialhub.service.twitter.model;
 
-import net.socialhub.core.model.request.CommentForm;
+import net.socialhub.core.action.AccountAction;
 import net.socialhub.core.model.Service;
 import net.socialhub.core.model.User;
+import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.service.microblog.model.MiniBlogComment;
-import net.socialhub.core.action.AccountAction;
 import net.socialhub.service.twitter.action.TwitterAction;
 import net.socialhub.service.twitter.action.TwitterMapper;
 

@@ -10,12 +10,12 @@ import java.util.regex.Matcher;
 
 import static net.socialhub.core.define.AttributedType.Regex.FULL_URL_REGEX;
 import static net.socialhub.core.define.AttributedType.Regex.SIMPLE_EMAIL_REGEX;
-import static net.socialhub.service.slack.define.SlackAttributedTypes.Regex.SLACK_FULL_URL_REGEX;
-import static net.socialhub.service.slack.define.SlackAttributedTypes.Regex.SLACK_MAIL_REGEX;
-import static net.socialhub.service.slack.define.SlackAttributedTypes.Regex.SLACK_MENTION_REGEX;
 import static net.socialhub.core.model.common.AttributedKind.ACCOUNT;
 import static net.socialhub.core.model.common.AttributedKind.EMAIL;
 import static net.socialhub.core.model.common.AttributedKind.LINK;
+import static net.socialhub.service.slack.define.SlackAttributedTypes.Regex.SLACK_FULL_URL_REGEX;
+import static net.socialhub.service.slack.define.SlackAttributedTypes.Regex.SLACK_MAIL_REGEX;
+import static net.socialhub.service.slack.define.SlackAttributedTypes.Regex.SLACK_MENTION_REGEX;
 
 public final class SlackAttributedTypes {
     private SlackAttributedTypes() {

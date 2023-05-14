@@ -1,13 +1,13 @@
 package net.socialhub.service.misskey.model;
 
-import net.socialhub.core.model.common.AttributedFiled;
-import net.socialhub.core.model.common.AttributedString;
-import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Emoji;
 import net.socialhub.core.model.Service;
-import net.socialhub.service.microblog.model.MiniBlogUser;
+import net.socialhub.core.model.common.AttributedFiled;
+import net.socialhub.core.model.common.AttributedString;
+import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.core.model.support.Color;
+import net.socialhub.service.microblog.model.MiniBlogUser;
 
 import java.util.List;
 

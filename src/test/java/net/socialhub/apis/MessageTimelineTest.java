@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Pageable;
@@ -13,7 +12,7 @@ public class MessageTimelineTest extends AbstractTimelineTest {
     @Test
     public void testMessageTimelineMastodon() {
 
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         Pageable<Thread> threads = account.action().getMessageThread(new Paging(50L));
 
         if (threads.getEntities().size() > 0) {
@@ -26,7 +25,7 @@ public class MessageTimelineTest extends AbstractTimelineTest {
     @Test
     public void testMessageTimelineMisskey() {
 
-        Account account = SocialAuthUtil.getMisskeyAccount();
+        Account account = getMisskeyAccount();
         Pageable<Thread> threads = account.action().getMessageThread(new Paging(50L));
 
         if (threads.getEntities().size() > 0) {

@@ -1,11 +1,11 @@
 package net.socialhub.utils;
 
-import net.socialhub.core.utils.StringUtil;
-import net.socialhub.service.slack.define.SlackAttributedTypes;
 import net.socialhub.core.model.common.AttributedElement;
 import net.socialhub.core.model.common.AttributedItem;
 import net.socialhub.core.model.common.AttributedKind;
 import net.socialhub.core.model.common.AttributedString;
+import net.socialhub.core.utils.StringUtil;
+import net.socialhub.service.slack.define.SlackAttributedTypes;
 import org.junit.Test;
 
 public class StringUtilTest {

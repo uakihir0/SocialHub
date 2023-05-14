@@ -1,10 +1,10 @@
 package net.socialhub.service.slack.model;
 
-import net.socialhub.service.slack.define.SlackFormKey;
-import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Reaction;
 import net.socialhub.core.model.Service;
+import net.socialhub.core.model.request.CommentForm;
+import net.socialhub.service.slack.define.SlackFormKey;
 
 import java.util.ArrayList;
 import java.util.List;

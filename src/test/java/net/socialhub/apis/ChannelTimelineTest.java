@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Identify;
@@ -12,7 +11,7 @@ public class ChannelTimelineTest extends AbstractApiTest {
     @Test
     public void testChannelTimeline() {
         Identify channel = new Identify(null, "CHANNEL_ID");
-        Account account = SocialAuthUtil.getSlackAccount();
+        Account account = getSlackAccount();
 
         Pageable<Comment> comments = account.action().getChannelTimeLine(channel, null);
 

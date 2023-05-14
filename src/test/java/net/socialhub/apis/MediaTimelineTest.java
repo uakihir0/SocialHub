@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Pageable;
@@ -16,7 +15,7 @@ public class MediaTimelineTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         User user = account.action().getUserMe();
 
         Pageable<Comment> comments = account.action().getUserMediaTimeLine(user, paging);

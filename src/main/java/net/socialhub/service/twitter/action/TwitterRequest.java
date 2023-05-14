@@ -1,17 +1,17 @@
 package net.socialhub.service.twitter.action;
 
 import com.google.gson.Gson;
-import net.socialhub.core.define.action.TimeLineActionType;
-import net.socialhub.service.twitter.define.TwitterActionType;
-import net.socialhub.logger.Logger;
-import net.socialhub.core.model.Account;
-import net.socialhub.core.model.Identify;
-import net.socialhub.core.model.Request;
-import net.socialhub.core.model.User;
 import net.socialhub.core.action.RequestActionImpl;
 import net.socialhub.core.action.request.CommentsRequest;
 import net.socialhub.core.action.request.CommentsRequestImpl;
 import net.socialhub.core.action.request.UsersRequest;
+import net.socialhub.core.define.action.TimeLineActionType;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.Identify;
+import net.socialhub.core.model.Request;
+import net.socialhub.core.model.User;
+import net.socialhub.logger.Logger;
+import net.socialhub.service.twitter.define.TwitterActionType;
 
 public class TwitterRequest extends RequestActionImpl {
 

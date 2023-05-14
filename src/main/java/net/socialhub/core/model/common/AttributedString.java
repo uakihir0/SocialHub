@@ -1,9 +1,9 @@
 package net.socialhub.core.model.common;
 
+import net.socialhub.core.model.Emoji;
 import net.socialhub.core.model.common.xml.XmlConvertRule;
 import net.socialhub.core.utils.XmlParseUtil;
 import net.socialhub.logger.Logger;
-import net.socialhub.core.model.Emoji;
 
 import java.util.ArrayList;
 import java.util.Collection;

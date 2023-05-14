@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Pageable;
@@ -17,7 +16,7 @@ public class UserLikeTimelineTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         User me = account.action().getUserMe();
 
         Pageable<Comment> comments = account.action().getUserLikeTimeLine(me, paging);
@@ -30,7 +29,7 @@ public class UserLikeTimelineTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = SocialAuthUtil.getTumblrAccount();
+        Account account = getTumblrAccount();
         User me = account.action().getUserMe();
 
         Pageable<Comment> comments = account.action().getUserLikeTimeLine(me, paging);

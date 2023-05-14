@@ -14,7 +14,6 @@ public class SocialHubTest {
     @Before
     public void before() {
         Security.addProvider(new HmacProvider());
-        TestProperty.before();
     }
 
     @Test

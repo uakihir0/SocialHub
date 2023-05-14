@@ -1,7 +1,6 @@
 package net.socialhub.core.model;
 
 import net.socialhub.core.define.action.ActionType;
-import net.socialhub.core.model.Account;
 
 /**
  * Common Request Interface

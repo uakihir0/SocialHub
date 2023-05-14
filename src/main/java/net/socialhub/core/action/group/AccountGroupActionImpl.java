@@ -2,12 +2,12 @@ package net.socialhub.core.action.group;
 
 import net.socialhub.core.action.request.CommentsRequest;
 import net.socialhub.core.model.Account;
+import net.socialhub.core.model.User;
 import net.socialhub.core.model.group.AccountGroup;
 import net.socialhub.core.model.group.CommentGroup;
 import net.socialhub.core.model.group.CommentsRequestGroupImpl;
 import net.socialhub.core.model.group.UserGroup;
 import net.socialhub.core.model.group.UserGroupImpl;
-import net.socialhub.core.model.User;
 import net.socialhub.core.utils.HandlingUtil;
 
 import java.util.List;
@@ -61,7 +61,7 @@ public class AccountGroupActionImpl implements AccountGroupAction {
     }
 
     private CommentGroup getComments(List<CommentsRequest> requests) {
-        return new CommentsRequestGroupImpl(requests.toArray(new CommentsRequest[] {})) //
+        return new CommentsRequestGroupImpl(requests.toArray(new CommentsRequest[]{})) //
                 .action().getComments();
     }
 }

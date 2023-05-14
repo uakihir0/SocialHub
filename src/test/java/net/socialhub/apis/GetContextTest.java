@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Context;
@@ -17,7 +16,7 @@ public class GetContextTest extends AbstractApiTest {
         Long id = 0L;
         Identify identify = new Identify(null, id);
 
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         Context context = account.action().getCommentContext(identify);
         printContext(context);
     }
@@ -28,7 +27,7 @@ public class GetContextTest extends AbstractApiTest {
         Long id = 0L;
         Identify identify = new Identify(null, id);
 
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         Context context = account.action().getCommentContext(identify);
         printContext(context);
     }
@@ -39,7 +38,7 @@ public class GetContextTest extends AbstractApiTest {
         String id = "";
         Identify identify = new Identify(null, id);
 
-        Account account = SocialAuthUtil.getMisskeyAccount();
+        Account account = getMisskeyAccount();
         Context context = account.action().getCommentContext(identify);
         printContext(context);
     }
@@ -52,7 +51,7 @@ public class GetContextTest extends AbstractApiTest {
         SlackIdentify identify = new SlackIdentify(null, id);
         identify.setChannel("");
 
-        Account account = SocialAuthUtil.getSlackAccount();
+        Account account = getSlackAccount();
         Context context = account.action().getCommentContext(identify);
         printContext(context);
     }
@@ -70,7 +69,7 @@ public class GetContextTest extends AbstractApiTest {
         context.getDescendants().forEach(this::printComment);
     }
 
-    private void printComment(Comment comment){
+    private void printComment(Comment comment) {
         System.out.println(">ID: " + comment.getId());
         Comment display = comment.getDisplayComment();
         System.out.println(">Text: " + display.getText().getDisplayText());

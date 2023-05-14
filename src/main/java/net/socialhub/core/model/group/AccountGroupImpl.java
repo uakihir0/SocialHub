@@ -1,8 +1,8 @@
 package net.socialhub.core.model.group;
 
-import net.socialhub.core.model.Account;
 import net.socialhub.core.action.group.AccountGroupAction;
 import net.socialhub.core.action.group.AccountGroupActionImpl;
+import net.socialhub.core.model.Account;
 
 import java.util.ArrayList;
 import java.util.Arrays;

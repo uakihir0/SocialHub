@@ -1,11 +1,11 @@
 package net.socialhub.core.action.group;
 
-import net.socialhub.core.model.group.CommentGroup;
-import net.socialhub.core.model.group.CommentGroupImpl;
+import net.socialhub.core.action.request.CommentsRequest;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Pageable;
 import net.socialhub.core.model.Paging;
-import net.socialhub.core.action.request.CommentsRequest;
+import net.socialhub.core.model.group.CommentGroup;
+import net.socialhub.core.model.group.CommentGroupImpl;
 import net.socialhub.core.utils.HandlingUtil;
 
 import java.util.Map;

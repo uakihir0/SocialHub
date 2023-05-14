@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.define.emoji.EmojiType;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Identify;
@@ -14,7 +13,7 @@ public class AddReactionTest extends AbstractApiTest {
     @Ignore
     public void testAddReactionSlack() {
 
-        Account account = SocialAuthUtil.getSlackAccount();
+        Account account = getSlackAccount();
         SlackIdentify identify = new SlackIdentify(account.getService());
         identify.setChannel("CHANNEL_ID");
         identify.setId("TIME_STAMP");
@@ -26,7 +25,7 @@ public class AddReactionTest extends AbstractApiTest {
     @Ignore
     public void testAddReactionTwitter() {
 
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         Identify identify = new SlackIdentify(account.getService());
         identify.setId(0L);
 

@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.User;
@@ -10,7 +9,7 @@ public class GetFromUrlTest extends AbstractApiTest {
 
     @Test
     public void getUserFromUrlTwitter() {
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         User user = account.action().getUser(
                 "https://twitter.com/uakihir0");
         System.out.println(user.getName());
@@ -18,7 +17,7 @@ public class GetFromUrlTest extends AbstractApiTest {
 
     @Test
     public void getTweetFromUrlTwitter() {
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         Comment comment = account.action().getComment(
                 "https://twitter.com/uakihir0/status/1232157896453963776");
         System.out.println(comment.getDisplayComment().getText().getDisplayText());
@@ -26,7 +25,7 @@ public class GetFromUrlTest extends AbstractApiTest {
 
     @Test
     public void getUserFromUrlMastodon() {
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         {
             User user = account.action().getUser("https://mastodon.social/@uakihir0");
             System.out.println(user.getName());
@@ -39,7 +38,7 @@ public class GetFromUrlTest extends AbstractApiTest {
 
     @Test
     public void getCommentFromUrlMastodon() {
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         {
             Comment comment = account.action().getComment(
                     "https://mastodon.social/@uakihir0/104681506368424218");
@@ -54,7 +53,7 @@ public class GetFromUrlTest extends AbstractApiTest {
 
     @Test
     public void getUserFromUrlMisskey() {
-        Account account = SocialAuthUtil.getMisskeyAccount();
+        Account account = getMisskeyAccount();
         {
             User user = account.action().getUser("https://misskey.io/@syuilo");
             System.out.println(user.getName());
@@ -67,7 +66,7 @@ public class GetFromUrlTest extends AbstractApiTest {
 
     @Test
     public void getCommentFromUrlMisskey() {
-        Account account = SocialAuthUtil.getMisskeyAccount();
+        Account account = getMisskeyAccount();
         Comment comment = account.action().getComment(
                 "https://misskey.io/notes/8axwbcxiff");
         System.out.println(comment.getDisplayComment().getText().getDisplayText());

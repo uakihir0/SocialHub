@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Pageable;
 import net.socialhub.core.model.Paging;
@@ -14,7 +13,7 @@ public class GetFollowingsTest extends AbstractApiTest {
     @Test
     public void testGetFollowingUser_Twitter() {
 
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         User me = account.action().getUserMe();
 
         Pageable<User> top = account.action().getFollowingUsers(me, new Paging(10L));
@@ -29,7 +28,7 @@ public class GetFollowingsTest extends AbstractApiTest {
     @Test
     public void testGetFollowingUser_Mastodon() {
 
-        Account account = SocialAuthUtil.getMastodonAccount();
+        Account account = getMastodonAccount();
         User me = account.action().getUserMe();
 
         Pageable<User> top = account.action().getFollowingUsers(me, new Paging(10L));

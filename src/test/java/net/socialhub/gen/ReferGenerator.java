@@ -19,7 +19,7 @@ import static net.socialhub.http.RequestMethod.GET;
 public class ReferGenerator {
 
     // Get Data from SpringBoot Repository
-    private final static String HTML_REFER_URL = "https://raw.githubusercontent.com/spring-projects/spring-framework/master/spring-web/src/main/resources/org/springframework/web/util/HtmlCharacterEntityReferences.properties" ;
+    private final static String HTML_REFER_URL = "https://raw.githubusercontent.com/spring-projects/spring-framework/master/spring-web/src/main/resources/org/springframework/web/util/HtmlCharacterEntityReferences.properties";
 
     @Test
     public void printHtmlReferEnum() {

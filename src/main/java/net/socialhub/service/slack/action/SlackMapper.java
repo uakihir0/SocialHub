@@ -10,16 +10,11 @@ import com.github.seratch.jslack.api.model.Attachment;
 import com.github.seratch.jslack.api.model.File;
 import com.github.seratch.jslack.api.model.Message;
 import com.github.seratch.jslack.api.model.User.Profile;
+import net.socialhub.core.action.AccountAction;
+import net.socialhub.core.define.MediaType;
 import net.socialhub.core.define.emoji.EmojiCategoryType;
 import net.socialhub.core.define.emoji.EmojiType;
 import net.socialhub.core.define.emoji.EmojiVariationType;
-import net.socialhub.core.define.MediaType;
-import net.socialhub.service.slack.define.SlackAttributedTypes;
-import net.socialhub.service.slack.define.SlackMessageSubType;
-import net.socialhub.logger.Logger;
-import net.socialhub.core.model.common.AttributedItem;
-import net.socialhub.core.model.common.AttributedKind;
-import net.socialhub.core.model.common.AttributedString;
 import net.socialhub.core.model.Channel;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Media;
@@ -29,14 +24,19 @@ import net.socialhub.core.model.Reaction;
 import net.socialhub.core.model.Service;
 import net.socialhub.core.model.Thread;
 import net.socialhub.core.model.User;
+import net.socialhub.core.model.common.AttributedItem;
+import net.socialhub.core.model.common.AttributedKind;
+import net.socialhub.core.model.common.AttributedString;
+import net.socialhub.core.model.paging.CursorPaging;
+import net.socialhub.core.model.paging.DatePaging;
+import net.socialhub.core.model.support.ReactionCandidate;
+import net.socialhub.logger.Logger;
+import net.socialhub.service.slack.define.SlackAttributedTypes;
+import net.socialhub.service.slack.define.SlackMessageSubType;
 import net.socialhub.service.slack.model.SlackComment;
 import net.socialhub.service.slack.model.SlackMedia;
 import net.socialhub.service.slack.model.SlackTeam;
 import net.socialhub.service.slack.model.SlackUser;
-import net.socialhub.core.model.paging.CursorPaging;
-import net.socialhub.core.model.paging.DatePaging;
-import net.socialhub.core.model.support.ReactionCandidate;
-import net.socialhub.core.action.AccountAction;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -287,9 +287,9 @@ public final class SlackMapper {
                     candidates.stream() //
                             .filter(c -> c.getName().equals(reaction.getName())) //
                             .findFirst().ifPresent(c -> {
-                        model.setIconUrl(c.getIconUrl());
-                        model.setEmoji(c.getEmoji());
-                    });
+                                model.setIconUrl(c.getIconUrl());
+                                model.setEmoji(c.getEmoji());
+                            });
                 }
 
                 models.add(model);
@@ -442,25 +442,25 @@ public final class SlackMapper {
 
         return response.getChannels().stream().map((e) -> {
 
-            // アーカイブ済みの場合
-            if (e.isArchived()) {
-                return null;
-            }
+                    // アーカイブ済みの場合
+                    if (e.isArchived()) {
+                        return null;
+                    }
 
-            Thread thread = new Thread(service);
-            thread.setId(e.getId());
-            thread.setUsers(memberMap.get(e.getId())
-                    .stream().map(accountMap::get)
-                    .filter(Objects::nonNull).collect(toList()));
-            thread.setLastUpdate(historyMap.get(e.getId()));
+                    Thread thread = new Thread(service);
+                    thread.setId(e.getId());
+                    thread.setUsers(memberMap.get(e.getId())
+                            .stream().map(accountMap::get)
+                            .filter(Objects::nonNull).collect(toList()));
+                    thread.setLastUpdate(historyMap.get(e.getId()));
 
-            // 一度も更新されていないスレッドの場合
-            if (thread.getLastUpdate() == null) {
-                thread.setLastUpdate(getFromDateString(e.getCreated()));
-            }
+                    // 一度も更新されていないスレッドの場合
+                    if (thread.getLastUpdate() == null) {
+                        thread.setLastUpdate(getFromDateString(e.getCreated()));
+                    }
 
-            return thread;
-        }).filter(Objects::nonNull)
+                    return thread;
+                }).filter(Objects::nonNull)
                 .collect(toList());
     }
 
@@ -496,15 +496,15 @@ public final class SlackMapper {
 
         return comments.stream().map(c -> {
 
-            // 特定のコメントについて含まれるメンションを取得
-            return c.getText().getElements().stream() //
-                    .filter(a -> a.getKind() == AttributedKind.ACCOUNT)
-                    .map(a -> a.getDisplayText().substring(1))
-                    .filter(n -> !n.equals("here")) //
-                    .filter(n -> !n.equals("all")) //
-                    .collect(toList());
+                    // 特定のコメントについて含まれるメンションを取得
+                    return c.getText().getElements().stream() //
+                            .filter(a -> a.getKind() == AttributedKind.ACCOUNT)
+                            .map(a -> a.getDisplayText().substring(1))
+                            .filter(n -> !n.equals("here")) //
+                            .filter(n -> !n.equals("all")) //
+                            .collect(toList());
 
-        }).flatMap(Collection::stream).distinct() //
+                }).flatMap(Collection::stream).distinct() //
                 .collect(toList());
     }
 

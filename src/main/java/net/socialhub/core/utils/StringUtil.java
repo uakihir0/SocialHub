@@ -5,7 +5,7 @@ import java.net.URL;
 public final class StringUtil {
 
     private static final int MAX_DISPLAY_LENGTH = 26;
-    
+
     /**
      * URL デコード処理
      */

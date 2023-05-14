@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Identify;
@@ -17,7 +16,7 @@ public class UserPostTimelineTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = SocialAuthUtil.getMisskeyAccount();
+        Account account = getMisskeyAccount();
         User me = account.action().getUserMe();
 
         Pageable<Comment> comments = account.action().getUserCommentTimeLine(me, paging);
@@ -30,7 +29,7 @@ public class UserPostTimelineTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = SocialAuthUtil.getPixelFedAccount();
+        Account account = getPixelFedAccount();
         User me = account.action().getUserMe();
 
         Pageable<Comment> comments = account.action().getUserCommentTimeLine(me, paging);
@@ -43,7 +42,7 @@ public class UserPostTimelineTest extends AbstractTimelineTest {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = SocialAuthUtil.getTumblrAccount();
+        Account account = getTumblrAccount();
         Identify identify = new Identify(account.getService());
         identify.setId("URL");
 

@@ -1,6 +1,5 @@
 package net.socialhub.apis;
 
-import net.socialhub.SocialAuthUtil;
 import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Pageable;
 import net.socialhub.core.model.User;
@@ -10,7 +9,7 @@ public class UsersFollowingTest extends AbstractApiTest {
 
     @Test
     public void testGetFollowingTwitter() {
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         User me = account.action().getUserMe();
 
         Pageable<User> users = account.action().getFollowingUsers(me, null);
@@ -21,7 +20,7 @@ public class UsersFollowingTest extends AbstractApiTest {
 
     @Test
     public void testGetFollowerTwitter() {
-        Account account = SocialAuthUtil.getTwitterAccount();
+        Account account = getTwitterAccount();
         User me = account.action().getUserMe();
 
         Pageable<User> users = account.action().getFollowerUsers(me, null);

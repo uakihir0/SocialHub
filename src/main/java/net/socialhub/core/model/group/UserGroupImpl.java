@@ -1,9 +1,9 @@
 package net.socialhub.core.model.group;
 
-import net.socialhub.core.model.Account;
-import net.socialhub.core.model.User;
 import net.socialhub.core.action.group.UserGroupAction;
 import net.socialhub.core.action.group.UserGroupActionImpl;
+import net.socialhub.core.model.Account;
+import net.socialhub.core.model.User;
 
 import java.util.Map;
 

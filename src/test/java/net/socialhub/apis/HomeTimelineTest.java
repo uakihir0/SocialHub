@@ -78,6 +78,11 @@ public class HomeTimelineTest extends AbstractTimelineTest {
         execPast(getTumblrAccount());
     }
 
+    @Test
+    public void testHomeTimelineBluesky_Past(){
+        execPast(getBlueskyAccount());
+    }
+
     private void execNew(Account account) {
         Paging paging = new Paging();
         paging.setCount(10L);

@@ -5,7 +5,22 @@ import bsky4j.api.entity.atproto.server.ServerCreateSessionRequest;
 import bsky4j.api.entity.atproto.server.ServerCreateSessionResponse;
 import bsky4j.api.entity.bsky.actor.ActorGetProfileRequest;
 import bsky4j.api.entity.bsky.actor.ActorGetProfileResponse;
+import bsky4j.api.entity.bsky.actor.ActorSearchActorsRequest;
+import bsky4j.api.entity.bsky.actor.ActorSearchActorsResponse;
+import bsky4j.api.entity.bsky.feed.FeedGetTimelineRequest;
+import bsky4j.api.entity.bsky.feed.FeedGetTimelineResponse;
+import bsky4j.api.entity.bsky.graph.GraphBlockRequest;
+import bsky4j.api.entity.bsky.graph.GraphDeleteBlockRequest;
+import bsky4j.api.entity.bsky.graph.GraphDeleteFollowRequest;
+import bsky4j.api.entity.bsky.graph.GraphFollowRequest;
+import bsky4j.api.entity.bsky.graph.GraphGetFollowersRequest;
+import bsky4j.api.entity.bsky.graph.GraphGetFollowersResponse;
+import bsky4j.api.entity.bsky.graph.GraphGetFollowsRequest;
+import bsky4j.api.entity.bsky.graph.GraphGetFollowsResponse;
+import bsky4j.api.entity.bsky.graph.GraphMuteActorRequest;
+import bsky4j.api.entity.bsky.graph.GraphUnmuteActorRequest;
 import bsky4j.api.entity.share.Response;
+import bsky4j.model.bsky.actor.ActorDefsViewerState;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import net.socialhub.core.action.AccountActionImpl;
@@ -25,10 +40,13 @@ import net.socialhub.core.model.Stream;
 import net.socialhub.core.model.Thread;
 import net.socialhub.core.model.Trend;
 import net.socialhub.core.model.User;
+import net.socialhub.core.model.error.NotImplimentedException;
 import net.socialhub.core.model.error.SocialHubException;
 import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.logger.Logger;
+import net.socialhub.service.bluesky.model.BlueskyPaging;
+import net.socialhub.service.bluesky.model.BlueskyUser;
 import net.socialhub.service.microblog.action.MicroBlogAccountAction;
 
 import java.util.Base64;
@@ -83,6 +101,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
     }
 
     /**
+     * {@inheritDoc}
      * ハンドルも DID も同じ位置で解釈される
      * https://staging.bsky.app/profile/uakihir0.com
      * https://staging.bsky.app/profile/did:plc:bwdof2anluuf5wmfy2upgulw
@@ -105,59 +124,218 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void followUser(Identify id) {
-        super.followUser(id);
+        proceed(() -> {
+            auth.getAccessor().graph().follow(
+                    GraphFollowRequest.builder()
+                            .accessJwt(getAccessJwt())
+                            .subject((String) id.getId())
+                            .build());
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unfollowUser(Identify id) {
-        super.unfollowUser(id);
+        proceed(() -> {
+            String uri = getUserUri(id);
+
+            if (uri != null) {
+                auth.getAccessor().graph().deleteFollow(
+                        GraphDeleteFollowRequest.builder()
+                                .accessJwt(getAccessJwt())
+                                .uri(uri)
+                                .build());
+            }
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void muteUser(Identify id) {
-        super.muteUser(id);
+        proceed(() -> {
+            auth.getAccessor().graph().muteActor(
+                    GraphMuteActorRequest.builder()
+                            .accessJwt(getAccessJwt())
+                            .actor((String) id.getId())
+                            .build());
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unmuteUser(Identify id) {
-        super.unmuteUser(id);
+        proceed(() -> {
+            auth.getAccessor().graph().unmuteActor(
+                    GraphUnmuteActorRequest.builder()
+                            .accessJwt(getAccessJwt())
+                            .actor((String) id.getId())
+                            .build());
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void blockUser(Identify id) {
-        super.blockUser(id);
+        proceed(() -> {
+            auth.getAccessor().graph().block(
+                    GraphBlockRequest.builder()
+                            .accessJwt(getAccessJwt())
+                            .subject((String) id.getId())
+                            .build());
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unblockUser(Identify id) {
-        super.unblockUser(id);
+        proceed(() -> {
+            String uri = getUserUri(id);
+
+            if (uri != null) {
+                auth.getAccessor().graph().deleteBlock(
+                        GraphDeleteBlockRequest.builder()
+                                .accessJwt(getAccessJwt())
+                                .uri(uri)
+                                .build());
+            }
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Relationship getRelationship(Identify id) {
-        return super.getRelationship(id);
+        return proceed(() -> {
+            if (id instanceof BlueskyUser) {
+                BlueskyUser user = (BlueskyUser) id;
+                return BlueskyMapper.relationship(user);
+            }
+
+            BlueskyUser user = (BlueskyUser) getUser(id);
+            return BlueskyMapper.relationship(user);
+        });
     }
 
+    // ============================================================== //
+    // User API
+    // ユーザー関連 API
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<User> getFollowingUsers(Identify id, Paging paging) {
-        return super.getFollowingUsers(id, paging);
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Response<GraphGetFollowsResponse> follows =
+                    auth.getAccessor().graph().getFollows(
+                            GraphGetFollowsRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .actor((String) id.getId())
+                                    .cursor(nextCursor(paging))
+                                    .limit(limit(paging))
+                                    .build());
+
+
+            return BlueskyMapper.users(
+                    follows.get().getFollows(),
+                    follows.get().getCursor(),
+                    service
+            );
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<User> getFollowerUsers(Identify id, Paging paging) {
-        return super.getFollowerUsers(id, paging);
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Response<GraphGetFollowersResponse> follows =
+                    auth.getAccessor().graph().getFollowers(
+                            GraphGetFollowersRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .actor((String) id.getId())
+                                    .cursor(nextCursor(paging))
+                                    .limit(limit(paging))
+                                    .build());
+
+
+            return BlueskyMapper.users(
+                    follows.get().getFollowers(),
+                    follows.get().getCursor(),
+                    service
+            );
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<User> searchUsers(String query, Paging paging) {
-        return super.searchUsers(query, paging);
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Response<ActorSearchActorsResponse> response =
+                    auth.getAccessor().actor().searchActors(
+                            ActorSearchActorsRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .term(query)
+                                    .cursor(nextCursor(paging))
+                                    .limit(limit(paging))
+                                    .build());
+
+            return BlueskyMapper.users(
+                    response.get().getActors(),
+                    response.get().getCursor(),
+                    service
+            );
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<Comment> getHomeTimeLine(Paging paging) {
-        return super.getHomeTimeLine(paging);
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Response<FeedGetTimelineResponse> response =
+                    auth.getAccessor().feed().getTimeline(
+                            FeedGetTimelineRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .cursor(nextCursor(paging))
+                                    .limit(limit(paging))
+                                    .build());
+
+            return BlueskyMapper.timeline(
+                    response.get().getFeed(),
+                    response.get().getCursor(),
+                    service
+            );
+        });
     }
 
     @Override
@@ -247,32 +425,32 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
 
     @Override
     public Pageable<Channel> getChannels(Identify id, Paging paging) {
-        return super.getChannels(id, paging);
+        throw new NotImplimentedException();
     }
 
     @Override
     public Pageable<Comment> getChannelTimeLine(Identify id, Paging paging) {
-        return super.getChannelTimeLine(id, paging);
+        throw new NotImplimentedException();
     }
 
     @Override
     public Pageable<User> getChannelUsers(Identify id, Paging paging) {
-        return super.getChannelUsers(id, paging);
+        throw new NotImplimentedException();
     }
 
     @Override
     public Pageable<Thread> getMessageThread(Paging paging) {
-        return super.getMessageThread(paging);
+        throw new NotImplimentedException();
     }
 
     @Override
     public Pageable<Comment> getMessageTimeLine(Identify id, Paging paging) {
-        return super.getMessageTimeLine(id, paging);
+        throw new NotImplimentedException();
     }
 
     @Override
     public void postMessage(CommentForm req) {
-        super.postMessage(req);
+        throw new NotImplimentedException();
     }
 
     @Override
@@ -307,7 +485,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
 
     @Override
     public Pageable<Channel> getLists(Identify id, Paging paging) {
-        return super.getLists(id, paging);
+        throw new NotImplimentedException();
     }
 
     @Override
@@ -322,7 +500,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
 
     @Override
     public void votePoll(Identify id, List<Integer> choices) {
-
+        throw new NotImplimentedException();
     }
 
     @Override
@@ -342,6 +520,60 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
 
     @Override
     public Stream setFederationLineStream(EventCallback callback) {
+        return null;
+    }
+
+    // ============================================================== //
+    // Support
+    // ============================================================== //
+
+    /**
+     * Get User Uri from Identify
+     * ID からユーザー URI を取得
+     */
+    private String getUserUri(Identify id) {
+        String uri = null;
+
+        // ユーザーオブジェクトから取得
+        if (id instanceof BlueskyUser) {
+            BlueskyUser user = (BlueskyUser) id;
+            uri = user.getFollowRecordUri();
+        }
+
+        // DID から取得
+        if (uri == null) {
+            Response<ActorGetProfileResponse> response =
+                    auth.getAccessor().actor().getProfile(
+                            ActorGetProfileRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .actor((String) id.getId())
+                                    .build());
+
+            // ユーザー情報にフォローしているかどうかが確認できる
+            ActorDefsViewerState state = response.get().getViewer();
+            if (state != null && state.getFollowing() != null) {
+                uri = state.getFollowing();
+            }
+        }
+
+        return uri;
+    }
+
+    // ============================================================== //
+    // Paging
+    // ============================================================== //
+
+    private String nextCursor(Paging paging) {
+        if (paging instanceof BlueskyPaging) {
+            return ((BlueskyPaging) paging).getNextCursor();
+        }
+        return null;
+    }
+
+    private Integer limit(Paging paging) {
+        if (paging != null) {
+            return paging.getCount().intValue();
+        }
         return null;
     }
 
@@ -367,13 +599,8 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                 }.getType());
 
         Object expire = json.get("exp");
-        if (expire instanceof Long) {
-            System.out.println("Long");
-            this.expireAt = (Long) expire;
-        }
-        if (expire instanceof Integer) {
-            System.out.println("Integer");
-            this.expireAt = ((Integer) expire).longValue();
+        if (expire instanceof Double) {
+            this.expireAt = ((Double) expire).longValue();
         }
     }
 
@@ -415,6 +642,13 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
         }
     }
 
+    private void proceed(ActionRunner<Exception> runner) {
+        try {
+            runner.proceed();
+        } catch (Exception e) {
+            handleException(e);
+        }
+    }
 
     private static void handleException(Exception e) {
         SocialHubException se = new SocialHubException(e);

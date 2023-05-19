@@ -36,7 +36,7 @@ public class BlueskyUser extends MiniBlogUser {
     @Override
     public String getWebUrl() {
         String handle = getAccountIdentify();
-        return "https://staging.bsky.app/profile/" + handle;
+        return "https://bsky.app/profile/" + handle;
     }
 
     // region

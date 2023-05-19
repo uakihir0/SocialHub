@@ -1,14 +1,31 @@
 package net.socialhub.service.bluesky.action;
 
 import bsky4j.BlueskyException;
+import bsky4j.BlueskyTypes;
+import bsky4j.api.entity.atproto.repo.RepoListRecordsRequest;
+import bsky4j.api.entity.atproto.repo.RepoListRecordsResponse;
+import bsky4j.api.entity.atproto.repo.RepoUploadBlobRequest;
+import bsky4j.api.entity.atproto.repo.RepoUploadBlobResponse;
 import bsky4j.api.entity.atproto.server.ServerCreateSessionRequest;
 import bsky4j.api.entity.atproto.server.ServerCreateSessionResponse;
 import bsky4j.api.entity.bsky.actor.ActorGetProfileRequest;
 import bsky4j.api.entity.bsky.actor.ActorGetProfileResponse;
 import bsky4j.api.entity.bsky.actor.ActorSearchActorsRequest;
 import bsky4j.api.entity.bsky.actor.ActorSearchActorsResponse;
+import bsky4j.api.entity.bsky.feed.FeedDeleteLikeRequest;
+import bsky4j.api.entity.bsky.feed.FeedDeletePostRequest;
+import bsky4j.api.entity.bsky.feed.FeedDeleteRepostRequest;
+import bsky4j.api.entity.bsky.feed.FeedGetAuthorFeedRequest;
+import bsky4j.api.entity.bsky.feed.FeedGetAuthorFeedResponse;
+import bsky4j.api.entity.bsky.feed.FeedGetPostThreadRequest;
+import bsky4j.api.entity.bsky.feed.FeedGetPostThreadResponse;
+import bsky4j.api.entity.bsky.feed.FeedGetPostsRequest;
+import bsky4j.api.entity.bsky.feed.FeedGetPostsResponse;
 import bsky4j.api.entity.bsky.feed.FeedGetTimelineRequest;
 import bsky4j.api.entity.bsky.feed.FeedGetTimelineResponse;
+import bsky4j.api.entity.bsky.feed.FeedLikeRequest;
+import bsky4j.api.entity.bsky.feed.FeedPostRequest;
+import bsky4j.api.entity.bsky.feed.FeedRepostRequest;
 import bsky4j.api.entity.bsky.graph.GraphBlockRequest;
 import bsky4j.api.entity.bsky.graph.GraphDeleteBlockRequest;
 import bsky4j.api.entity.bsky.graph.GraphDeleteFollowRequest;
@@ -19,14 +36,28 @@ import bsky4j.api.entity.bsky.graph.GraphGetFollowsRequest;
 import bsky4j.api.entity.bsky.graph.GraphGetFollowsResponse;
 import bsky4j.api.entity.bsky.graph.GraphMuteActorRequest;
 import bsky4j.api.entity.bsky.graph.GraphUnmuteActorRequest;
+import bsky4j.api.entity.bsky.notification.NotificationListNotificationsRequest;
+import bsky4j.api.entity.bsky.notification.NotificationListNotificationsResponse;
+import bsky4j.api.entity.bsky.undoc.UndocSearchFeedsRequest;
+import bsky4j.api.entity.bsky.undoc.UndocSearchFeedsResponse;
 import bsky4j.api.entity.share.Response;
+import bsky4j.model.atproto.repo.RepoListRecordsRecord;
+import bsky4j.model.atproto.repo.RepoStrongRef;
 import bsky4j.model.bsky.actor.ActorDefsViewerState;
+import bsky4j.model.bsky.embed.EmbedImages;
+import bsky4j.model.bsky.embed.EmbedImagesImage;
+import bsky4j.model.bsky.embed.EmbedUnion;
+import bsky4j.model.bsky.feed.FeedDefsFeedViewPost;
+import bsky4j.model.bsky.feed.FeedDefsThreadUnion;
+import bsky4j.model.bsky.feed.FeedDefsThreadViewPost;
+import bsky4j.model.bsky.feed.FeedPost;
+import bsky4j.model.bsky.notification.NotificationListNotificationsNotification;
+import bsky4j.model.share.RecordUnion;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import net.socialhub.core.action.AccountActionImpl;
 import net.socialhub.core.action.callback.EventCallback;
 import net.socialhub.core.model.Account;
-import net.socialhub.core.model.Channel;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Context;
 import net.socialhub.core.model.Error;
@@ -37,21 +68,33 @@ import net.socialhub.core.model.Paging;
 import net.socialhub.core.model.Relationship;
 import net.socialhub.core.model.Service;
 import net.socialhub.core.model.Stream;
-import net.socialhub.core.model.Thread;
 import net.socialhub.core.model.Trend;
 import net.socialhub.core.model.User;
 import net.socialhub.core.model.error.NotImplimentedException;
+import net.socialhub.core.model.error.NotSupportedException;
 import net.socialhub.core.model.error.SocialHubException;
 import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.core.model.support.ReactionCandidate;
+import net.socialhub.core.utils.MapperUtil;
 import net.socialhub.logger.Logger;
+import net.socialhub.service.bluesky.define.BlueskyReactionType;
+import net.socialhub.service.bluesky.model.BlueskyComment;
 import net.socialhub.service.bluesky.model.BlueskyPaging;
 import net.socialhub.service.bluesky.model.BlueskyUser;
 import net.socialhub.service.microblog.action.MicroBlogAccountAction;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 public class BlueskyAction extends AccountActionImpl implements MicroBlogAccountAction {
 
@@ -254,7 +297,6 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                                     .limit(limit(paging))
                                     .build());
 
-
             return BlueskyMapper.users(
                     follows.get().getFollows(),
                     follows.get().getCursor(),
@@ -279,7 +321,6 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                                     .cursor(nextCursor(paging))
                                     .limit(limit(paging))
                                     .build());
-
 
             return BlueskyMapper.users(
                     follows.get().getFollowers(),
@@ -314,6 +355,10 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
         });
     }
 
+    // ============================================================== //
+    // Timeline
+    // ============================================================== //
+
     /**
      * {@inheritDoc}
      */
@@ -330,7 +375,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                                     .limit(limit(paging))
                                     .build());
 
-            return BlueskyMapper.timeline(
+            return BlueskyMapper.timelineByFeeds(
                     response.get().getFeed(),
                     response.get().getCursor(),
                     service
@@ -338,189 +383,612 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<Comment> getMentionTimeLine(Paging paging) {
-        return super.getMentionTimeLine(paging);
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Response<NotificationListNotificationsResponse> notifications =
+                    auth.getAccessor().notification().listNotifications(
+                            NotificationListNotificationsRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .cursor(nextCursor(paging))
+                                    .limit(limit(paging))
+                                    .build());
+
+            // TODO: ページング
+
+            List<String> subjects = notifications
+                    .get().getNotifications().stream()
+                    .filter(n -> n.getRecord() != null)
+                    .filter(n -> n.getRecord().getType().equals("replay"))
+                    .map(NotificationListNotificationsNotification::getReasonSubject)
+                    .collect(toList());
+
+            Response<FeedGetPostsResponse> posts =
+                    auth.getAccessor().feed().getPosts(
+                            FeedGetPostsRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .uris(subjects)
+                                    .build());
+
+            return BlueskyMapper.timelineByPosts(
+                    posts.get().getPosts(),
+                    null,
+                    service
+            );
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<Comment> getUserCommentTimeLine(Identify id, Paging paging) {
-        return super.getUserCommentTimeLine(id, paging);
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Response<FeedGetAuthorFeedResponse> response =
+                    auth.getAccessor().feed().getAuthorFeed(
+                            FeedGetAuthorFeedRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .actor((String) id.getId())
+                                    .cursor(nextCursor(paging))
+                                    .limit(limit(paging))
+                                    .build());
+
+            return BlueskyMapper.timelineByFeeds(
+                    response.get().getFeed(),
+                    response.get().getCursor(),
+                    service
+            );
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<Comment> getUserLikeTimeLine(Identify id, Paging paging) {
-        return super.getUserLikeTimeLine(id, paging);
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+
+            // TODO: ページング対応
+            Response<RepoListRecordsResponse> response =
+                    auth.getAccessor().repo().listRecords(
+                            RepoListRecordsRequest.builder()
+                                    .repo((String) id.getId())
+                                    .collection(BlueskyTypes.FeedLike)
+                                    .rkeyStart("")
+                                    .rkeyEnd("")
+                                    .limit(limit(paging))
+                                    .build());
+
+            List<String> subjects = response.get().getRecords().stream()
+                    .map(RepoListRecordsRecord::getUri)
+                    .collect(toList());
+
+            Response<FeedGetPostsResponse> posts =
+                    auth.getAccessor().feed().getPosts(
+                            FeedGetPostsRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .uris(subjects)
+                                    .build());
+
+            return BlueskyMapper.timelineByPosts(
+                    posts.get().getPosts(),
+                    null,
+                    service
+            );
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<Comment> getUserMediaTimeLine(Identify id, Paging paging) {
-        return super.getUserMediaTimeLine(id, paging);
+
+        return proceed(() -> {
+            String cursor = null;
+            Service service = getAccount().getService();
+            List<FeedDefsFeedViewPost> feeds = new ArrayList<>();
+
+            // 十分な数の投稿が取得できるまでリクエストを実行
+            for (int i = 0; i < 10; i++) {
+
+                Response<FeedGetAuthorFeedResponse> response =
+                        auth.getAccessor().feed().getAuthorFeed(
+                                FeedGetAuthorFeedRequest.builder()
+                                        .accessJwt(getAccessJwt())
+                                        .actor((String) id.getId())
+                                        .cursor(nextCursor(paging))
+                                        .limit(limit(paging))
+                                        .build());
+
+                // 画像の投稿が含まれているものだけを抽出
+                List<FeedDefsFeedViewPost> imagePosts =
+                        response.get().getFeed().stream().filter(n -> {
+                            RecordUnion union = n.getPost().getRecord();
+                            if (union instanceof FeedPost) {
+
+                                FeedPost post = (FeedPost) union;
+                                if (post.getEmbed() != null) {
+
+                                    EmbedUnion embed = post.getEmbed();
+                                    if (embed instanceof EmbedImages) {
+                                        EmbedImages images = (EmbedImages) embed;
+                                        return images.getImages().size() > 0;
+                                    }
+                                }
+                            }
+                            return false;
+                        }).collect(toList());
+
+                feeds.addAll(imagePosts);
+                cursor = response.get().getCursor();
+
+                // 十分な数の画像を取得できた場合は終了
+                if (feeds.size() >= limit(paging)) {
+                    break;
+                }
+            }
+
+            return BlueskyMapper.timelineByFeeds(
+                    feeds,
+                    cursor,
+                    service
+            );
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<Comment> getSearchTimeLine(String query, Paging paging) {
-        return super.getSearchTimeLine(query, paging);
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+
+            Response<List<UndocSearchFeedsResponse>> response =
+                    auth.getAccessor().undoc().searchFeeds(
+                            UndocSearchFeedsRequest.builder()
+                                    .q(query)
+                                    .build());
+
+            List<String> uris = response.get().stream()
+                    // tid と User did から at-uri を復元して投稿を取得
+                    .map(i -> "at://" + i.getUser().getDid() + "/" + i.getTid())
+                    .collect(toList());
+
+            Response<FeedGetPostsResponse> posts =
+                    auth.getAccessor().feed().getPosts(
+                            FeedGetPostsRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .uris(uris)
+                                    .build());
+
+            return BlueskyMapper.timelineByPosts(
+                    posts.get().getPosts(),
+                    null,
+                    service
+            );
+        });
     }
 
+    // ============================================================== //
+    // Comment
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void postComment(CommentForm req) {
-        super.postComment(req);
+
+        proceed(() -> {
+            String accessJwt = getAccessJwt();
+            List<Future<EmbedImagesImage>> imageFutures = new ArrayList<>();
+
+            if (req.getImages() != null && !req.getImages().isEmpty()) {
+                ExecutorService pool = Executors.newCachedThreadPool();
+
+                // 画像を並列でアップロード実行
+                req.getImages().forEach(img -> {
+                    imageFutures.add(pool.submit(() -> {
+                        InputStream input = new ByteArrayInputStream(img.getData());
+                        Response<RepoUploadBlobResponse> response =
+                                auth.getAccessor().repo().uploadBlob(
+                                        RepoUploadBlobRequest.fromStreamBuilder()
+                                                .accessJwt(accessJwt)
+                                                .stream(input)
+                                                .name(img.getName())
+                                                .build()
+                                );
+
+                        EmbedImagesImage image = new EmbedImagesImage();
+                        image.setImage(response.get().getBlob());
+                        image.setAlt("");
+                        return image;
+                    }));
+                });
+            }
+
+            try {
+                FeedPostRequest.FeedPostRequestBuilder builder =
+                        FeedPostRequest.builder()
+                                .accessJwt(getAccessJwt())
+                                .text(req.getText());
+
+                if (!imageFutures.isEmpty()) {
+                    List<EmbedImagesImage> images = new ArrayList<>();
+                    for (Future<EmbedImagesImage> imageFuture : imageFutures) {
+                        images.add(imageFuture.get());
+                    }
+
+                    EmbedImages imagesMain = new EmbedImages();
+                    imagesMain.setImages(images);
+                    builder.embed(imagesMain);
+                }
+
+                auth.getAccessor().feed()
+                        .post(builder.build());
+
+            } catch (Exception e) {
+                handleException(e);
+            }
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Comment getComment(Identify id) {
-        return super.getComment(id);
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+
+            Response<FeedGetPostsResponse> posts =
+                    auth.getAccessor().feed().getPosts(
+                            FeedGetPostsRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .uris(singletonList((String) id.getId()))
+                                    .build());
+
+            return BlueskyMapper.comment(
+                    posts.get().getPosts().get(0),
+                    service
+            );
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     * https://bsky.app/profile/uakihir0.com/post/3jw2ydtuktc2j
+     */
     @Override
     public Comment getComment(String url) {
-        return super.getComment(url);
+        return proceed(() -> {
+
+            // TODO: identify.resolveHandle -> feed.getPost で対応
+
+            return null;
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void likeComment(Identify id) {
-        super.likeComment(id);
+
+        proceed(() -> {
+            RepoStrongRef ref = new RepoStrongRef();
+
+            BlueskyComment comment;
+            if (id instanceof BlueskyComment) {
+                comment = (BlueskyComment) id;
+            } else {
+                // BlueskyComment でない場合はリクエストして取得
+                comment = (BlueskyComment) getComment(id);
+            }
+
+            ref.setUri((String) comment.getId());
+            ref.setCid(comment.getCid());
+
+            auth.getAccessor().feed().like(
+                    FeedLikeRequest.builder()
+                            .accessJwt(getAccessJwt())
+                            .subject(ref)
+                            .build());
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unlikeComment(Identify id) {
-        super.unlikeComment(id);
+
+        proceed(() -> {
+            BlueskyComment comment;
+            if (id instanceof BlueskyComment) {
+                comment = (BlueskyComment) id;
+            } else {
+                // BlueskyComment でない場合はリクエストして取得
+                comment = (BlueskyComment) getComment(id);
+            }
+
+            auth.getAccessor().feed().deleteLike(
+                    FeedDeleteLikeRequest.builder()
+                            .accessJwt(getAccessJwt())
+                            .uri(comment.getLikeRecordUri())
+                            .build());
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void shareComment(Identify id) {
-        super.shareComment(id);
+
+        proceed(() -> {
+            RepoStrongRef ref = new RepoStrongRef();
+
+            BlueskyComment comment;
+            if (id instanceof BlueskyComment) {
+                comment = (BlueskyComment) id;
+            } else {
+                // BlueskyComment でない場合はリクエストして取得
+                comment = (BlueskyComment) getComment(id);
+            }
+
+            ref.setUri((String) comment.getId());
+            ref.setCid(comment.getCid());
+
+            auth.getAccessor().feed().repost(
+                    FeedRepostRequest.builder()
+                            .accessJwt(getAccessJwt())
+                            .subject(ref)
+                            .build());
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unshareComment(Identify id) {
-        super.unshareComment(id);
+
+        proceed(() -> {
+            BlueskyComment comment;
+            if (id instanceof BlueskyComment) {
+                comment = (BlueskyComment) id;
+            } else {
+                // BlueskyComment でない場合はリクエストして取得
+                comment = (BlueskyComment) getComment(id);
+            }
+
+            auth.getAccessor().feed().deleteRepost(
+                    FeedDeleteRepostRequest.builder()
+                            .accessJwt(getAccessJwt())
+                            .uri(comment.getRepostRecordUri())
+                            .build());
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void reactionComment(Identify id, String reaction) {
-        super.reactionComment(id, reaction);
+        if (reaction != null && !reaction.isEmpty()) {
+            String type = reaction.toLowerCase();
+
+            if (BlueskyReactionType.Like.getCode().contains(type)) {
+                likeComment(id);
+                return;
+            }
+            if (BlueskyReactionType.Repost.getCode().contains(type)) {
+                retweetComment(id);
+                return;
+            }
+        }
+        throw new NotSupportedException();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unreactionComment(Identify id, String reaction) {
-        super.unreactionComment(id, reaction);
+        if (reaction != null && !reaction.isEmpty()) {
+            String type = reaction.toLowerCase();
+
+            if (BlueskyReactionType.Like.getCode().contains(type)) {
+                unlikeComment(id);
+                return;
+            }
+            if (BlueskyReactionType.Repost.getCode().contains(type)) {
+                unshareComment(id);
+                return;
+            }
+        }
+        throw new NotSupportedException();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteComment(Identify id) {
-        super.deleteComment(id);
+
+        proceed(() -> {
+            auth.getAccessor().feed().deletePost(
+                    FeedDeletePostRequest.builder()
+                            .accessJwt(getAccessJwt())
+                            .uri((String) id.getId())
+                            .build());
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<ReactionCandidate> getReactionCandidates() {
-        return super.getReactionCandidates();
+        return BlueskyMapper.reactionCandidates();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Context getCommentContext(Identify id) {
-        return super.getCommentContext(id);
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            List<Comment> ancestors = new ArrayList<>();
+            List<Comment> descendants = new ArrayList<>();
+
+            Response<FeedGetPostThreadResponse> response =
+                    auth.getAccessor().feed().getPostThread(
+                            FeedGetPostThreadRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .uri((String) id.getId())
+                                    .build());
+
+            // 再帰的に確認を行い投稿リストを構築
+            FeedDefsThreadUnion union = response.get().getThread();
+            if (union instanceof FeedDefsThreadViewPost) {
+                FeedDefsThreadViewPost post = (FeedDefsThreadViewPost) union;
+                subGetCommentContext(post, ancestors, descendants, service);
+            }
+
+            Context context = new Context();
+            context.setAncestors(ancestors);
+            context.setDescendants(descendants);
+            MapperUtil.sortContext(context);
+            return context;
+        });
     }
 
-    @Override
-    public Pageable<Channel> getChannels(Identify id, Paging paging) {
-        throw new NotImplimentedException();
+    private void subGetCommentContext(
+            FeedDefsThreadViewPost post,
+            List<Comment> ancestors,
+            List<Comment> descendants,
+            Service service
+    ) {
+        if (post.getParent() instanceof FeedDefsThreadViewPost) {
+            FeedDefsThreadViewPost parent = (FeedDefsThreadViewPost) post.getParent();
+            ancestors.add(BlueskyMapper.comment(parent.getPost(), service));
+            subGetCommentContext(parent, ancestors, descendants, service);
+        }
+
+        if (post.getReplies() != null && !post.getReplies().isEmpty()) {
+            for (FeedDefsThreadUnion reply : post.getReplies()) {
+                if (reply instanceof FeedDefsThreadViewPost) {
+                    FeedDefsThreadViewPost child = (FeedDefsThreadViewPost) reply;
+                    descendants.add(BlueskyMapper.comment(child.getPost(), service));
+                    subGetCommentContext(child, ancestors, descendants, service);
+                }
+            }
+        }
     }
 
-    @Override
-    public Pageable<Comment> getChannelTimeLine(Identify id, Paging paging) {
-        throw new NotImplimentedException();
-    }
-
-    @Override
-    public Pageable<User> getChannelUsers(Identify id, Paging paging) {
-        throw new NotImplimentedException();
-    }
-
-    @Override
-    public Pageable<Thread> getMessageThread(Paging paging) {
-        throw new NotImplimentedException();
-    }
-
-    @Override
-    public Pageable<Comment> getMessageTimeLine(Identify id, Paging paging) {
-        throw new NotImplimentedException();
-    }
-
-    @Override
-    public void postMessage(CommentForm req) {
-        throw new NotImplimentedException();
-    }
-
-    @Override
-    public Stream setHomeTimeLineStream(EventCallback callback) {
-        return super.setHomeTimeLineStream(callback);
-    }
-
-    @Override
-    public Stream setNotificationStream(EventCallback callback) {
-        return super.setNotificationStream(callback);
-    }
-
-    @Override
-    public void favoriteComment(Identify id) {
-        super.favoriteComment(id);
-    }
-
-    @Override
-    public void unfavoriteComment(Identify id) {
-        super.unfavoriteComment(id);
-    }
-
-    @Override
-    public void retweetComment(Identify id) {
-        super.retweetComment(id);
-    }
-
-    @Override
-    public void unretweetComment(Identify id) {
-        super.unretweetComment(id);
-    }
-
-    @Override
-    public Pageable<Channel> getLists(Identify id, Paging paging) {
-        throw new NotImplimentedException();
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Trend> getTrends(Integer limit) {
-        return null;
+        throw new NotImplimentedException();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<Notification> getNotification(Paging paging) {
-        return null;
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+
+            Response<NotificationListNotificationsResponse> response =
+                    auth.getAccessor().notification().listNotifications(
+                            NotificationListNotificationsRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .cursor(nextCursor(paging))
+                                    .limit(limit(paging))
+                                    .build());
+
+
+            List<String> subjects = response.get().getNotifications()
+                    .stream().filter(n -> n.getRecord() instanceof FeedPost)
+                    .map(NotificationListNotificationsNotification::getReasonSubject)
+                    .collect(toList());
+
+
+            Response<FeedGetPostsResponse> posts =
+                    auth.getAccessor().feed().getPosts(
+                            FeedGetPostsRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .uris(subjects)
+                                    .build());
+
+            return BlueskyMapper.notifications(
+                    response.get().getNotifications(),
+                    posts.get().getPosts(),
+                    response.get().getCursor(),
+                    service
+            );
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void votePoll(Identify id, List<Integer> choices) {
         throw new NotImplimentedException();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<Comment> getLocalTimeLine(Paging paging) {
-        return null;
+        throw new NotImplimentedException();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pageable<Comment> getFederationTimeLine(Paging paging) {
-        return null;
+        throw new NotImplimentedException();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Stream setLocalLineStream(EventCallback callback) {
-        return null;
+        throw new NotImplimentedException();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Stream setFederationLineStream(EventCallback callback) {
-        return null;
+        throw new NotImplimentedException();
     }
 
     // ============================================================== //

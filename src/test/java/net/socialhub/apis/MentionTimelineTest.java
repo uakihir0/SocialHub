@@ -31,5 +31,17 @@ public class MentionTimelineTest extends AbstractTimelineTest {
         Pageable<Comment> comments = account.action().getMentionTimeLine(paging);
         printTimeline("Now", comments);
     }
+
+    @Test
+    public void testMentionTimelineBluesky() {
+
+        Paging paging = new Paging();
+        paging.setCount(10L);
+
+        Account account = getBlueskyAccount();
+
+        Pageable<Comment> comments = account.action().getMentionTimeLine(paging);
+        printTimeline("Now", comments);
+    }
 }
 

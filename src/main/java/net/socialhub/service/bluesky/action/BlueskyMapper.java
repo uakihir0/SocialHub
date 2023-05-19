@@ -11,23 +11,31 @@ import bsky4j.model.bsky.feed.FeedDefsFeedViewPost;
 import bsky4j.model.bsky.feed.FeedDefsPostView;
 import bsky4j.model.bsky.feed.FeedDefsViewerState;
 import bsky4j.model.bsky.feed.FeedPost;
+import bsky4j.model.bsky.notification.NotificationListNotificationsNotification;
 import bsky4j.model.share.RecordUnion;
 import net.socialhub.core.define.MediaType;
+import net.socialhub.core.define.emoji.EmojiCategoryType;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Media;
+import net.socialhub.core.model.Notification;
 import net.socialhub.core.model.Pageable;
 import net.socialhub.core.model.Relationship;
 import net.socialhub.core.model.Service;
 import net.socialhub.core.model.User;
 import net.socialhub.core.model.common.AttributedString;
+import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.logger.Logger;
+import net.socialhub.service.bluesky.define.BlueskyNotificationType;
+import net.socialhub.service.bluesky.define.BlueskyReactionType;
 import net.socialhub.service.bluesky.model.BlueskyComment;
 import net.socialhub.service.bluesky.model.BlueskyPaging;
 import net.socialhub.service.bluesky.model.BlueskyUser;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
 
@@ -150,9 +158,21 @@ public class BlueskyMapper {
 
         BlueskyComment model = new BlueskyComment(service);
         FeedDefsPostView post = feed.getPost();
+        return comment(post, service);
+    }
+
+    /**
+     * コメントマッピング
+     */
+    public static Comment comment(
+            FeedDefsPostView post,
+            Service service
+    ) {
+        BlueskyComment model = new BlueskyComment(service);
 
         try {
             model.setId(post.getUri());
+            model.setCid(post.getCid());
             model.setUser(user(post.getAuthor(), service));
             model.setCreateAt(dateFormat.parse(post.getIndexedAt()));
 
@@ -220,6 +240,80 @@ public class BlueskyMapper {
         return relationship;
     }
 
+    /**
+     * 通知マッピング
+     */
+    public static Notification notification(
+            NotificationListNotificationsNotification notification,
+            Map<String, FeedDefsPostView> posts,
+            Service service
+    ) {
+
+        try {
+            Notification model = new Notification(service);
+            model.setId(notification.getUri());
+            model.setCreateAt(dateFormat.parse(notification.getIndexedAt()));
+
+            BlueskyNotificationType type =
+                    BlueskyNotificationType
+                            .of(notification.getReason());
+
+            if (type != null) {
+                model.setType(type.getCode());
+                if (type.getAction() != null) {
+                    model.setAction(type.getAction().getCode());
+                }
+            }
+
+            if (notification.getAuthor() != null) {
+                model.setUsers(new ArrayList<>());
+                model.getUsers().add(user(notification.getAuthor(), service));
+            }
+
+
+            if (notification.getRecord() != null) {
+                RecordUnion union = notification.getRecord();
+
+                if (union instanceof FeedPost) {
+                    String subject = notification.getReasonSubject();
+                    FeedDefsPostView post = posts.get(subject);
+
+                    if (post != null) {
+                        model.setComments(new ArrayList<>());
+                        model.getComments().add(comment(post, service));
+                    }
+                }
+            }
+
+            return model;
+
+        } catch (Exception e) {
+            logger.error(e);
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * リアクション候補マッピング
+     */
+    public static List<ReactionCandidate> reactionCandidates() {
+        List<ReactionCandidate> candidates = new ArrayList<>();
+
+        ReactionCandidate like = new ReactionCandidate();
+        like.setCategory(EmojiCategoryType.Activities.getCode());
+        like.setName(BlueskyReactionType.Like.getCode().get(0));
+        like.addAlias(BlueskyReactionType.Like.getCode());
+        candidates.add(like);
+
+        ReactionCandidate share = new ReactionCandidate();
+        share.setCategory(EmojiCategoryType.Activities.getCode());
+        share.setName(BlueskyReactionType.Repost.getCode().get(0));
+        share.addAlias(BlueskyReactionType.Repost.getCode());
+        candidates.add(share);
+
+        return candidates;
+    }
+
     // ============================================================== //
     // List Object Mapper
     // ============================================================== //
@@ -251,7 +345,7 @@ public class BlueskyMapper {
     /**
      * タイムラインマッピング
      */
-    public static Pageable<Comment> timeline(
+    public static Pageable<Comment> timelineByFeeds(
             List<FeedDefsFeedViewPost> feed,
             String cursor,
             Service service
@@ -263,6 +357,59 @@ public class BlueskyMapper {
 
         List<Comment> entities = model.getEntities();
         Comment last = entities.get(entities.size() - 1);
+
+        BlueskyPaging paging = new BlueskyPaging();
+        paging.setNextCursor(cursor);
+        paging.setLastRecord(last);
+        model.setPaging(paging);
+
+        return model;
+    }
+
+    /**
+     * タイムラインマッピング
+     */
+    public static Pageable<Comment> timelineByPosts(
+            List<FeedDefsPostView> posts,
+            String cursor,
+            Service service
+    ) {
+        Pageable<Comment> model = new Pageable<>();
+        model.setEntities(posts.stream()
+                .map(a -> comment(a, service))
+                .collect(toList()));
+
+        List<Comment> entities = model.getEntities();
+        Comment last = entities.get(entities.size() - 1);
+
+        BlueskyPaging paging = new BlueskyPaging();
+        paging.setNextCursor(cursor);
+        paging.setLastRecord(last);
+        model.setPaging(paging);
+
+        return model;
+    }
+
+    /**
+     * 通知マッピング
+     */
+    public static Pageable<Notification> notifications(
+            List<NotificationListNotificationsNotification> notifications,
+            List<FeedDefsPostView> posts,
+            String cursor,
+            Service service
+    ) {
+
+        Map<String, FeedDefsPostView> postMap = new HashMap<>();
+        posts.forEach(a -> postMap.put(a.getUri(), a));
+
+        Pageable<Notification> model = new Pageable<>();
+        model.setEntities(notifications.stream()
+                .map(n -> notification(n, postMap, service))
+                .collect(toList()));
+
+        List<Notification> entities = model.getEntities();
+        Notification last = entities.get(entities.size() - 1);
 
         BlueskyPaging paging = new BlueskyPaging();
         paging.setNextCursor(cursor);

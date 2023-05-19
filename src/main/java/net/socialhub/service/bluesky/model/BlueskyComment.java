@@ -10,6 +10,8 @@ import net.socialhub.service.microblog.model.MiniBlogComment;
  */
 public class BlueskyComment extends MiniBlogComment {
 
+    private String cid;
+
     /** Reply count */
     private Long replyCount;
 
@@ -25,11 +27,19 @@ public class BlueskyComment extends MiniBlogComment {
     @Override
     public String getWebUrl() {
         String rkey = ATUriParser.getRKey((String) getId());
-        return "https://staging.bsky.app/profile/" +
+        return "https://bsky.app/profile/" +
                 getUser().getScreenName() + "/post/" + rkey;
     }
 
     // region
+    public String getCid() {
+        return cid;
+    }
+
+    public void setCid(String cid) {
+        this.cid = cid;
+    }
+
     public Long getReplyCount() {
         return replyCount;
     }

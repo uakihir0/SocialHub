@@ -26,7 +26,7 @@ public class BlueskyAuth implements ServiceAuth<Bluesky> {
         try {
             URL url = new URL(host);
             this.host = url.getProtocol() + "://"
-                    + url.getHost() + "/xrpc/";
+                    + url.getHost() + "/";
 
         } catch (Exception e) {
             throw new IllegalArgumentException(

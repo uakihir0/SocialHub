@@ -77,7 +77,7 @@ public class TumblrPaging extends Paging {
         return pg;
     }
 
-    //region // Getter&Setter
+    // region // Getter&Setter
     public Long getSinceId() {
         return sinceId;
     }
@@ -93,5 +93,5 @@ public class TumblrPaging extends Paging {
     public void setOffset(Long offset) {
         this.offset = offset;
     }
-    //endregion
+    // endregion
 }

@@ -16,9 +16,11 @@ import bsky4j.model.share.RecordUnion;
 import net.socialhub.core.define.MediaType;
 import net.socialhub.core.define.emoji.EmojiCategoryType;
 import net.socialhub.core.model.Comment;
+import net.socialhub.core.model.Identify;
 import net.socialhub.core.model.Media;
 import net.socialhub.core.model.Notification;
 import net.socialhub.core.model.Pageable;
+import net.socialhub.core.model.Paging;
 import net.socialhub.core.model.Relationship;
 import net.socialhub.core.model.Service;
 import net.socialhub.core.model.User;
@@ -36,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
 
@@ -82,7 +85,8 @@ public class BlueskyMapper {
             user.setFollowRecordUri(state.getFollowing());
             user.setFollowedRecordUri(state.getFollowedBy());
             user.setMuted(state.getMuted());
-            // TODO: Block
+            user.setBlockedBy(state.getBlockedBy());
+            user.setBlockingRecordUri(state.getBlocking());
         }
 
         user.setDescription(AttributedString.plain(account.getDescription()));
@@ -112,7 +116,8 @@ public class BlueskyMapper {
             user.setFollowRecordUri(state.getFollowing());
             user.setFollowedRecordUri(state.getFollowedBy());
             user.setMuted(state.getMuted());
-            // TODO: Block
+            user.setBlockedBy(state.getBlockedBy());
+            user.setBlockingRecordUri(state.getBlocking());
         }
 
         user.setDescription(AttributedString.plain(account.getDescription()));
@@ -141,7 +146,8 @@ public class BlueskyMapper {
             user.setFollowRecordUri(state.getFollowing());
             user.setFollowedRecordUri(state.getFollowedBy());
             user.setMuted(state.getMuted());
-            // TODO: Block
+            user.setBlockedBy(state.getBlockedBy());
+            user.setBlockingRecordUri(state.getBlocking());
         }
 
         user.setProtected(false);
@@ -155,8 +161,6 @@ public class BlueskyMapper {
             FeedDefsFeedViewPost feed,
             Service service
     ) {
-
-        BlueskyComment model = new BlueskyComment(service);
         FeedDefsPostView post = feed.getPost();
         return comment(post, service);
     }
@@ -236,7 +240,7 @@ public class BlueskyMapper {
         relationship.setFollowing(user.getFollowRecordUri() != null);
         relationship.setFollowed(user.getFollowedRecordUri() != null);
         relationship.setMuting((user.getMuted() != null) ? user.getMuted() : false);
-        // TODO: Block
+        relationship.setBlocking((user.getBlockingRecordUri() != null));
         return relationship;
     }
 
@@ -322,23 +326,32 @@ public class BlueskyMapper {
      * ユーザーマッピング
      */
     public static Pageable<User> users(
-            List<ActorDefsProfileView> follows,
-            String cursor,
+            List<ActorDefsProfileView> users,
+            Paging paging,
             Service service
     ) {
+        if (paging instanceof BlueskyPaging) {
+            BlueskyPaging p = (BlueskyPaging) paging;
+            users = takeUntil(users, f -> {
+                Identify id = p.getFirstRecord();
+                return id != null && f.getDid().equals(id.getId());
+            });
+        }
+
+        // 空の場合
+        if (users.isEmpty()) {
+            Pageable<User> model = new Pageable<>();
+            model.setEntities(new ArrayList<>());
+            model.setPaging(paging);
+            return model;
+        }
+
         Pageable<User> model = new Pageable<>();
-        model.setEntities(follows.stream()
+        model.setEntities(users.stream()
                 .map(a -> user(a, service))
                 .collect(toList()));
 
-        List<User> entities = model.getEntities();
-        User last = entities.get(entities.size() - 1);
-
-        BlueskyPaging paging = new BlueskyPaging();
-        paging.setNextCursor(cursor);
-        paging.setLastRecord(last);
-        model.setPaging(paging);
-
+        model.setPaging(BlueskyPaging.fromPaging(paging));
         return model;
     }
 
@@ -347,22 +360,32 @@ public class BlueskyMapper {
      */
     public static Pageable<Comment> timelineByFeeds(
             List<FeedDefsFeedViewPost> feed,
-            String cursor,
+            Paging paging,
             Service service
     ) {
+        if (paging instanceof BlueskyPaging) {
+            BlueskyPaging p = (BlueskyPaging) paging;
+            feed = takeUntil(feed, f -> {
+                Identify id = p.getFirstRecord();
+                return id != null && f.getPost()
+                        .getUri().equals(id.getId());
+            });
+        }
+
+        // 空の場合
+        if (feed.isEmpty()) {
+            Pageable<Comment> model = new Pageable<>();
+            model.setEntities(new ArrayList<>());
+            model.setPaging(paging);
+            return model;
+        }
+
         Pageable<Comment> model = new Pageable<>();
         model.setEntities(feed.stream()
                 .map(a -> comment(a, service))
                 .collect(toList()));
 
-        List<Comment> entities = model.getEntities();
-        Comment last = entities.get(entities.size() - 1);
-
-        BlueskyPaging paging = new BlueskyPaging();
-        paging.setNextCursor(cursor);
-        paging.setLastRecord(last);
-        model.setPaging(paging);
-
+        model.setPaging(BlueskyPaging.fromPaging(paging));
         return model;
     }
 
@@ -371,22 +394,31 @@ public class BlueskyMapper {
      */
     public static Pageable<Comment> timelineByPosts(
             List<FeedDefsPostView> posts,
-            String cursor,
+            Paging paging,
             Service service
     ) {
+        if (paging instanceof BlueskyPaging) {
+            BlueskyPaging p = (BlueskyPaging) paging;
+            posts = takeUntil(posts, f -> {
+                Identify id = p.getFirstRecord();
+                return id != null && f.getUri().equals(id.getId());
+            });
+        }
+
+        // 空の場合
+        if (posts.isEmpty()) {
+            Pageable<Comment> model = new Pageable<>();
+            model.setEntities(new ArrayList<>());
+            model.setPaging(paging);
+            return model;
+        }
+
         Pageable<Comment> model = new Pageable<>();
         model.setEntities(posts.stream()
                 .map(a -> comment(a, service))
                 .collect(toList()));
 
-        List<Comment> entities = model.getEntities();
-        Comment last = entities.get(entities.size() - 1);
-
-        BlueskyPaging paging = new BlueskyPaging();
-        paging.setNextCursor(cursor);
-        paging.setLastRecord(last);
-        model.setPaging(paging);
-
+        model.setPaging(BlueskyPaging.fromPaging(paging));
         return model;
     }
 
@@ -396,9 +428,25 @@ public class BlueskyMapper {
     public static Pageable<Notification> notifications(
             List<NotificationListNotificationsNotification> notifications,
             List<FeedDefsPostView> posts,
-            String cursor,
+            Paging paging,
             Service service
     ) {
+
+        if (paging instanceof BlueskyPaging) {
+            BlueskyPaging p = (BlueskyPaging) paging;
+            notifications = takeUntil(notifications, f -> {
+                Identify id = p.getFirstRecord();
+                return id != null && f.getUri().equals(id.getId());
+            });
+        }
+
+        // 空の場合
+        if (notifications.isEmpty()) {
+            Pageable<Notification> model = new Pageable<>();
+            model.setEntities(new ArrayList<>());
+            model.setPaging(paging);
+            return model;
+        }
 
         Map<String, FeedDefsPostView> postMap = new HashMap<>();
         posts.forEach(a -> postMap.put(a.getUri(), a));
@@ -408,14 +456,18 @@ public class BlueskyMapper {
                 .map(n -> notification(n, postMap, service))
                 .collect(toList()));
 
-        List<Notification> entities = model.getEntities();
-        Notification last = entities.get(entities.size() - 1);
-
-        BlueskyPaging paging = new BlueskyPaging();
-        paging.setNextCursor(cursor);
-        paging.setLastRecord(last);
-        model.setPaging(paging);
-
+        model.setPaging(BlueskyPaging.fromPaging(paging));
         return model;
+    }
+
+    static <T> List<T> takeUntil(List<T> list, Predicate<T> predicate) {
+        List<T> result = new ArrayList<>();
+        for (T item : list) {
+            if (predicate.test(item)) {
+                break;
+            }
+            result.add(item);
+        }
+        return result;
     }
 }

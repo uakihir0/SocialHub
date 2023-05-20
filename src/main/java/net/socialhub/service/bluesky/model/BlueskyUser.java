@@ -25,6 +25,8 @@ public class BlueskyUser extends MiniBlogUser {
 
     private String followedRecordUri;
 
+    private String blockingRecordUri;
+
     private Boolean muted;
 
     private Boolean blockedBy;
@@ -62,6 +64,14 @@ public class BlueskyUser extends MiniBlogUser {
 
     public void setFollowedRecordUri(String followedRecordUri) {
         this.followedRecordUri = followedRecordUri;
+    }
+
+    public String getBlockingRecordUri() {
+        return blockingRecordUri;
+    }
+
+    public void setBlockingRecordUri(String blockingRecordUri) {
+        this.blockingRecordUri = blockingRecordUri;
     }
 
     public Boolean getMuted() {

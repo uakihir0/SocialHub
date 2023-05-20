@@ -79,6 +79,11 @@ public class HomeTimelineTest extends AbstractTimelineTest {
     }
 
     @Test
+    public void testHomeTimelineBluesky_New(){
+        execNew(getBlueskyAccount());
+    }
+
+    @Test
     public void testHomeTimelineBluesky_Past(){
         execPast(getBlueskyAccount());
     }

@@ -6,12 +6,20 @@ import bsky4j.model.bsky.actor.ActorDefsProfileViewDetailed;
 import bsky4j.model.bsky.actor.ActorDefsViewerState;
 import bsky4j.model.bsky.embed.EmbedImages;
 import bsky4j.model.bsky.embed.EmbedImagesImage;
+import bsky4j.model.bsky.embed.EmbedImagesView;
+import bsky4j.model.bsky.embed.EmbedImagesViewImage;
 import bsky4j.model.bsky.embed.EmbedUnion;
+import bsky4j.model.bsky.embed.EmbedViewUnion;
 import bsky4j.model.bsky.feed.FeedDefsFeedViewPost;
 import bsky4j.model.bsky.feed.FeedDefsPostView;
 import bsky4j.model.bsky.feed.FeedDefsViewerState;
 import bsky4j.model.bsky.feed.FeedPost;
 import bsky4j.model.bsky.notification.NotificationListNotificationsNotification;
+import bsky4j.model.bsky.richtext.RichtextFacet;
+import bsky4j.model.bsky.richtext.RichtextFacetByteSlice;
+import bsky4j.model.bsky.richtext.RichtextFacetFeatureUnion;
+import bsky4j.model.bsky.richtext.RichtextFacetLink;
+import bsky4j.model.bsky.richtext.RichtextFacetMention;
 import bsky4j.model.share.RecordUnion;
 import net.socialhub.core.define.MediaType;
 import net.socialhub.core.define.emoji.EmojiCategoryType;
@@ -24,6 +32,9 @@ import net.socialhub.core.model.Paging;
 import net.socialhub.core.model.Relationship;
 import net.socialhub.core.model.Service;
 import net.socialhub.core.model.User;
+import net.socialhub.core.model.common.AttributedElement;
+import net.socialhub.core.model.common.AttributedItem;
+import net.socialhub.core.model.common.AttributedKind;
 import net.socialhub.core.model.common.AttributedString;
 import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.logger.Logger;
@@ -33,13 +44,16 @@ import net.socialhub.service.bluesky.model.BlueskyComment;
 import net.socialhub.service.bluesky.model.BlueskyPaging;
 import net.socialhub.service.bluesky.model.BlueskyUser;
 
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import static java.util.Arrays.copyOfRange;
 import static java.util.stream.Collectors.toList;
 
 public class BlueskyMapper {
@@ -199,15 +213,14 @@ public class BlueskyMapper {
             RecordUnion union = post.getRecord();
             if (union instanceof FeedPost) {
                 FeedPost record = (FeedPost) union;
-                model.setText(AttributedString.plain(record.getText()));
+                model.setText(getAttributedText(record));
+            }
 
-                model.setMedias(new ArrayList<>());
-
-                EmbedUnion embed = record.getEmbed();
-                if (embed instanceof EmbedImages) {
-                    ((EmbedImages) embed).getImages().forEach(img ->
-                            model.getMedias().add(media(img)));
-                }
+            model.setMedias(new ArrayList<>());
+            EmbedViewUnion embed = post.getEmbed();
+            if (embed instanceof EmbedImagesView) {
+                ((EmbedImagesView) embed).getImages().forEach(img ->
+                        model.getMedias().add(media(img)));
             }
 
             return model;
@@ -218,15 +231,94 @@ public class BlueskyMapper {
         }
     }
 
+
+
+    private static AttributedString getAttributedText(FeedPost post) {
+        List<AttributedElement> elements = new ArrayList<>();
+        byte[] bytes = post.getText().getBytes(StandardCharsets.UTF_8);
+
+        // 読み進めたバイト数
+        int readIndex = 0;
+
+        if (post.getFacets() != null) {
+            List<RichtextFacet> facets = post.getFacets().stream()
+                    .sorted(Comparator.comparing(i -> i.getIndex().getByteStart()))
+                    .collect(toList());
+
+            for (RichtextFacet facet : facets) {
+                if (facet.getFeatures() != null && !facet.getFeatures().isEmpty()) {
+                    RichtextFacetFeatureUnion union = facet.getFeatures().get(0);
+                    RichtextFacetByteSlice index = facet.getIndex();
+
+                    // Facet の前を Text として取得
+                    if (readIndex < index.getByteStart()) {
+                        int beforeLen = (index.getByteStart() - readIndex);
+                        byte[] beforeBytes = copyOfRange(bytes, readIndex, readIndex + beforeLen);
+
+                        readIndex = index.getByteStart();
+                        int afterLen = (bytes.length - beforeLen);
+                        bytes = copyOfRange(bytes, readIndex, readIndex + afterLen);
+
+                        String str = new String(beforeBytes, StandardCharsets.UTF_8);
+                        AttributedItem element = new AttributedItem();
+                        element.setKind(AttributedKind.PLAIN);
+                        element.setExpandedText(str);
+                        element.setDisplayText(str);
+                        elements.add(element);
+                    }
+
+                    // Facet の部分を切り出して作成
+                    int len = (index.getByteEnd() - index.getByteStart());
+                    byte[] targetByte = copyOfRange(bytes, 0, len);
+
+                    readIndex = index.getByteEnd();
+                    int afterLen = (bytes.length - len);
+                    bytes = copyOfRange(bytes, len, len + afterLen);
+
+                    if (union instanceof RichtextFacetMention) {
+                        RichtextFacetMention mention = (RichtextFacetMention) union;
+                        String str = new String(targetByte, StandardCharsets.UTF_8);
+                        AttributedItem element = new AttributedItem();
+                        element.setKind(AttributedKind.ACCOUNT);
+                        element.setExpandedText(mention.getDid());
+                        element.setDisplayText(str);
+                        elements.add(element);
+                    }
+
+                    if (union instanceof RichtextFacetLink) {
+                        RichtextFacetLink link = (RichtextFacetLink) union;
+                        String str = new String(targetByte, StandardCharsets.UTF_8);
+                        AttributedItem element = new AttributedItem();
+                        element.setKind(AttributedKind.LINK);
+                        element.setExpandedText(link.getUri());
+                        element.setDisplayText(str);
+                        elements.add(element);
+                    }
+                }
+            }
+        }
+
+        if (bytes.length > 0) {
+            String str = new String(bytes, StandardCharsets.UTF_8);
+            AttributedItem element = new AttributedItem();
+            element.setKind(AttributedKind.PLAIN);
+            element.setExpandedText(str);
+            element.setDisplayText(str);
+            elements.add(element);
+        }
+
+        return AttributedString.elements(elements);
+    }
+
     /**
      * メディアマッピング
      */
-    private static Media media(EmbedImagesImage image) {
+    private static Media media(EmbedImagesViewImage img) {
 
         Media media = new Media();
         media.setType(MediaType.Image);
-        media.setPreviewUrl(image.getImage().getRef().getLink());
-        media.setSourceUrl(image.getImage().getRef().getLink());
+        media.setPreviewUrl(img.getThumb());
+        media.setSourceUrl(img.getFullsize());
         return media;
     }
 

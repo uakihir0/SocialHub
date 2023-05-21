@@ -11,13 +11,19 @@ public class MediaTimelineTest extends AbstractTimelineTest {
 
     @Test
     public void testUserMediaTimelineTwitter_Past() {
+        execPast(getTwitterAccount());
+    }
 
+    @Test
+    public void testUserMediaTimelineBluesky_Past() {
+        execPast(getBlueskyAccount());
+    }
+
+    private void execPast(Account account) {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = getTwitterAccount();
         User user = account.action().getUserMe();
-
         Pageable<Comment> comments = account.action().getUserMediaTimeLine(user, paging);
         Pageable<Comment> pasts = account.action().getUserMediaTimeLine(user, comments.pastPage());
 

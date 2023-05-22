@@ -52,12 +52,4 @@ public class MastodonActionTest extends AbstractTimelineTest {
             printComment(comment);
         }
     }
-
-    private void printNotification(List<Notification> notifications) {
-        for (Notification notification : notifications) {
-            System.out.println("--------------------------");
-            System.out.println(notification.getType());
-            System.out.println(notification.getCreateAt());
-        }
-    }
 }

@@ -13,7 +13,7 @@ import java.util.List;
 public class GetInstancesTest extends AbstractApiTest {
 
     @Test
-    public void testMastodonListInstances() {
+    public void testListInstances_Mastodon() {
 
         MsInstancesService client = SocialHub.getSupportServices()
                 .getMastodonInstances(maInstancesProperty.getAccessToken());
@@ -28,7 +28,7 @@ public class GetInstancesTest extends AbstractApiTest {
     }
 
     @Test
-    public void testMastodonSearchInstances() {
+    public void testSearchInstances_Mastodon() {
 
         MsInstancesService client = SocialHub.getSupportServices()
                 .getMastodonInstances(maInstancesProperty.getAccessToken());
@@ -41,7 +41,7 @@ public class GetInstancesTest extends AbstractApiTest {
     }
 
     @Test
-    public void testMisskeyListInstances() {
+    public void testListInstances_Misskey() {
 
         MiInstancesService client = SocialHub.getSupportServices().getMisskeyInstances();
 

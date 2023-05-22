@@ -10,12 +10,12 @@ import org.junit.Test;
 public class MediaTimelineTest extends AbstractTimelineTest {
 
     @Test
-    public void testUserMediaTimelineTwitter_Past() {
+    public void testUserMediaTimelinePast_Twitter() {
         execPast(getTwitterAccount());
     }
 
     @Test
-    public void testUserMediaTimelineBluesky_Past() {
+    public void testUserMediaTimelinePast_Bluesky() {
         execPast(getBlueskyAccount());
     }
 

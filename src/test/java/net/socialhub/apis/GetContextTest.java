@@ -5,53 +5,62 @@ import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Context;
 import net.socialhub.core.model.Identify;
 import net.socialhub.service.slack.model.SlackIdentify;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class GetContextTest extends AbstractApiTest {
 
     @Test
-    @Ignore
-    public void testTwitterGetContext() {
+    public void testGetContext_Twitter() {
         Long id = 0L;
-        Identify identify = new Identify(null, id);
 
         Account account = getTwitterAccount();
+        Identify identify = new Identify(account.getService(), id);
+
         Context context = account.action().getCommentContext(identify);
         printContext(context);
     }
 
     @Test
-    @Ignore
-    public void testMastodonGetContext() {
+    public void testGetContext_Mastodon() {
         Long id = 0L;
-        Identify identify = new Identify(null, id);
 
         Account account = getMastodonAccount();
+        Identify identify = new Identify(account.getService(), id);
+
         Context context = account.action().getCommentContext(identify);
         printContext(context);
     }
 
     @Test
-    @Ignore
-    public void testMisskeyGetContext() {
+    public void testGetContext_Misskey() {
         String id = "";
-        Identify identify = new Identify(null, id);
 
         Account account = getMisskeyAccount();
+        Identify identify = new Identify(account.getService(), id);
+
         Context context = account.action().getCommentContext(identify);
         printContext(context);
     }
 
     @Test
-    @Ignore
-    public void testSlackGetContext() {
+    public void testGetContext_Slack() {
         String id = "";
 
-        SlackIdentify identify = new SlackIdentify(null, id);
+        Account account = getSlackAccount();
+        SlackIdentify identify = new SlackIdentify(account.getService(), id);
         identify.setChannel("");
 
-        Account account = getSlackAccount();
+        Context context = account.action().getCommentContext(identify);
+        printContext(context);
+    }
+
+    @Test
+    public void testGetContext_Bluesky() {
+        String uri = "";
+
+        Account account = getBlueskyAccount();
+        Identify identify = new Identify(account.getService(), uri);
+
         Context context = account.action().getCommentContext(identify);
         printContext(context);
     }

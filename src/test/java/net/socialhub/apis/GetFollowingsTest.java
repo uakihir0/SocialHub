@@ -11,24 +11,38 @@ import java.util.List;
 public class GetFollowingsTest extends AbstractApiTest {
 
     @Test
-    public void testGetFollowingUser_Twitter() {
-
-        Account account = getTwitterAccount();
-        User me = account.action().getUserMe();
-
-        Pageable<User> top = account.action().getFollowingUsers(me, new Paging(10L));
-        Pageable<User> next = account.action().getFollowingUsers(me, top.nextPage());
-
-        System.out.println("[TOP]");
-        printUsers(top.getEntities());
-        System.out.println("[NEXT]");
-        printUsers(next.getEntities());
+    public void testGetFollowingUserNext_Twitter() {
+        execNext(getTwitterAccount());
     }
 
     @Test
-    public void testGetFollowingUser_Mastodon() {
+    public void testGetFollowingUserNext_Mastodon() {
+        execNext(getMastodonAccount());
+    }
 
-        Account account = getMastodonAccount();
+    @Test
+    public void testGetFollowingUserNext_Bluesky() {
+        execNext(getBlueskyAccount());
+    }
+
+    @Test
+    public void testGetFollowingUserPrev_Bluesky() {
+        execPrev(getBlueskyAccount());
+    }
+
+    private void execPrev(Account account) {
+        User me = account.action().getUserMe();
+
+        Pageable<User> top = account.action().getFollowingUsers(me, new Paging(10L));
+        Pageable<User> prev = account.action().getFollowingUsers(me, top.prevPage());
+
+        System.out.println("[TOP]");
+        printUsers(top.getEntities());
+        System.out.println("[PREV]");
+        printUsers(prev.getEntities());
+    }
+
+    private void execNext(Account account) {
         User me = account.action().getUserMe();
 
         Pageable<User> top = account.action().getFollowingUsers(me, new Paging(10L));

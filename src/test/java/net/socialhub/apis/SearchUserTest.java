@@ -26,4 +26,17 @@ public class SearchUserTest extends AbstractTimelineTest {
             System.out.println(next.getName());
         }
     }
+
+    @Test
+    public void testSearchUser_Bluesky() {
+        Paging paging = new Paging();
+        paging.setCount(10L);
+
+        Account account = getBlueskyAccount();
+        Pageable<User> users = account.action().searchUsers("うるし", paging);
+
+        for (User user : users.getEntities()) {
+            System.out.println(user.getName());
+        }
+    }
 }

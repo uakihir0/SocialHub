@@ -9,82 +9,82 @@ import org.junit.Test;
 public class HomeTimelineTest extends AbstractTimelineTest {
 
     @Test
-    public void testHomeTimelineTwitter_New() {
+    public void testHomeTimelineNew_Twitter() {
         execNew(getTwitterAccount());
     }
 
     @Test
-    public void testHomeTimelineTwitter_Past() {
+    public void testHomeTimelinePast_Twitter() {
         execPast(getTwitterAccount());
     }
 
     @Test
-    public void testHomeTimelineMastodon_New() {
+    public void testHomeTimelineNew_Mastodon() {
         execNew(getMastodonAccount());
     }
 
     @Test
-    public void testHomeTimelineMastodon_Past() {
+    public void testHomeTimelinePast_Mastodon() {
         execPast(getMastodonAccount());
     }
 
     @Test
-    public void testHomeTimelinePixelFed_New() {
+    public void testHomeTimelineNew_PixelFed() {
         execNew(getPixelFedAccount());
     }
 
     @Test
-    public void testHomeTimelinePixelFed_Past() {
+    public void testHomeTimelinePast_PixelFed() {
         execPast(getPixelFedAccount());
     }
 
     @Test
-    public void testHomeTimelinePleroma_New() {
+    public void testHomeTimelineNew_Pleroma() {
         execNew(getPleromaAccount());
     }
 
     @Test
-    public void testHomeTimelinePleroma_Past() {
+    public void testHomeTimelinePast_Pleroma() {
         execPast(getPleromaAccount());
     }
 
     @Test
-    public void testHomeTimelineMisskey_New() {
+    public void testHomeTimelineNew_Misskey() {
         execNew(getMisskeyAccount());
     }
 
     @Test
-    public void testHomeTimelineMisskey_Past() {
+    public void testHomeTimelinePast_Misskey() {
         execPast(getMisskeyAccount());
     }
 
     @Test
-    public void testHomeTimelineSlack_New() {
+    public void testHomeTimelineNew_Slack() {
         execNew(getSlackAccount());
     }
 
     @Test
-    public void testHomeTimelineSlack_Past() {
+    public void testHomeTimelinePast_Slack() {
         execPast(getSlackAccount());
     }
 
     @Test
-    public void testHomeTimelineTumblr_New() {
+    public void testHomeTimelineNew_Tumblr() {
         execNew(getTumblrAccount());
     }
 
     @Test
-    public void testHomeTimelineTumblr_Past() {
+    public void testHomeTimelinePast_Tumblr() {
         execPast(getTumblrAccount());
     }
 
     @Test
-    public void testHomeTimelineBluesky_New(){
+    public void testHomeTimelineNew_Bluesky(){
         execNew(getBlueskyAccount());
     }
 
     @Test
-    public void testHomeTimelineBluesky_Past(){
+    public void testHomeTimelinePast_Bluesky(){
         execPast(getBlueskyAccount());
     }
 

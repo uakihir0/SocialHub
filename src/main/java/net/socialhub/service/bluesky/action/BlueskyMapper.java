@@ -4,14 +4,17 @@ import bsky4j.model.bsky.actor.ActorDefsProfileView;
 import bsky4j.model.bsky.actor.ActorDefsProfileViewBasic;
 import bsky4j.model.bsky.actor.ActorDefsProfileViewDetailed;
 import bsky4j.model.bsky.actor.ActorDefsViewerState;
-import bsky4j.model.bsky.embed.EmbedImages;
-import bsky4j.model.bsky.embed.EmbedImagesImage;
 import bsky4j.model.bsky.embed.EmbedImagesView;
 import bsky4j.model.bsky.embed.EmbedImagesViewImage;
-import bsky4j.model.bsky.embed.EmbedUnion;
+import bsky4j.model.bsky.embed.EmbedRecordView;
+import bsky4j.model.bsky.embed.EmbedRecordViewRecord;
+import bsky4j.model.bsky.embed.EmbedRecordViewUnion;
+import bsky4j.model.bsky.embed.EmbedRecordWithMediaView;
 import bsky4j.model.bsky.embed.EmbedViewUnion;
 import bsky4j.model.bsky.feed.FeedDefsFeedViewPost;
 import bsky4j.model.bsky.feed.FeedDefsPostView;
+import bsky4j.model.bsky.feed.FeedDefsReasonRepost;
+import bsky4j.model.bsky.feed.FeedDefsReplyRef;
 import bsky4j.model.bsky.feed.FeedDefsViewerState;
 import bsky4j.model.bsky.feed.FeedPost;
 import bsky4j.model.bsky.notification.NotificationListNotificationsNotification;
@@ -48,6 +51,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -176,7 +180,9 @@ public class BlueskyMapper {
             Service service
     ) {
         FeedDefsPostView post = feed.getPost();
-        return comment(post, service);
+        FeedDefsReplyRef reply = feed.getReply();
+        FeedDefsReasonRepost repost = feed.getReason();
+        return comment(post, reply, repost, service);
     }
 
     /**
@@ -184,54 +190,166 @@ public class BlueskyMapper {
      */
     public static Comment comment(
             FeedDefsPostView post,
+            FeedDefsReplyRef reply,
+            FeedDefsReasonRepost repost,
             Service service
     ) {
         BlueskyComment model = new BlueskyComment(service);
 
-        try {
+        // Repost
+        if (repost != null) {
             model.setId(post.getUri());
             model.setCid(post.getCid());
-            model.setUser(user(post.getAuthor(), service));
-            model.setCreateAt(dateFormat.parse(post.getIndexedAt()));
-
-            // TODO: Labels
-            model.setPossiblySensitive(false);
-
-            model.setLikeCount((post.getLikeCount() != null)
-                    ? post.getLikeCount().longValue() : 0);
-            model.setShareCount((post.getRepostCount() != null)
-                    ? post.getRepostCount().longValue() : 0);
-            model.setReplyCount((post.getReplyCount() != null)
-                    ? post.getReplyCount().longValue() : 0);
-
-            FeedDefsViewerState state = post.getViewer();
-            model.setLiked(state.getLike() != null);
-            model.setLikeRecordUri(state.getLike());
-            model.setShared(state.getRepost() != null);
-            model.setRepostRecordUri(state.getRepost());
-
-            RecordUnion union = post.getRecord();
-            if (union instanceof FeedPost) {
-                FeedPost record = (FeedPost) union;
-                model.setText(getAttributedText(record));
-            }
+            model.setUser(user(repost.getBy(), service));
+            model.setCreateAt(parseDate(repost.getIndexedAt()));
 
             model.setMedias(new ArrayList<>());
-            EmbedViewUnion embed = post.getEmbed();
-            if (embed instanceof EmbedImagesView) {
-                ((EmbedImagesView) embed).getImages().forEach(img ->
-                        model.getMedias().add(media(img)));
-            }
+            model.setSharedComment(comment(
+                    post, reply, null, service));
+
+            model.setLiked(false);
+            model.setShared(false);
+            model.setPossiblySensitive(false);
+
+            model.setLikeCount(0L);
+            model.setShareCount(0L);
+            model.setReplyCount(0L);
 
             return model;
+        }
 
-        } catch (Exception e) {
-            logger.error(e);
-            throw new IllegalStateException(e);
+
+        model.setId(post.getUri());
+        model.setCid(post.getCid());
+        model.setUser(user(post.getAuthor(), service));
+        model.setCreateAt(parseDate(post.getIndexedAt()));
+
+        // TODO: Labels
+        model.setPossiblySensitive(false);
+
+        model.setLikeCount((post.getLikeCount() != null)
+                ? post.getLikeCount().longValue() : 0);
+        model.setShareCount((post.getRepostCount() != null)
+                ? post.getRepostCount().longValue() : 0);
+        model.setReplyCount((post.getReplyCount() != null)
+                ? post.getReplyCount().longValue() : 0);
+
+        FeedDefsViewerState state = post.getViewer();
+        model.setLiked(state.getLike() != null);
+        model.setLikeRecordUri(state.getLike());
+        model.setShared(state.getRepost() != null);
+        model.setRepostRecordUri(state.getRepost());
+
+        RecordUnion union = post.getRecord();
+        if (union instanceof FeedPost) {
+            FeedPost record = (FeedPost) union;
+            model.setText(getAttributedText(record));
+        }
+
+        // Media + Quote
+        EmbedViewUnion embed = post.getEmbed();
+        model.setMedias(new ArrayList<>());
+        embed(model, embed, service);
+
+        // Reply
+        if (reply != null) {
+
+            // リプライ設定
+            FeedDefsPostView parent = reply.getParent();
+            BlueskyComment parentComment = (BlueskyComment)
+                    simpleComment(parent, service);
+            model.setReplyTo(parentComment);
+
+            // 会話スレッドのルート設定
+            FeedDefsPostView root = reply.getRoot();
+            BlueskyComment rootComment = (BlueskyComment)
+                    simpleComment(root, service);
+            model.setReplayRootTo(rootComment);
+        }
+
+        return model;
+    }
+
+    /**
+     * コメントマッピング
+     */
+    public static Comment simpleComment(
+            FeedDefsPostView post,
+            Service service
+    ) {
+        return comment(
+                post,
+                null,
+                null,
+                service
+        );
+    }
+
+    private static void embed(
+            BlueskyComment model,
+            EmbedViewUnion embed,
+            Service service
+    ) {
+        // Media
+        if (embed instanceof EmbedImagesView) {
+            model.getMedias().clear();
+            ((EmbedImagesView) embed).getImages().forEach(img ->
+                    model.getMedias().add(media(img)));
+        }
+
+        // Quote
+        if (embed instanceof EmbedRecordView) {
+            embedRecord(model, (EmbedRecordView) embed, service);
         }
     }
 
+    private static void embedRecord(
+            BlueskyComment model,
+            EmbedRecordView record,
+            Service service
+    ) {
+        EmbedRecordViewUnion union = record.getRecord();
+        if (union instanceof EmbedRecordViewRecord) {
+            EmbedRecordViewRecord v = (EmbedRecordViewRecord) union;
+            model.setSharedComment(quote(v, service));
+        }
 
+        if (union instanceof EmbedRecordWithMediaView) {
+            EmbedRecordWithMediaView mv = (EmbedRecordWithMediaView) union;
+            embedRecord(model, mv.getRecord(), service);
+            embed(model, mv.getMedia(), service);
+        }
+    }
+
+    private static BlueskyComment quote(
+            EmbedRecordViewRecord post,
+            Service service
+    ) {
+        BlueskyComment model = new BlueskyComment(service);
+
+        model.setId(post.getUri());
+        model.setCid(post.getCid());
+        model.setUser(user(post.getAuthor(), service));
+        model.setCreateAt(parseDate(post.getIndexedAt()));
+
+        model.setLiked(false);
+        model.setShared(false);
+        model.setPossiblySensitive(false);
+
+        model.setLikeCount(0L);
+        model.setShareCount(0L);
+        model.setReplyCount(0L);
+
+        // Text
+        RecordUnion union = post.getValue();
+        if (union instanceof FeedPost) {
+            FeedPost record = (FeedPost) union;
+            model.setText(getAttributedText(record));
+        }
+
+        model.setMedias(new ArrayList<>());
+        return model;
+    }
 
     private static AttributedString getAttributedText(FeedPost post) {
         List<AttributedElement> elements = new ArrayList<>();
@@ -345,48 +463,42 @@ public class BlueskyMapper {
             Service service
     ) {
 
-        try {
-            Notification model = new Notification(service);
-            model.setId(notification.getUri());
-            model.setCreateAt(dateFormat.parse(notification.getIndexedAt()));
+        Notification model = new Notification(service);
+        model.setId(notification.getUri());
+        model.setCreateAt(parseDate(notification.getIndexedAt()));
 
-            BlueskyNotificationType type =
-                    BlueskyNotificationType
-                            .of(notification.getReason());
+        BlueskyNotificationType type =
+                BlueskyNotificationType
+                        .of(notification.getReason());
 
-            if (type != null) {
-                model.setType(type.getCode());
-                if (type.getAction() != null) {
-                    model.setAction(type.getAction().getCode());
-                }
+        if (type != null) {
+            model.setType(type.getCode());
+            if (type.getAction() != null) {
+                model.setAction(type.getAction().getCode());
             }
-
-            if (notification.getAuthor() != null) {
-                model.setUsers(new ArrayList<>());
-                model.getUsers().add(user(notification.getAuthor(), service));
-            }
-
-
-            if (notification.getRecord() != null) {
-                RecordUnion union = notification.getRecord();
-
-                if (union instanceof FeedPost) {
-                    String subject = notification.getReasonSubject();
-                    FeedDefsPostView post = posts.get(subject);
-
-                    if (post != null) {
-                        model.setComments(new ArrayList<>());
-                        model.getComments().add(comment(post, service));
-                    }
-                }
-            }
-
-            return model;
-
-        } catch (Exception e) {
-            logger.error(e);
-            throw new IllegalStateException(e);
         }
+
+        if (notification.getAuthor() != null) {
+            model.setUsers(new ArrayList<>());
+            model.getUsers().add(user(notification.getAuthor(), service));
+        }
+
+
+        if (notification.getRecord() != null) {
+            RecordUnion union = notification.getRecord();
+
+            if (union instanceof FeedPost) {
+                String subject = notification.getReasonSubject();
+                FeedDefsPostView post = posts.get(subject);
+
+                if (post != null) {
+                    model.setComments(new ArrayList<>());
+                    model.getComments().add(simpleComment(post, service));
+                }
+            }
+        }
+
+        return model;
     }
 
     /**
@@ -425,7 +537,7 @@ public class BlueskyMapper {
         if (paging instanceof BlueskyPaging) {
             BlueskyPaging p = (BlueskyPaging) paging;
             users = takeUntil(users, f -> {
-                Identify id = p.getFirstRecord();
+                Identify id = p.getLatestRecord();
                 return id != null && f.getDid().equals(id.getId());
             });
         }
@@ -458,7 +570,7 @@ public class BlueskyMapper {
         if (paging instanceof BlueskyPaging) {
             BlueskyPaging p = (BlueskyPaging) paging;
             feed = takeUntil(feed, f -> {
-                Identify id = p.getFirstRecord();
+                Identify id = p.getLatestRecord();
                 return id != null && f.getPost()
                         .getUri().equals(id.getId());
             });
@@ -492,7 +604,7 @@ public class BlueskyMapper {
         if (paging instanceof BlueskyPaging) {
             BlueskyPaging p = (BlueskyPaging) paging;
             posts = takeUntil(posts, f -> {
-                Identify id = p.getFirstRecord();
+                Identify id = p.getLatestRecord();
                 return id != null && f.getUri().equals(id.getId());
             });
         }
@@ -507,7 +619,7 @@ public class BlueskyMapper {
 
         Pageable<Comment> model = new Pageable<>();
         model.setEntities(posts.stream()
-                .map(a -> comment(a, service))
+                .map(a -> simpleComment(a, service))
                 .collect(toList()));
 
         model.setPaging(BlueskyPaging.fromPaging(paging));
@@ -527,7 +639,7 @@ public class BlueskyMapper {
         if (paging instanceof BlueskyPaging) {
             BlueskyPaging p = (BlueskyPaging) paging;
             notifications = takeUntil(notifications, f -> {
-                Identify id = p.getFirstRecord();
+                Identify id = p.getLatestRecord();
                 return id != null && f.getUri().equals(id.getId());
             });
         }
@@ -552,7 +664,7 @@ public class BlueskyMapper {
         return model;
     }
 
-    static <T> List<T> takeUntil(List<T> list, Predicate<T> predicate) {
+    public static <T> List<T> takeUntil(List<T> list, Predicate<T> predicate) {
         List<T> result = new ArrayList<>();
         for (T item : list) {
             if (predicate.test(item)) {
@@ -561,5 +673,14 @@ public class BlueskyMapper {
             result.add(item);
         }
         return result;
+    }
+
+    public static Date parseDate(String str) {
+        try {
+            return dateFormat.parse(str);
+        } catch (Exception e) {
+            logger.error(e);
+            throw new IllegalStateException(e);
+        }
     }
 }

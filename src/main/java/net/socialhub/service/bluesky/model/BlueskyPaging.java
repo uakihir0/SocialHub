@@ -3,21 +3,21 @@ package net.socialhub.service.bluesky.model;
 import net.socialhub.core.model.Identify;
 import net.socialhub.core.model.Paging;
 
-import java.util.Date;
 import java.util.List;
 
 public class BlueskyPaging extends Paging {
 
     /**
-     * 取得した最初のレコードを記録
-     * (取得済みであることを記録するため)
+     * 最新のレコードの記録
      */
-    private Identify firstRecord;
+    private Identify latestRecord;
+    private Identify latestRecordHint;
 
     /**
-     * 次を取得するためのカーソルを記録
+     * ページングカーソル
      */
-    private String nextCursor;
+    private String cursor;
+    private String cursorHint;
 
     /**
      * From Paging instance
@@ -41,11 +41,19 @@ public class BlueskyPaging extends Paging {
     @Override
     public <T extends Identify> Paging newPage(List<T> entities) {
         BlueskyPaging pg = copy();
-
         if (entities.size() > 0) {
+
+            // ヒントが設定されている場合はそれを使用
+            if (getLatestRecordHint() != null) {
+                pg.setLatestRecord(getLatestRecordHint());
+                return pg.clearHint();
+            }
+
             T first = entities.get(0);
-            pg.setFirstRecord(first);
+            pg.setLatestRecord(first);
+            return pg.clearHint();
         }
+
         return pg;
     }
 
@@ -55,17 +63,25 @@ public class BlueskyPaging extends Paging {
     @Override
     public <T extends Identify> Paging pastPage(List<T> entities) {
         BlueskyPaging pg = copy();
-
         if (entities.size() > 0) {
+
+            // ヒントが設定されている場合はそれを使用
+            if (getCursorHint() != null) {
+                pg.setCursor(getCursorHint());
+                return pg.clearHint();
+            }
+
             int count = entities.size();
             T last = entities.get((count - 1));
 
             if (last instanceof BlueskyComment) {
                 BlueskyComment c = (BlueskyComment) last;
                 String cursor = c.getCreateAt().getTime() + "::" + c.getCid();
-                pg.setNextCursor(cursor);
+                pg.setCursor(cursor);
             }
+            return pg.clearHint();
         }
+
         return pg;
     }
 
@@ -74,27 +90,54 @@ public class BlueskyPaging extends Paging {
      */
     public BlueskyPaging copy() {
         BlueskyPaging pg = new BlueskyPaging();
-        pg.setFirstRecord(getFirstRecord());
-        pg.setNextCursor(getNextCursor());
+
+        pg.setLatestRecord(getLatestRecord());
+        pg.setLatestRecordHint(getLatestRecordHint());
+
+        pg.setCursor(getCursor());
+        pg.setCursorHint(getCursorHint());
+
         copyTo(pg);
         return pg;
     }
 
+    public BlueskyPaging clearHint() {
+        setLatestRecordHint(null);
+        setCursorHint(null);
+        return this;
+    }
+
     // region
-    public Identify getFirstRecord() {
-        return firstRecord;
+    public Identify getLatestRecord() {
+        return latestRecord;
     }
 
-    public void setFirstRecord(Identify firstRecord) {
-        this.firstRecord = firstRecord;
+    public void setLatestRecord(Identify latestRecord) {
+        this.latestRecord = latestRecord;
     }
 
-    public String getNextCursor() {
-        return nextCursor;
+    public Identify getLatestRecordHint() {
+        return latestRecordHint;
     }
 
-    public void setNextCursor(String nextCursor) {
-        this.nextCursor = nextCursor;
+    public void setLatestRecordHint(Identify latestRecordHint) {
+        this.latestRecordHint = latestRecordHint;
+    }
+
+    public String getCursor() {
+        return cursor;
+    }
+
+    public void setCursor(String cursor) {
+        this.cursor = cursor;
+    }
+
+    public String getCursorHint() {
+        return cursorHint;
+    }
+
+    public void setCursorHint(String cursorHint) {
+        this.cursorHint = cursorHint;
     }
     // endregion
 }

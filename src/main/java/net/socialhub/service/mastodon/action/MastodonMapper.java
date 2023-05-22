@@ -162,9 +162,9 @@ public class MastodonMapper {
      * コメントマッピング
      */
     public static Comment comment(
-            Status status, //
-            Service service) {
-
+            Status status,
+            Service service
+    ) {
         MastodonComment model = new MastodonComment(service);
 
         try {

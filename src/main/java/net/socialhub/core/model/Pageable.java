@@ -85,7 +85,7 @@ public class Pageable<T extends Identify> implements Serializable {
                 .collect(Collectors.toList());
     }
 
-    //region // Getter&Setter
+    // region // Getter&Setter
     public Paging getPaging() {
         return paging;
     }
@@ -115,5 +115,5 @@ public class Pageable<T extends Identify> implements Serializable {
     public void setPredicate(Predicate<T> predicate) {
         this.predicate = predicate;
     }
-    //endregion
+    // endregion
 }

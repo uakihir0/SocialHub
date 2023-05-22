@@ -1,6 +1,7 @@
 package net.socialhub.service.bluesky.model;
 
 import bsky4j.util.ATUriParser;
+import net.socialhub.core.model.Identify;
 import net.socialhub.core.model.Service;
 import net.socialhub.service.microblog.model.MiniBlogComment;
 
@@ -12,6 +13,9 @@ public class BlueskyComment extends MiniBlogComment {
 
     private String cid;
 
+    /** Is Simple Object */
+    private Boolean isSimple;
+
     /** Reply count */
     private Long replyCount;
 
@@ -19,10 +23,11 @@ public class BlueskyComment extends MiniBlogComment {
 
     private String repostRecordUri;
 
+    private Identify replayRootTo;
+
     public BlueskyComment(Service service) {
         super(service);
     }
-
 
     @Override
     public String getWebUrl() {
@@ -64,5 +69,20 @@ public class BlueskyComment extends MiniBlogComment {
         this.repostRecordUri = repostRecordUri;
     }
 
+    public Identify getReplayRootTo() {
+        return replayRootTo;
+    }
+
+    public void setReplayRootTo(Identify replayRootTo) {
+        this.replayRootTo = replayRootTo;
+    }
+
+    public Boolean getSimple() {
+        return isSimple;
+    }
+
+    public void setSimple(Boolean simple) {
+        isSimple = simple;
+    }
     // endregion
 }

@@ -48,14 +48,20 @@ import bsky4j.model.atproto.repo.RepoStrongRef;
 import bsky4j.model.bsky.actor.ActorDefsViewerState;
 import bsky4j.model.bsky.embed.EmbedImages;
 import bsky4j.model.bsky.embed.EmbedImagesImage;
+import bsky4j.model.bsky.embed.EmbedRecord;
+import bsky4j.model.bsky.embed.EmbedRecordWithMedia;
 import bsky4j.model.bsky.embed.EmbedUnion;
 import bsky4j.model.bsky.feed.FeedDefsFeedViewPost;
+import bsky4j.model.bsky.feed.FeedDefsPostView;
 import bsky4j.model.bsky.feed.FeedDefsThreadUnion;
 import bsky4j.model.bsky.feed.FeedDefsThreadViewPost;
+import bsky4j.model.bsky.feed.FeedLike;
 import bsky4j.model.bsky.feed.FeedPost;
+import bsky4j.model.bsky.feed.FeedPostReplyRef;
 import bsky4j.model.bsky.notification.NotificationListNotificationsNotification;
 import bsky4j.model.bsky.richtext.RichtextFacet;
 import bsky4j.model.share.RecordUnion;
+import bsky4j.util.ATUriParser;
 import bsky4j.util.facet.FacetList;
 import bsky4j.util.facet.FacetRecord;
 import bsky4j.util.facet.FacetType;
@@ -94,9 +100,11 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -302,7 +310,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                             GraphGetFollowsRequest.builder()
                                     .accessJwt(getAccessJwt())
                                     .actor((String) id.getId())
-                                    .cursor(nextCursor(paging))
+                                    .cursor(cursor(paging))
                                     .limit(limit(paging))
                                     .build());
 
@@ -327,7 +335,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                             GraphGetFollowersRequest.builder()
                                     .accessJwt(getAccessJwt())
                                     .actor((String) id.getId())
-                                    .cursor(nextCursor(paging))
+                                    .cursor(cursor(paging))
                                     .limit(limit(paging))
                                     .build());
 
@@ -352,7 +360,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                             ActorSearchActorsRequest.builder()
                                     .accessJwt(getAccessJwt())
                                     .term(query)
-                                    .cursor(nextCursor(paging))
+                                    .cursor(cursor(paging))
                                     .limit(limit(paging))
                                     .build());
 
@@ -380,7 +388,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                     auth.getAccessor().feed().getTimeline(
                             FeedGetTimelineRequest.builder()
                                     .accessJwt(getAccessJwt())
-                                    .cursor(nextCursor(paging))
+                                    .cursor(cursor(paging))
                                     .limit(limit(paging))
                                     .build());
 
@@ -400,21 +408,24 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
 
         return proceed(() -> {
             Service service = getAccount().getService();
-            Response<NotificationListNotificationsResponse> notifications =
-                    auth.getAccessor().notification().listNotifications(
-                            NotificationListNotificationsRequest.builder()
-                                    .accessJwt(getAccessJwt())
-                                    .cursor(nextCursor(paging))
-                                    .limit(limit(paging))
-                                    .build());
 
-            // TODO: ページング
+            // 取得する通知の種類を指定
+            List<String> types = new ArrayList<>();
+            types.add("reply");
 
-            List<String> subjects = notifications
-                    .get().getNotifications().stream()
-                    .filter(n -> n.getRecord() != null)
-                    .filter(n -> n.getRecord().getType().equals("replay"))
-                    .map(NotificationListNotificationsNotification::getReasonSubject)
+            NotificationStructure model = getNotifications(paging, types);
+
+            // 空の場合
+            if (model.notifications.isEmpty()) {
+                Pageable<Comment> results = new Pageable<>();
+                results.setEntities(new ArrayList<>());
+                results.setPaging(paging);
+                return results;
+            }
+
+            // 投稿を取得
+            List<String> subjects = model.notifications.stream()
+                    .map(NotificationListNotificationsNotification::getUri)
                     .collect(toList());
 
             Response<FeedGetPostsResponse> posts =
@@ -424,11 +435,21 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                                     .uris(subjects)
                                     .build());
 
-            return BlueskyMapper.timelineByPosts(
-                    posts.get().getPosts(),
-                    null,
-                    service
-            );
+            Pageable<Comment> results =
+                    BlueskyMapper.timelineByPosts(
+                            posts.get().getPosts(),
+                            null,
+                            service
+                    );
+
+            // ページング情報を上書きする (ヒントの追加)
+            BlueskyPaging pg = BlueskyPaging.fromPaging(paging);
+            Identify id = new Identify(service, model.first);
+            pg.setCursorHint(model.cursor);
+            pg.setLatestRecordHint(id);
+            results.setPaging(pg);
+
+            return results;
         });
     }
 
@@ -445,7 +466,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                             FeedGetAuthorFeedRequest.builder()
                                     .accessJwt(getAccessJwt())
                                     .actor((String) id.getId())
-                                    .cursor(nextCursor(paging))
+                                    .cursor(cursor(paging))
                                     .limit(limit(paging))
                                     .build());
 
@@ -465,22 +486,41 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
 
         return proceed(() -> {
             Service service = getAccount().getService();
-
-            // TODO: ページング対応
-
             Response<RepoListRecordsResponse> response =
                     auth.getAccessor().repo().listRecords(
                             RepoListRecordsRequest.builder()
                                     .repo((String) id.getId())
                                     .collection(BlueskyTypes.FeedLike)
-                                    .rkeyStart("")
-                                    .rkeyEnd("")
+                                    .cursor(rkey(cursor(paging)))
                                     .limit(limit(paging))
                                     .build());
 
-            List<String> subjects = response.get().getRecords().stream()
-                    .map(RepoListRecordsRecord::getUri)
+            List<RepoListRecordsRecord> records = response.get().getRecords();
+
+            // 取得済みレコードを結果から排除
+            if (paging instanceof BlueskyPaging) {
+                BlueskyPaging pg = (BlueskyPaging) paging;
+
+                if (pg.getLatestRecord() != null) {
+                    String uri = (String) pg.getLatestRecord().getId();
+                    records = BlueskyMapper.takeUntil(records, n -> n.getUri().equals(uri));
+                }
+            }
+
+            // Like した投稿のレコード uri を取得
+            List<String> subjects = records.stream()
+                    .filter(i -> i.getValue() instanceof FeedLike)
+                    .map(i -> (FeedLike) i.getValue())
+                    .map(i -> i.getSubject().getUri())
                     .collect(toList());
+
+            // 空の場合
+            if (subjects.isEmpty()) {
+                Pageable<Comment> results = new Pageable<>();
+                results.setEntities(new ArrayList<>());
+                results.setPaging(paging);
+                return results;
+            }
 
             Response<FeedGetPostsResponse> posts =
                     auth.getAccessor().feed().getPosts(
@@ -489,11 +529,20 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                                     .uris(subjects)
                                     .build());
 
-            return BlueskyMapper.timelineByPosts(
-                    posts.get().getPosts(),
-                    null,
-                    service
-            );
+            Pageable<Comment> results =
+                    BlueskyMapper.timelineByPosts(
+                            posts.get().getPosts(),
+                            null,
+                            service
+                    );
+
+            // ページングを上書きする
+            BlueskyPaging pg = BlueskyPaging.fromPaging(paging);
+            pg.setCursorHint(records.get(records.size() - 1).getUri());
+            Identify lid = new Identify(service, records.get(0).getUri());
+            pg.setLatestRecordHint(lid);
+            results.setPaging(pg);
+            return results;
         });
     }
 
@@ -504,7 +553,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
     public Pageable<Comment> getUserMediaTimeLine(Identify id, Paging paging) {
 
         return proceed(() -> {
-            String cursor = nextCursor(paging);
+            String cursor = cursor(paging);
             Service service = getAccount().getService();
             List<FeedDefsFeedViewPost> feeds = new ArrayList<>();
 
@@ -574,6 +623,14 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                     // tid と User did から at-uri を復元して投稿を取得
                     .map(i -> "at://" + i.getUser().getDid() + "/" + i.getTid())
                     .collect(toList());
+
+            // 結果が空の場合
+            if (uris.isEmpty()) {
+                Pageable<Comment> results = new Pageable<>();
+                results.setEntities(new ArrayList<>());
+                results.setPaging(paging);
+                return results;
+            }
 
             Response<FeedGetPostsResponse> posts =
                     auth.getAccessor().feed().getPosts(
@@ -662,15 +719,82 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                                 .text(list.getDisplayText())
                                 .facets(facets);
 
+                // Images
+                EmbedImages embedImages = null;
                 if (!imageFutures.isEmpty()) {
                     List<EmbedImagesImage> images = new ArrayList<>();
                     for (Future<EmbedImagesImage> imageFuture : imageFutures) {
                         images.add(imageFuture.get());
                     }
 
-                    EmbedImages imagesMain = new EmbedImages();
-                    imagesMain.setImages(images);
-                    builder.embed(imagesMain);
+                    embedImages = new EmbedImages();
+                    embedImages.setImages(images);
+                    builder.embed(embedImages);
+                }
+
+                // Reply
+                if (req.getReplyId() != null) {
+                    String uri = (String) req.getReplyId();
+
+                    // リプライルートを探索
+                    // TODO: 深さがありえないぐらい深い場合はどうする？
+                    Response<FeedGetPostThreadResponse> response =
+                            auth.getAccessor().feed().getPostThread(
+                                    FeedGetPostThreadRequest.builder()
+                                            .accessJwt(getAccessJwt())
+                                            .uri(uri)
+                                            .build());
+
+                    FeedDefsThreadUnion union = response.get().getThread();
+                    if (union instanceof FeedDefsThreadViewPost) {
+
+                        FeedDefsPostView reply = ((FeedDefsThreadViewPost) union).getPost();
+                        FeedDefsThreadViewPost feed = (FeedDefsThreadViewPost) union;
+
+                        // トップレベルの投稿を取得
+                        FeedDefsPostView root = null;
+                        FeedDefsThreadUnion parent = feed.getParent();
+                        while (parent instanceof FeedDefsThreadViewPost) {
+                            root = ((FeedDefsThreadViewPost) parent).getPost();
+                            parent = ((FeedDefsThreadViewPost) parent).getParent();
+                        }
+
+                        // Root がない場合
+                        if (root == null) {
+                            root = reply;
+                        }
+
+                        RepoStrongRef rootRef = new RepoStrongRef(root.getUri(), root.getCid());
+                        RepoStrongRef replyRef = new RepoStrongRef(reply.getUri(), reply.getCid());
+
+                        FeedPostReplyRef ref = new FeedPostReplyRef();
+                        ref.setParent(replyRef);
+                        ref.setRoot(rootRef);
+                        builder.reply(ref);
+                    }
+                }
+
+                // Quote
+                if (req.getQuoteId() != null) {
+                    String uri = (String) req.getReplyId();
+                    BlueskyComment comment = (BlueskyComment) getComment(uri);
+
+                    EmbedRecord record = new EmbedRecord();
+                    record.setRecord(new RepoStrongRef(uri, comment.getCid()));
+
+                    // 既に画像が設定済みの場合
+                    if (embedImages != null) {
+
+                        // RecordWithMedia を生成して上書き設定
+                        EmbedRecordWithMedia rwm = new EmbedRecordWithMedia();
+                        rwm.setMedia(embedImages);
+                        rwm.setRecord(record);
+                        builder.embed(rwm);
+
+                    } else {
+                        // 単純に Record を設定
+                        builder.embed(record);
+                    }
                 }
 
                 auth.getAccessor().feed()
@@ -698,7 +822,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                                     .uris(singletonList((String) id.getId()))
                                     .build());
 
-            return BlueskyMapper.comment(
+            return BlueskyMapper.simpleComment(
                     posts.get().getPosts().get(0),
                     service
             );
@@ -928,7 +1052,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
     ) {
         if (post.getParent() instanceof FeedDefsThreadViewPost) {
             FeedDefsThreadViewPost parent = (FeedDefsThreadViewPost) post.getParent();
-            ancestors.add(BlueskyMapper.comment(parent.getPost(), service));
+            ancestors.add(BlueskyMapper.simpleComment(parent.getPost(), service));
             subGetCommentContext(parent, ancestors, descendants, service);
         }
 
@@ -936,7 +1060,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
             for (FeedDefsThreadUnion reply : post.getReplies()) {
                 if (reply instanceof FeedDefsThreadViewPost) {
                     FeedDefsThreadViewPost child = (FeedDefsThreadViewPost) reply;
-                    descendants.add(BlueskyMapper.comment(child.getPost(), service));
+                    descendants.add(BlueskyMapper.simpleComment(child.getPost(), service));
                     subGetCommentContext(child, ancestors, descendants, service);
                 }
             }
@@ -960,20 +1084,27 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
         return proceed(() -> {
             Service service = getAccount().getService();
 
-            Response<NotificationListNotificationsResponse> response =
-                    auth.getAccessor().notification().listNotifications(
-                            NotificationListNotificationsRequest.builder()
-                                    .accessJwt(getAccessJwt())
-                                    .cursor(nextCursor(paging))
-                                    .limit(limit(paging))
-                                    .build());
+            // 取得する通知の種類を指定
+            List<String> types = new ArrayList<>();
+            types.add("like");
+            types.add("repost");
+            types.add("follow");
 
+            NotificationStructure model = getNotifications(paging, types);
 
-            List<String> subjects = response.get().getNotifications()
-                    .stream().filter(n -> n.getRecord() instanceof FeedPost)
+            // 空の場合
+            if (model.notifications.isEmpty()) {
+                Pageable<Notification> results = new Pageable<>();
+                results.setEntities(new ArrayList<>());
+                results.setPaging(paging);
+                return results;
+            }
+
+            // 投稿を取得
+            List<String> subjects = model.notifications.stream()
                     .map(NotificationListNotificationsNotification::getReasonSubject)
+                    .filter(Objects::nonNull)
                     .collect(toList());
-
 
             Response<FeedGetPostsResponse> posts =
                     auth.getAccessor().feed().getPosts(
@@ -982,13 +1113,112 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                                     .uris(subjects)
                                     .build());
 
-            return BlueskyMapper.notifications(
-                    response.get().getNotifications(),
-                    posts.get().getPosts(),
-                    paging,
-                    service
-            );
+            Pageable<Notification> results =
+                    BlueskyMapper.notifications(
+                            model.notifications,
+                            posts.get().getPosts(),
+                            null,
+                            service
+                    );
+
+            // ページング情報を上書きする (ヒントの追加)
+            BlueskyPaging pg = BlueskyPaging.fromPaging(paging);
+            Identify id = new Identify(service, model.first);
+            pg.setCursorHint(model.cursor);
+            pg.setLatestRecordHint(id);
+            results.setPaging(pg);
+
+            return results;
         });
+    }
+
+    /**
+     * 通知取得 + ページング
+     */
+    private NotificationStructure getNotifications(
+            Paging paging,
+            List<String> types
+    ) {
+        List<NotificationListNotificationsNotification> notifications = new ArrayList<>();
+
+        int limit = limit(paging);
+        String cursor = cursor(paging);
+        String first = null;
+        boolean stop = false;
+
+        for (int i = 0; i < 10; i++) {
+
+            Response<NotificationListNotificationsResponse> response =
+                    auth.getAccessor().notification().listNotifications(
+                            NotificationListNotificationsRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .cursor(cursor)
+                                    .limit(100)
+                                    .build());
+
+            List<NotificationListNotificationsNotification> list =
+                    response.get().getNotifications();
+
+
+            // 初期 ID の記録
+            if (first == null) {
+                if (!response.get().getNotifications().isEmpty()) {
+                    first = response.get().getNotifications().get(0).getUri();
+                }
+            }
+
+            // ページング処理 (最新の取得済みレコードを確認)
+            if (paging instanceof BlueskyPaging) {
+                BlueskyPaging pg = (BlueskyPaging) paging;
+
+                if (pg.getLatestRecord() != null) {
+                    String uri = (String) pg.getLatestRecord().getId();
+                    list = BlueskyMapper.takeUntil(list, n -> n.getUri().equals(uri));
+
+                    // 処理を停止
+                    stop = true;
+                }
+            }
+
+            // リアクションのみを取得
+            list = list.stream()
+                    .filter(n -> n.getRecord() != null)
+                    .filter(n -> types.contains(n.getReason()))
+                    .collect(toList());
+
+            if (list.isEmpty()) {
+
+                // 空の場合はカーソルだけを更新して終了
+                cursor = response.get().getCursor();
+
+            } else {
+
+                // ページング処理 (limit までデータを取得)
+                if (notifications.size() + list.size() > limit) {
+                    list = list.subList(0, limit - notifications.size());
+                    stop = true;
+                }
+
+                // 次ページをみるためカーソルを作成
+                NotificationListNotificationsNotification last = list.get(list.size() - 1);
+                Date date = BlueskyMapper.parseDate(last.getIndexedAt());
+                cursor = date.getTime() + "::" + last.getCid();
+
+                // 追加に要素を追加
+                notifications.addAll(list);
+            }
+
+            // 終了判定
+            if (stop || notifications.size() >= limit) {
+                break;
+            }
+        }
+
+        NotificationStructure model = new NotificationStructure();
+        model.notifications = notifications;
+        model.cursor = cursor;
+        model.first = first;
+        return model;
     }
 
     /**
@@ -1071,9 +1301,9 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
     // Paging
     // ============================================================== //
 
-    private String nextCursor(Paging paging) {
+    private String cursor(Paging paging) {
         if (paging instanceof BlueskyPaging) {
-            return ((BlueskyPaging) paging).getNextCursor();
+            return ((BlueskyPaging) paging).getCursor();
         }
         return null;
     }
@@ -1083,6 +1313,17 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
             return paging.getCount().intValue();
         }
         return null;
+    }
+
+    private String rkey(String uri) {
+        if (uri == null) {
+            return null;
+        }
+        try {
+            return ATUriParser.getRKey(uri);
+        } catch (Exception e) {
+            return uri;
+        }
     }
 
     // ============================================================== //
@@ -1169,6 +1410,12 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
         }
 
         throw se;
+    }
+
+    public static class NotificationStructure {
+        public List<NotificationListNotificationsNotification> notifications;
+        public String cursor;
+        public String first;
     }
 
     // region

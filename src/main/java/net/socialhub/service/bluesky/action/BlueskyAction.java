@@ -428,16 +428,9 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                     .map(NotificationListNotificationsNotification::getUri)
                     .collect(toList());
 
-            Response<FeedGetPostsResponse> posts =
-                    auth.getAccessor().feed().getPosts(
-                            FeedGetPostsRequest.builder()
-                                    .accessJwt(getAccessJwt())
-                                    .uris(subjects)
-                                    .build());
-
             Pageable<Comment> results =
                     BlueskyMapper.timelineByPosts(
-                            posts.get().getPosts(),
+                            getPostViews(subjects),
                             null,
                             service
                     );
@@ -522,16 +515,9 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                 return results;
             }
 
-            Response<FeedGetPostsResponse> posts =
-                    auth.getAccessor().feed().getPosts(
-                            FeedGetPostsRequest.builder()
-                                    .accessJwt(getAccessJwt())
-                                    .uris(subjects)
-                                    .build());
-
             Pageable<Comment> results =
                     BlueskyMapper.timelineByPosts(
-                            posts.get().getPosts(),
+                            getPostViews(subjects),
                             null,
                             service
                     );
@@ -613,6 +599,18 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
         return proceed(() -> {
             Service service = getAccount().getService();
 
+            // ページング指定があった場合結果は空
+            if (paging instanceof BlueskyPaging) {
+                BlueskyPaging pg = (BlueskyPaging) paging;
+
+                if (pg.getLatestRecord() != null || pg.getCursor() != null) {
+                    Pageable<Comment> results = new Pageable<>();
+                    results.setEntities(new ArrayList<>());
+                    results.setPaging(paging);
+                    return results;
+                }
+            }
+
             Response<List<UndocSearchFeedsResponse>> response =
                     auth.getAccessor().undoc().searchFeeds(
                             UndocSearchFeedsRequest.builder()
@@ -632,16 +630,9 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                 return results;
             }
 
-            Response<FeedGetPostsResponse> posts =
-                    auth.getAccessor().feed().getPosts(
-                            FeedGetPostsRequest.builder()
-                                    .accessJwt(getAccessJwt())
-                                    .uris(uris)
-                                    .build());
-
             return BlueskyMapper.timelineByPosts(
-                    posts.get().getPosts(),
-                    null,
+                    getPostViews(uris),
+                    paging,
                     service
             );
         });
@@ -871,6 +862,30 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                 return null;
             }
         });
+    }
+
+    /**
+     * 25 投稿しか同時に取得できないので順々に取得
+     * https://atproto.com/lexicons/app-bsky-feed#appbskyfeedgetposts
+     */
+    private List<FeedDefsPostView> getPostViews(List<String> uris) {
+        List<FeedDefsPostView> results = new ArrayList<>();
+        if (!uris.isEmpty()) {
+            do {
+                int len = Math.min(uris.size(), 25);
+                List<String> subUris = uris.subList(0, len);
+                uris = uris.subList(len, uris.size());
+
+                results.addAll(auth.getAccessor().
+                        feed().getPosts(FeedGetPostsRequest.builder()
+                                .accessJwt(getAccessJwt())
+                                .uris(subUris)
+                                .build())
+                        .get().getPosts());
+
+            } while (!uris.isEmpty());
+        }
+        return results;
     }
 
     /**
@@ -1106,17 +1121,10 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                     .filter(Objects::nonNull)
                     .collect(toList());
 
-            Response<FeedGetPostsResponse> posts =
-                    auth.getAccessor().feed().getPosts(
-                            FeedGetPostsRequest.builder()
-                                    .accessJwt(getAccessJwt())
-                                    .uris(subjects)
-                                    .build());
-
             Pageable<Notification> results =
                     BlueskyMapper.notifications(
                             model.notifications,
-                            posts.get().getPosts(),
+                            getPostViews(subjects),
                             null,
                             service
                     );

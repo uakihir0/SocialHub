@@ -1,6 +1,7 @@
 package net.socialhub.core;
 
 import net.socialhub.core.define.ServiceType;
+import net.socialhub.service.bluesky.action.BlueskyAuth;
 import net.socialhub.service.mastodon.action.MastodonAuth;
 import net.socialhub.service.misskey.action.MisskeyAuth;
 import net.socialhub.service.slack.action.SlackAuth;
@@ -70,6 +71,14 @@ public final class SocialHub {
      */
     public static MisskeyAuth getMisskeyAuth(String host) {
         return new MisskeyAuth(host);
+    }
+
+    /**
+     * Get Bluesky Authentication Model
+     * Bluesky の認証オブジェクトを取得
+     */
+    public static BlueskyAuth getBlueskyAuth(String host) {
+        return new BlueskyAuth(host);
     }
 
     /**

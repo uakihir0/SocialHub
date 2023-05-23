@@ -9,7 +9,7 @@ import org.junit.Test;
 public class MentionTimelineTest extends AbstractTimelineTest {
 
     @Test
-    public void testMentionTimelineMastodon() {
+    public void testMentionTimeline_Mastodon() {
 
         Paging paging = new Paging();
         paging.setCount(10L);
@@ -21,7 +21,7 @@ public class MentionTimelineTest extends AbstractTimelineTest {
     }
 
     @Test
-    public void testMentionTimelineMisskey() {
+    public void testMentionTimeline_Misskey() {
 
         Paging paging = new Paging();
         paging.setCount(10L);
@@ -30,6 +30,38 @@ public class MentionTimelineTest extends AbstractTimelineTest {
 
         Pageable<Comment> comments = account.action().getMentionTimeLine(paging);
         printTimeline("Now", comments);
+    }
+
+    @Test
+    public void testMentionTimelineNew_Bluesky() {
+        execNew(getBlueskyAccount());
+    }
+
+    @Test
+    public void testMentionTimelinePast_Bluesky() {
+        execPast(getBlueskyAccount());
+    }
+
+    private void execNew(Account account) {
+        Paging paging = new Paging();
+        paging.setCount(10L);
+
+        Pageable<Comment> comments = account.action().getMentionTimeLine(paging);
+        Pageable<Comment> news = account.action().getMentionTimeLine(comments.newPage());
+
+        printTimeline("New", news);
+        printTimeline("Now", comments);
+    }
+
+    private void execPast(Account account) {
+        Paging paging = new Paging();
+        paging.setCount(10L);
+
+        Pageable<Comment> comments = account.action().getMentionTimeLine(paging);
+        Pageable<Comment> pasts = account.action().getMentionTimeLine(comments.pastPage());
+
+        printTimeline("Now", comments);
+        printTimeline("Past", pasts);
     }
 }
 

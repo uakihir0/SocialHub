@@ -2,7 +2,9 @@ package net.socialhub.core.model;
 
 import net.socialhub.core.model.paging.BorderPaging;
 import net.socialhub.core.model.paging.CursorPaging;
+import net.socialhub.core.model.paging.DatePaging;
 import net.socialhub.core.model.paging.IndexPaging;
+import net.socialhub.core.model.paging.OffsetPaging;
 
 import java.io.Serializable;
 import java.util.List;
@@ -11,9 +13,11 @@ import java.util.List;
  * Paging
  * ページング情報
  * Specified Paging
- * {@link BorderPaging}
- * {@link CursorPaging}
- * {@link IndexPaging}
+ * @see BorderPaging
+ * @see CursorPaging
+ * @see DatePaging
+ * @see IndexPaging
+ * @see OffsetPaging
  */
 public class Paging implements Serializable {
 

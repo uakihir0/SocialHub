@@ -19,8 +19,8 @@ public class PostCommentTest extends AbstractApiTest {
         Account account = getTwitterAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
-        CommentForm req = new CommentForm() //
-                .addImage(convertFile(stream), "icon.png") //
+        CommentForm req = new CommentForm()
+                .addImage(convertFile(stream), "icon.png")
                 .text("SocialHub Test");
 
         account.action().postComment(req);
@@ -33,8 +33,8 @@ public class PostCommentTest extends AbstractApiTest {
         Account account = getMastodonAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
-        CommentForm req = new CommentForm() //
-                .addImage(convertFile(stream), "icon.png") //
+        CommentForm req = new CommentForm()
+                .addImage(convertFile(stream), "icon.png")
                 .text("SocialHub Test");
 
         account.action().postComment(req);
@@ -47,8 +47,8 @@ public class PostCommentTest extends AbstractApiTest {
         Account account = getPixelFedAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
-        CommentForm req = new CommentForm() //
-                .addImage(convertFile(stream), "icon.png") //
+        CommentForm req = new CommentForm()
+                .addImage(convertFile(stream), "icon.png")
                 .text("SocialHub Test");
 
         account.action().postComment(req);
@@ -61,8 +61,8 @@ public class PostCommentTest extends AbstractApiTest {
         Account account = getMisskeyAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
-        CommentForm req = new CommentForm() //
-                .addImage(convertFile(stream), "icon.png") //
+        CommentForm req = new CommentForm()
+                .addImage(convertFile(stream), "icon.png")
                 .text("SocialHub Test");
 
         account.action().postComment(req);
@@ -94,7 +94,7 @@ public class PostCommentTest extends AbstractApiTest {
         Account account = getTumblrAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
-        CommentForm req = new CommentForm() //
+        CommentForm req = new CommentForm()
                 .addImage(convertFile(stream), "icon.png") //
                 .text("SocialHub Test");
 
@@ -107,7 +107,7 @@ public class PostCommentTest extends AbstractApiTest {
         Account account = getSlackAccount();
         InputStream stream = getClass().getResourceAsStream("/image/icon.png");
 
-        CommentForm req = new CommentForm() //
+        CommentForm req = new CommentForm()
                 .addImage(convertFile(stream), "icon.png") //
                 .param(SlackFormKey.CHANNEL_KEY, "CHANNEL_ID") //
                 .text("SocialHub Test");
@@ -121,6 +121,24 @@ public class PostCommentTest extends AbstractApiTest {
         Account account = getSlackAccount();
         CommentForm req = account.request().getHomeTimeLine()
                 .getCommentFrom().text("SocialHub Test");
+
+        account.action().postComment(req);
+    }
+
+    @Test
+    public void testPostWithMediaBluesky() {
+        Account account = getBlueskyAccount();
+        InputStream stream1 = getClass().getResourceAsStream("/image/icon.png");
+        InputStream stream2 = getClass().getResourceAsStream("/image/icon.png");
+        InputStream stream3 = getClass().getResourceAsStream("/image/icon.png");
+        InputStream stream4 = getClass().getResourceAsStream("/image/icon.png");
+
+        CommentForm req = new CommentForm()
+                .addImage(convertFile(stream1), "icon1.png")
+                .addImage(convertFile(stream2), "icon2.png")
+                .addImage(convertFile(stream3), "icon3.png")
+                .addImage(convertFile(stream4), "icon4.png")
+                .text("SocialHub Test");
 
         account.action().postComment(req);
     }

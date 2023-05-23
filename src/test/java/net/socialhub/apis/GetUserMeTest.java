@@ -11,28 +11,33 @@ import org.junit.Test;
 public class GetUserMeTest extends AbstractApiTest {
 
     @Test
-    public void testGetUserMeTwitter() {
+    public void testGetUserMe_Twitter() {
         execUser(getTwitterAccount());
     }
 
     @Test
-    public void testGetUserMastodon() {
+    public void testGetUserMe_Mastodon() {
         execUser(getMastodonAccount());
     }
 
     @Test
-    public void testGetUserPixelFed() {
+    public void testGetUserMe_PixelFed() {
         execUser(getPixelFedAccount());
     }
 
     @Test
-    public void testGetUserPleroma() {
+    public void testGetUserMe_Pleroma() {
         execUser(getPleromaAccount());
     }
 
     @Test
-    public void testGetUserMisskey() {
+    public void testGetUserMe_Misskey() {
         execUser(getMisskeyAccount());
+    }
+
+    @Test
+    public void testHetUserMe_Bluesky() {
+        execUser(getBlueskyAccount());
     }
 
     @Test

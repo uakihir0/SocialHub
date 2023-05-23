@@ -278,7 +278,7 @@ public class RequestActionImpl implements RequestAction {
      * Serialize Params
      */
     public static class SerializeParams {
-        private Map<String, String> params = new HashMap<>();
+        private final Map<String, String> params = new HashMap<>();
 
         public String get(String key) {
             return params.get(key);
@@ -297,7 +297,7 @@ public class RequestActionImpl implements RequestAction {
      * Serialize Builder
      */
     public static class SerializeBuilder {
-        private SerializeParams params = new SerializeParams();
+        private final SerializeParams params = new SerializeParams();
 
         public <T extends Enum<T>> SerializeBuilder(Enum<T> action) {
             add("action", action.name());

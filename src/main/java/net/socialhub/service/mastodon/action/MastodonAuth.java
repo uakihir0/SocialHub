@@ -54,8 +54,8 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
     public Account getAccountWithAccessToken(
             String accessToken,
             String refreshToken,
-            Date expired) {
-
+            Date expired
+    ) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.expired = expired;
@@ -77,8 +77,8 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
      */
     public void setClientInfo(
             String clientId,
-            String clientSecret) {
-
+            String clientSecret
+    ) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
     }
@@ -91,8 +91,8 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
             String appName,
             String website,
             String redirectUris,
-            String scopes) {
-
+            String scopes
+    ) {
         Application application = new Application();
         application.setName(appName);
         application.setWebsite(website);
@@ -122,8 +122,8 @@ public class MastodonAuth implements ServiceAuth<Mastodon> {
      */
     public Account getAccountWithCode(
             String redirectUri,
-            String code) {
-
+            String code
+    ) {
         Response<AccessToken> accessToken = getAccessor().oauth()
                 .issueAccessToken(this.clientId, this.clientSecret, redirectUri, code);
 

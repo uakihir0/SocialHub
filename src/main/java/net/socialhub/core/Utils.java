@@ -2,6 +2,7 @@ package net.socialhub.core;
 
 import net.socialhub.core.define.ServiceType;
 import net.socialhub.core.utils.ServiceUtil;
+import net.socialhub.service.bluesky.action.BlueskyUtil;
 import net.socialhub.service.mastodon.action.MastodonUtil;
 import net.socialhub.service.misskey.action.MisskeyUtil;
 import net.socialhub.service.slack.action.SlackUtil;
@@ -19,6 +20,7 @@ public class Utils {
         utils.put(ServiceType.Mastodon, new MastodonUtil());
         utils.put(ServiceType.Misskey, new MisskeyUtil());
         utils.put(ServiceType.Slack, new SlackUtil());
+        utils.put(ServiceType.Bluesky, new BlueskyUtil());
     }
 
     /**

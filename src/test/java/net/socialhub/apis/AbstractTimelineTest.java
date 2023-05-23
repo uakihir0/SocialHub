@@ -2,6 +2,7 @@ package net.socialhub.apis;
 
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Media;
+import net.socialhub.core.model.Notification;
 import net.socialhub.core.model.Pageable;
 import net.socialhub.core.model.Paging;
 import net.socialhub.core.model.Poll;
@@ -11,6 +12,8 @@ import net.socialhub.core.model.paging.BorderPaging;
 import net.socialhub.core.model.support.PollOption;
 import net.socialhub.service.microblog.model.MiniBlogComment;
 import net.socialhub.service.slack.model.SlackComment;
+
+import java.util.List;
 
 public class AbstractTimelineTest extends AbstractApiTest {
 
@@ -79,6 +82,14 @@ public class AbstractTimelineTest extends AbstractApiTest {
             BorderPaging bp = (BorderPaging) paging;
             System.out.println("> Max: " + bp.getMaxId());
             System.out.println("> Sin: " + bp.getSinceId());
+        }
+    }
+
+    protected void printNotification(List<Notification> notifications) {
+        for (Notification notification : notifications) {
+            System.out.println("--------------------------");
+            System.out.println(notification.getType());
+            System.out.println(notification.getCreateAt());
         }
     }
 }

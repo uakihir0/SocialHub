@@ -14,6 +14,7 @@ public enum ServiceType {
     Misskey,
     Pleroma,
     PixelFed,
+    Bluesky,
 
     /* Future Work */
     // Discord,

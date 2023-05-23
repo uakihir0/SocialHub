@@ -9,26 +9,29 @@ import org.junit.Test;
 public class SearchTimelineTest extends AbstractTimelineTest {
 
     @Test
-    public void testUserMediaTimelineTwitter() {
-
-        Paging paging = new Paging();
-        paging.setCount(10L);
-
-        Account account = getTwitterAccount();
-        Pageable<Comment> comments = account.action().getSearchTimeLine("#NowPlaying", paging);
-
-        printTimeline("Now", comments);
+    public void testUserMediaTimeline_Twitter() {
+        execPast(getTwitterAccount());
     }
 
     @Test
-    public void testUserMediaTimelineMastodon() {
+    public void testUserMediaTimeline_Mastodon() {
+        execPast(getMastodonAccount());
 
+    }
+
+    @Test
+    public void testUserMediaTimeline_Bluesky() {
+        execPast(getBlueskyAccount());
+    }
+
+    private void execPast(Account account){
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = getMastodonAccount();
         Pageable<Comment> comments = account.action().getSearchTimeLine("#NowPlaying", paging);
+        Pageable<Comment> pasts = account.action().getSearchTimeLine("#NowPlaying", comments.pastPage());
 
         printTimeline("Now", comments);
+        printTimeline("Past", pasts);
     }
 }

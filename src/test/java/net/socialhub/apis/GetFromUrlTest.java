@@ -8,7 +8,7 @@ import org.junit.Test;
 public class GetFromUrlTest extends AbstractApiTest {
 
     @Test
-    public void getUserFromUrlTwitter() {
+    public void getUserFromUrl_Twitter() {
         Account account = getTwitterAccount();
         User user = account.action().getUser(
                 "https://twitter.com/uakihir0");
@@ -16,7 +16,7 @@ public class GetFromUrlTest extends AbstractApiTest {
     }
 
     @Test
-    public void getTweetFromUrlTwitter() {
+    public void getTweetFromUrl_Twitter() {
         Account account = getTwitterAccount();
         Comment comment = account.action().getComment(
                 "https://twitter.com/uakihir0/status/1232157896453963776");
@@ -24,7 +24,7 @@ public class GetFromUrlTest extends AbstractApiTest {
     }
 
     @Test
-    public void getUserFromUrlMastodon() {
+    public void getUserFromUrl_Mastodon() {
         Account account = getMastodonAccount();
         {
             User user = account.action().getUser("https://mastodon.social/@uakihir0");
@@ -37,7 +37,7 @@ public class GetFromUrlTest extends AbstractApiTest {
     }
 
     @Test
-    public void getCommentFromUrlMastodon() {
+    public void getCommentFromUrl_Mastodon() {
         Account account = getMastodonAccount();
         {
             Comment comment = account.action().getComment(
@@ -52,7 +52,7 @@ public class GetFromUrlTest extends AbstractApiTest {
     }
 
     @Test
-    public void getUserFromUrlMisskey() {
+    public void getUserFromUrl_Misskey() {
         Account account = getMisskeyAccount();
         {
             User user = account.action().getUser("https://misskey.io/@syuilo");
@@ -65,7 +65,7 @@ public class GetFromUrlTest extends AbstractApiTest {
     }
 
     @Test
-    public void getCommentFromUrlMisskey() {
+    public void getCommentFromUrl_Misskey() {
         Account account = getMisskeyAccount();
         Comment comment = account.action().getComment(
                 "https://misskey.io/notes/8axwbcxiff");

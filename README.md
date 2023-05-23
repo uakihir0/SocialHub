@@ -7,29 +7,26 @@ by [J2ObjC]. and we can also use it with **Kotlin** and **Swift** too.
 
 ### Available
 
-* [**Twitter**](https://twitter.com/) ( use [library](https://github.com/uakihir0/twitter4j) based
+* **MicroBlog**
+  * [**Twitter**](https://twitter.com/) ( use [library](https://github.com/uakihir0/twitter4j) based
   on [twitter4j](https://github.com/yusuke/twitter4j) )
+  * [**Mastodon**](https://github.com/tootsuite/mastodon) ( use [library](https://github.com/uakihir0/mastodon4j) based
+    on [mastodon4j](https://github.com/hecateball/mastodon4j) )
+      * [**Pleroma**](https://pleroma.social/) (Mastodon API compatibility)
+      * [**PixelFed**](https://pixelfed.org/) (Mastodon API compatibility)
+  * [**Misskey**](https://join.misskey.page/ja/) ( use [library](https://github.com/uakihir0/misskey4j) )
+  * [**Bluesky**](https://blueskyweb.xyz/) ( use [library](https://github.com/uakihir0/bsky4j) )
 * [**Slack**](https://slack.com/) ( use [library](https://github.com/uakihir0/jslack) based
   on [jslack](https://github.com/seratch/jslack) )
-* [**Mastodon**](https://github.com/tootsuite/mastodon) ( use [library](https://github.com/uakihir0/mastodon4j) based
-  on [mastodon4j](https://github.com/hecateball/mastodon4j) )
-    * [**Pleroma**](https://pleroma.social/) (Mastodon API compatibility)
-    * [**PixelFed**](https://pixelfed.org/) (Mastodon API compatibility)
 * [**Tumblr**](https://www.tumblr.com/) ( use [library](https://github.com/uakihir0/jumblr) based
   on [jumblr](https://github.com/tumblr/jumblr) )
-* [**Misskey**](https://join.misskey.page/ja/) ( use [library](https://github.com/uakihir0/misskey4j) )
 
 Most of all libraries are modified (remove complex dependency and unused functions) for compilation to Objective-C
 with [J2ObjC].
 
-### Work in Progress
-
-* [**Bluesky**](https://blueskyweb.xyz/) ( use [library](https://github.com/uakihir0/bsky4j) )
-
 ### Future Works
 
-* [**Facebook**](https://www.facebook.com/) ( use [library](https://github.com/uakihir0/facebook4j) based
-  on [facebook4j](https://github.com/roundrop/facebook4j) )
+* [**Facebook**](https://www.facebook.com/)
 * [**LinkedIn**](https://www.linkedin.com/)
 * [**Pinterest**](https://www.pinterest.com/)
 * [**Snapchat**](https://www.snapchat.com/)

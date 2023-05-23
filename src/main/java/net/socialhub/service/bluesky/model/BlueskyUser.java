@@ -36,6 +36,11 @@ public class BlueskyUser extends MiniBlogUser {
     }
 
     @Override
+    public String getAccountIdentify() {
+        return "@" + getScreenName();
+    }
+
+    @Override
     public String getWebUrl() {
         String handle = getAccountIdentify();
         return "https://bsky.app/profile/" + handle;

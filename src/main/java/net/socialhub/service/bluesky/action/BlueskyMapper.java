@@ -375,12 +375,12 @@ public class BlueskyMapper {
 
                     // Facet の前を Text として取得
                     if (readIndex < index.getByteStart()) {
-                        int beforeLen = (index.getByteStart() - readIndex);
-                        byte[] beforeBytes = copyOfRange(bytes, readIndex, readIndex + beforeLen);
+                        int len = (index.getByteStart() - readIndex);
+                        byte[] beforeBytes = copyOfRange(bytes, 0, len);
 
                         readIndex = index.getByteStart();
-                        int afterLen = (bytes.length - beforeLen);
-                        bytes = copyOfRange(bytes, readIndex, readIndex + afterLen);
+                        int afterLen = (bytes.length - len);
+                        bytes = copyOfRange(bytes, len, len + afterLen);
 
                         String str = new String(beforeBytes, StandardCharsets.UTF_8);
                         AttributedItem element = new AttributedItem();

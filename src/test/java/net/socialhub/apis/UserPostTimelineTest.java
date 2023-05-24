@@ -11,42 +11,31 @@ import org.junit.Test;
 public class UserPostTimelineTest extends AbstractTimelineTest {
 
     @Test
-    public void testUserPostTimelineMisskey() {
-
-        Paging paging = new Paging();
-        paging.setCount(10L);
-
-        Account account = getMisskeyAccount();
-        User me = account.action().getUserMe();
-
-        Pageable<Comment> comments = account.action().getUserCommentTimeLine(me, paging);
-        printTimeline("MyComment:", comments);
+    public void testUserPostTimeline_Misskey() {
+        execPast(getMisskeyAccount());
     }
 
     @Test
-    public void testUserPostTimelinePixelFed() {
-
-        Paging paging = new Paging();
-        paging.setCount(10L);
-
-        Account account = getPixelFedAccount();
-        User me = account.action().getUserMe();
-
-        Pageable<Comment> comments = account.action().getUserCommentTimeLine(me, paging);
-        printTimeline("MyComment:", comments);
+    public void testUserPostTimeline_PixelFed() {
+        execPast(getPixelFedAccount());
     }
 
     @Test
-    public void testUserPostTimelineTumblr() {
+    public void testUserPostTimeline_Tumblr() {
+        execPast(getTumblrAccount());
+    }
 
+    @Test
+    public void testUserPostTimeline_Bluesky() {
+        execPast(getBlueskyAccount());
+    }
+
+    private void execPast(Account account) {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Account account = getTumblrAccount();
-        Identify identify = new Identify(account.getService());
-        identify.setId("URL");
-
-        Pageable<Comment> comments = account.action().getUserCommentTimeLine(identify, paging);
-        printTimeline("Likes", comments);
+        User me = account.action().getUserMe();
+        Pageable<Comment> comments = account.action().getUserCommentTimeLine(me, paging);
+        printTimeline("MyComments", comments);
     }
 }

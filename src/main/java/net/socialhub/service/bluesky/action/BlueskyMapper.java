@@ -50,6 +50,7 @@ import net.socialhub.service.bluesky.model.BlueskyUser;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -66,6 +67,10 @@ public class BlueskyMapper {
 
     private static final SimpleDateFormat dateFormat =
             new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+    /** J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
+    private final static List<Class<?>> ClassLoader = Arrays.asList(
+            bsky4j.model.atproto.label.LabelDefsLabel.class);
 
     // ============================================================== //
     // Single Object Mapper

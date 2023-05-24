@@ -540,6 +540,8 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
 
         return proceed(() -> {
             String cursor = cursor(paging);
+            Integer limit = limit(paging);
+
             Service service = getAccount().getService();
             List<FeedDefsFeedViewPost> feeds = new ArrayList<>();
 
@@ -550,7 +552,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                                 FeedGetAuthorFeedRequest.builder()
                                         .accessJwt(getAccessJwt())
                                         .actor((String) id.getId())
-                                        .limit(limit(paging))
+                                        .limit(limit)
                                         .cursor(cursor)
                                         .build());
 
@@ -577,7 +579,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                 cursor = response.get().getCursor();
 
                 // 十分な数の画像を取得できた場合は終了
-                if (feeds.size() >= limit(paging)) {
+                if (feeds.size() >= limit) {
                     break;
                 }
             }
@@ -1318,7 +1320,15 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
 
     private Integer limit(Paging paging) {
         if (paging != null) {
-            return paging.getCount().intValue();
+            int limit = paging.getCount().intValue();
+
+            // Bluesky のページングは基本的に 1-100 を指定
+            if (limit < 1) {
+                return 1;
+            }
+            if (limit > 100) {
+                return 100;
+            }
         }
         return null;
     }

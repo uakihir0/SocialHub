@@ -81,7 +81,12 @@ public class Service implements Serializable {
         return (ServiceType.Misskey == type);
     }
 
-    //region // Getter&Setter
+    /** Is Bluesky Account ? */
+    public boolean isBluesky() {
+        return (ServiceType.Bluesky == type);
+    }
+
+    // region // Getter&Setter
     public Account getAccount() {
         return account;
     }
@@ -113,5 +118,5 @@ public class Service implements Serializable {
     public void setApiHost(String apiHost) {
         this.apiHost = apiHost;
     }
-    //endregion
+    // endregion
 }

@@ -14,7 +14,7 @@ public class BlueskyUser extends MiniBlogUser {
      * 簡易ユーザー情報か？
      * (一部の情報が抜けています)
      */
-    private Boolean simple;
+    private boolean isSimple = false;
 
     /**
      * Follow Record Uri
@@ -47,12 +47,12 @@ public class BlueskyUser extends MiniBlogUser {
     }
 
     // region
-    public Boolean getSimple() {
-        return simple;
+    public boolean isSimple() {
+        return isSimple;
     }
 
-    public void setSimple(Boolean simple) {
-        this.simple = simple;
+    public void setSimple(boolean simple) {
+        isSimple = simple;
     }
 
     public String getFollowRecordUri() {

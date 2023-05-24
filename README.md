@@ -51,7 +51,7 @@ with [J2ObjC].
 
 Code sample to authorize account and get account information.
 
-```
+```java
 /* JAVA */
 // 1. Make Authorized Account Object
 
@@ -73,7 +73,7 @@ System.out.println(user.getName());
 
 Code sample to get unified timeline comments from account group (two or more accounts).
 
-```
+```java
 /* JAVA */
 // 1. Make Account Group
 AccountGroup accounts = new AccountGroup();

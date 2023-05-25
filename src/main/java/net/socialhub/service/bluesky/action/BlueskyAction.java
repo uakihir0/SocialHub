@@ -19,10 +19,14 @@ import bsky4j.api.entity.bsky.feed.FeedDeletePostRequest;
 import bsky4j.api.entity.bsky.feed.FeedDeleteRepostRequest;
 import bsky4j.api.entity.bsky.feed.FeedGetAuthorFeedRequest;
 import bsky4j.api.entity.bsky.feed.FeedGetAuthorFeedResponse;
+import bsky4j.api.entity.bsky.feed.FeedGetLikesRequest;
+import bsky4j.api.entity.bsky.feed.FeedGetLikesResponse;
 import bsky4j.api.entity.bsky.feed.FeedGetPostThreadRequest;
 import bsky4j.api.entity.bsky.feed.FeedGetPostThreadResponse;
 import bsky4j.api.entity.bsky.feed.FeedGetPostsRequest;
 import bsky4j.api.entity.bsky.feed.FeedGetPostsResponse;
+import bsky4j.api.entity.bsky.feed.FeedGetRepostedByRequest;
+import bsky4j.api.entity.bsky.feed.FeedGetRepostedByResponse;
 import bsky4j.api.entity.bsky.feed.FeedGetTimelineRequest;
 import bsky4j.api.entity.bsky.feed.FeedGetTimelineResponse;
 import bsky4j.api.entity.bsky.feed.FeedLikeRequest;
@@ -55,6 +59,7 @@ import bsky4j.model.bsky.feed.FeedDefsFeedViewPost;
 import bsky4j.model.bsky.feed.FeedDefsPostView;
 import bsky4j.model.bsky.feed.FeedDefsThreadUnion;
 import bsky4j.model.bsky.feed.FeedDefsThreadViewPost;
+import bsky4j.model.bsky.feed.FeedGetLikesLike;
 import bsky4j.model.bsky.feed.FeedLike;
 import bsky4j.model.bsky.feed.FeedPost;
 import bsky4j.model.bsky.feed.FeedPostReplyRef;
@@ -319,6 +324,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
 
             return BlueskyMapper.users(
                     follows.get().getFollows(),
+                    follows.get().getCursor(),
                     paging,
                     service
             );
@@ -344,6 +350,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
 
             return BlueskyMapper.users(
                     follows.get().getFollowers(),
+                    follows.get().getCursor(),
                     paging,
                     service
             );
@@ -369,6 +376,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
 
             return BlueskyMapper.users(
                     response.get().getActors(),
+                    response.get().getCursor(),
                     paging,
                     service
             );
@@ -416,7 +424,8 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
             List<String> types = new ArrayList<>();
             types.add("reply");
 
-            NotificationStructure model = getNotifications(paging, types);
+            Paging pg = getCountLimitPaging(paging, 20);
+            NotificationStructure model = getNotifications(pg, types);
 
             // 空の場合
             if (model.notifications.isEmpty()) {
@@ -439,11 +448,11 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                     );
 
             // ページング情報を上書きする (ヒントの追加)
-            BlueskyPaging pg = BlueskyPaging.fromPaging(paging);
+            BlueskyPaging bp = BlueskyPaging.fromPaging(paging);
             Identify id = new Identify(service, model.first);
-            pg.setCursorHint(model.cursor);
-            pg.setLatestRecordHint(id);
-            results.setPaging(pg);
+            bp.setCursorHint(model.cursor);
+            bp.setLatestRecordHint(id);
+            results.setPaging(bp);
 
             return results;
         });
@@ -1111,6 +1120,13 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
             types.add("repost");
             types.add("follow");
 
+            if (paging != null) {
+                if (paging.getCount() != null) {
+                    paging.setCount(20L);
+                }
+                paging.setCount(Math.min(paging.getCount(), 20));
+            }
+
             NotificationStructure model = getNotifications(paging, types);
 
             // 空の場合
@@ -1277,6 +1293,66 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
     }
 
     // ============================================================== //
+    // Other
+    // ============================================================== //
+
+
+    /**
+     * Get Users who likes specified post
+     * 特定のポストをいいねしたユーザーを取得
+     */
+    public Pageable<User> getUsersFavoriteBy(Identify id, Paging paging) {
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Response<FeedGetLikesResponse> response =
+                    auth.getAccessor().feed().getLikes(
+                            FeedGetLikesRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .uri((String) id.getId())
+                                    .cursor(cursor(paging))
+                                    .limit(limit(paging))
+                                    .build());
+
+            return BlueskyMapper.users(
+                    response.get().getLikes().stream()
+                            .map(FeedGetLikesLike::getActor)
+                            .collect(toList()),
+                    response.get().getCursor(),
+                    paging,
+                    service
+            );
+        });
+    }
+
+    /**
+     * Get Users who reposts specified post
+     * 特定のポストをリポストしたユーザーを取得
+     */
+    public Pageable<User> getUsersRetweetBy(Identify id, Paging paging) {
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Response<FeedGetRepostedByResponse> response =
+                    auth.getAccessor().feed().getRepostedBy(
+                            FeedGetRepostedByRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .uri((String) id.getId())
+                                    .cursor(cursor(paging))
+                                    .limit(limit(paging))
+                                    .build());
+
+            return BlueskyMapper.users(
+                    response.get().getRepostedBy(),
+                    response.get().getCursor(),
+                    paging,
+                    service
+            );
+        });
+    }
+
+
+    // ============================================================== //
     // Support
     // ============================================================== //
 
@@ -1334,6 +1410,8 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
             if (limit > 100) {
                 return 100;
             }
+
+            return limit;
         }
         return 50;
     }
@@ -1347,6 +1425,20 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
         } catch (Exception e) {
             return uri;
         }
+    }
+
+    private Paging getCountLimitPaging(Paging paging, long limit) {
+        if (paging != null) {
+            if (paging.getCount() != null) {
+                paging.setCount(limit);
+                return paging;
+            }
+
+            paging.setCount(Math.min(paging.getCount(), limit));
+            return paging;
+        }
+
+        return new Paging(limit);
     }
 
     // ============================================================== //

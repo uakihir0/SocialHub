@@ -357,7 +357,13 @@ public class BlueskyMapper {
             model.setText(getAttributedText(record));
         }
 
+        // Media
         model.setMedias(new ArrayList<>());
+        if (post.getEmbeds() != null) {
+            post.getEmbeds().forEach(embed ->
+                    embed(model, embed, service));
+        }
+
         return model;
     }
 
@@ -543,6 +549,7 @@ public class BlueskyMapper {
      */
     public static Pageable<User> users(
             List<ActorDefsProfileView> users,
+            String cursor,
             Paging paging,
             Service service
     ) {
@@ -567,7 +574,9 @@ public class BlueskyMapper {
                 .map(a -> user(a, service))
                 .collect(toList()));
 
-        model.setPaging(BlueskyPaging.fromPaging(paging));
+        BlueskyPaging pg = BlueskyPaging.fromPaging(paging);
+        pg.setCursorHint(cursor);
+        model.setPaging(pg);
         return model;
     }
 

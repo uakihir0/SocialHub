@@ -782,7 +782,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
 
                 // Quote
                 if (req.getQuoteId() != null) {
-                    String uri = (String) req.getReplyId();
+                    String uri = (String) req.getQuoteId();
                     BlueskyComment comment = (BlueskyComment) getComment(uri);
 
                     EmbedRecord record = new EmbedRecord();

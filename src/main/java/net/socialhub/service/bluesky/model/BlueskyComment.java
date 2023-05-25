@@ -7,7 +7,6 @@ import net.socialhub.core.model.Service;
 import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.service.microblog.model.MiniBlogComment;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,13 +50,13 @@ public class BlueskyComment extends MiniBlogComment {
 
     @Override
     public List<Reaction> getReactions() {
-        List<Reaction> results = new ArrayList<>();
+        List<Reaction> reactions = super.getReactions();
 
         Reaction reply = new Reaction();
         reply.setCount(replyCount);
         reply.setName("reply");
-        results.add(reply);
-        return results;
+        reactions.add(reply);
+        return reactions;
     }
 
     @Override

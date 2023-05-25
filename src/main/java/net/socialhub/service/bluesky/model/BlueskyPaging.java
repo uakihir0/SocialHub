@@ -46,11 +46,13 @@ public class BlueskyPaging extends Paging {
             // ヒントが設定されている場合はそれを使用
             if (getLatestRecordHint() != null) {
                 pg.setLatestRecord(getLatestRecordHint());
+                pg.setCursor(null);
                 return pg.clearHint();
             }
 
             T first = entities.get(0);
             pg.setLatestRecord(first);
+            pg.setCursor(null);
             return pg.clearHint();
         }
 
@@ -68,6 +70,7 @@ public class BlueskyPaging extends Paging {
             // ヒントが設定されている場合はそれを使用
             if (getCursorHint() != null) {
                 pg.setCursor(getCursorHint());
+                pg.setLatestRecord(null);
                 return pg.clearHint();
             }
 
@@ -78,8 +81,9 @@ public class BlueskyPaging extends Paging {
                 BlueskyComment c = (BlueskyComment) last;
                 String cursor = c.getCreateAt().getTime() + "::" + c.getCid();
                 pg.setCursor(cursor);
+                pg.setLatestRecord(null);
+                return pg.clearHint();
             }
-            return pg.clearHint();
         }
 
         return pg;

@@ -16,7 +16,9 @@ import bsky4j.model.bsky.feed.FeedDefsPostView;
 import bsky4j.model.bsky.feed.FeedDefsReasonRepost;
 import bsky4j.model.bsky.feed.FeedDefsReplyRef;
 import bsky4j.model.bsky.feed.FeedDefsViewerState;
+import bsky4j.model.bsky.feed.FeedLike;
 import bsky4j.model.bsky.feed.FeedPost;
+import bsky4j.model.bsky.feed.FeedRepost;
 import bsky4j.model.bsky.notification.NotificationListNotificationsNotification;
 import bsky4j.model.bsky.richtext.RichtextFacet;
 import bsky4j.model.bsky.richtext.RichtextFacetByteSlice;
@@ -56,6 +58,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.function.Predicate;
 
 import static java.util.Arrays.copyOfRange;
@@ -65,12 +68,14 @@ public class BlueskyMapper {
 
     private static final Logger logger = Logger.getLogger(BlueskyMapper.class);
 
-    private static final SimpleDateFormat dateFormat =
-            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    private static final String dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     /** J2ObjC はダイナミックロードできない為に使用を明示するために使用 */
     private final static List<Class<?>> ClassLoader = Arrays.asList(
             bsky4j.model.atproto.label.LabelDefsLabel.class);
+
+    /** 時間のパーサーオブジェクト */
+    private static SimpleDateFormat dateParser = null;
 
     // ============================================================== //
     // Single Object Mapper
@@ -492,7 +497,9 @@ public class BlueskyMapper {
         if (notification.getRecord() != null) {
             RecordUnion union = notification.getRecord();
 
-            if (union instanceof FeedPost) {
+            if (union instanceof FeedLike ||
+                    union instanceof FeedRepost) {
+
                 String subject = notification.getReasonSubject();
                 FeedDefsPostView post = posts.get(subject);
 
@@ -681,11 +688,15 @@ public class BlueskyMapper {
     }
 
     public static Date parseDate(String str) {
+        if (dateParser == null) {
+            dateParser = new SimpleDateFormat(dateFormat);
+            dateParser.setTimeZone(TimeZone.getTimeZone("UTC"));
+        }
         try {
-            return dateFormat.parse(str);
+            return dateParser.parse(str);
         } catch (Exception e) {
             logger.error(e);
-            throw new IllegalStateException(e);
+            throw new IllegalStateException("Unparseable date: " + str);
         }
     }
 }

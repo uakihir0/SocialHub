@@ -79,12 +79,12 @@ public class HomeTimelineTest extends AbstractTimelineTest {
     }
 
     @Test
-    public void testHomeTimelineNew_Bluesky(){
+    public void testHomeTimelineNew_Bluesky() {
         execNew(getBlueskyAccount());
     }
 
     @Test
-    public void testHomeTimelinePast_Bluesky(){
+    public void testHomeTimelinePast_Bluesky() {
         execPast(getBlueskyAccount());
     }
 
@@ -93,6 +93,11 @@ public class HomeTimelineTest extends AbstractTimelineTest {
         paging.setCount(10L);
 
         Pageable<Comment> comments = account.action().getHomeTimeLine(paging);
+        try {
+            Thread.sleep(10000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         Pageable<Comment> news = account.action().getHomeTimeLine(comments.newPage());
 
         printTimeline("New", news);

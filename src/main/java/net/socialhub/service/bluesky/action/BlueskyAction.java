@@ -145,6 +145,9 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public User getUser(Identify id) {
         return proceed(() -> {
@@ -539,8 +542,9 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
     public Pageable<Comment> getUserMediaTimeLine(Identify id, Paging paging) {
 
         return proceed(() -> {
+            // 画像の取得数は 20 件に制限
+            int limit = Math.min(limit(paging), 20);
             String cursor = cursor(paging);
-            Integer limit = limit(paging);
 
             Service service = getAccount().getService();
             List<FeedDefsFeedViewPost> feeds = new ArrayList<>();
@@ -552,7 +556,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                                 FeedGetAuthorFeedRequest.builder()
                                         .accessJwt(getAccessJwt())
                                         .actor((String) id.getId())
-                                        .limit(limit)
+                                        .limit(100)
                                         .cursor(cursor)
                                         .build());
 
@@ -1121,6 +1125,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
             List<String> subjects = model.notifications.stream()
                     .map(NotificationListNotificationsNotification::getReasonSubject)
                     .filter(Objects::nonNull)
+                    .distinct()
                     .collect(toList());
 
             Pageable<Notification> results =
@@ -1318,7 +1323,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
         return null;
     }
 
-    private Integer limit(Paging paging) {
+    private int limit(Paging paging) {
         if (paging != null) {
             int limit = paging.getCount().intValue();
 
@@ -1330,7 +1335,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                 return 100;
             }
         }
-        return null;
+        return 50;
     }
 
     private String rkey(String uri) {

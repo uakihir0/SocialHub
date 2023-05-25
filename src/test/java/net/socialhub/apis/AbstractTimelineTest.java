@@ -90,6 +90,12 @@ public class AbstractTimelineTest extends AbstractApiTest {
             System.out.println("--------------------------");
             System.out.println(notification.getType());
             System.out.println(notification.getCreateAt());
+
+            if (notification.getComments() != null) {
+                if (!notification.getComments().isEmpty()) {
+                    printComment(notification.getComments().get(0));
+                }
+            }
         }
     }
 }

@@ -2,8 +2,13 @@ package net.socialhub.service.bluesky.model;
 
 import bsky4j.util.ATUriParser;
 import net.socialhub.core.model.Identify;
+import net.socialhub.core.model.Reaction;
 import net.socialhub.core.model.Service;
+import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.service.microblog.model.MiniBlogComment;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Bluesky Comment Model
@@ -34,6 +39,33 @@ public class BlueskyComment extends MiniBlogComment {
         String rkey = ATUriParser.getRKey((String) getId());
         return "https://bsky.app/profile/" +
                 getUser().getScreenName() + "/post/" + rkey;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof BlueskyComment) {
+            return getId().equals(((BlueskyComment) obj).getId());
+        }
+        return false;
+    }
+
+    @Override
+    public List<Reaction> getReactions() {
+        List<Reaction> results = new ArrayList<>();
+
+        Reaction reply = new Reaction();
+        reply.setCount(replyCount);
+        reply.setName("reply");
+        results.add(reply);
+        return results;
+    }
+
+    @Override
+    public CommentForm getQuoteForm() {
+        CommentForm form = new CommentForm();
+        form.quoteId(getId());
+        form.message(false);
+        return form;
     }
 
     // region

@@ -384,6 +384,11 @@ public class BlueskyMapper {
                     RichtextFacetFeatureUnion union = facet.getFeatures().get(0);
                     RichtextFacetByteSlice index = facet.getIndex();
 
+                    // 処理しない Union の場合は次
+                    if (union == null) {
+                        continue;
+                    }
+
                     // Facet の前を Text として取得
                     if (readIndex < index.getByteStart()) {
                         int len = (index.getByteStart() - readIndex);
@@ -417,14 +422,22 @@ public class BlueskyMapper {
                         element.setExpandedText(mention.getDid());
                         element.setDisplayText(str);
                         elements.add(element);
-                    }
 
-                    if (union instanceof RichtextFacetLink) {
+                    } else if (union instanceof RichtextFacetLink) {
                         RichtextFacetLink link = (RichtextFacetLink) union;
                         String str = new String(targetByte, StandardCharsets.UTF_8);
                         AttributedItem element = new AttributedItem();
                         element.setKind(AttributedKind.LINK);
                         element.setExpandedText(link.getUri());
+                        element.setDisplayText(str);
+                        elements.add(element);
+
+                    } else {
+                        // その他の場合はプレーンテキストとして取得
+                        String str = new String(targetByte, StandardCharsets.UTF_8);
+                        AttributedItem element = new AttributedItem();
+                        element.setKind(AttributedKind.PLAIN);
+                        element.setExpandedText(str);
                         element.setDisplayText(str);
                         elements.add(element);
                     }
@@ -707,5 +720,13 @@ public class BlueskyMapper {
             logger.error(e);
             throw new IllegalStateException("Unparseable date: " + str);
         }
+    }
+
+    public static String formatDate(Date date) {
+        if (dateParser == null) {
+            dateParser = new SimpleDateFormat(dateFormat);
+            dateParser.setTimeZone(TimeZone.getTimeZone("UTC"));
+        }
+        return dateParser.format(date);
     }
 }

@@ -24,5 +24,4 @@ public class BlueskyActionTest extends AbstractTimelineTest {
         System.out.println("[NEXT]");
         printNotification(next.getEntities());
     }
-
 }

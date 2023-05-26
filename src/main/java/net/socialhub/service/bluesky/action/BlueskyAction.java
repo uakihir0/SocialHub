@@ -44,6 +44,7 @@ import bsky4j.api.entity.bsky.graph.GraphMuteActorRequest;
 import bsky4j.api.entity.bsky.graph.GraphUnmuteActorRequest;
 import bsky4j.api.entity.bsky.notification.NotificationListNotificationsRequest;
 import bsky4j.api.entity.bsky.notification.NotificationListNotificationsResponse;
+import bsky4j.api.entity.bsky.notification.NotificationUpdateSeenRequest;
 import bsky4j.api.entity.bsky.undoc.UndocSearchFeedsRequest;
 import bsky4j.api.entity.bsky.undoc.UndocSearchFeedsResponse;
 import bsky4j.api.entity.share.Response;
@@ -113,10 +114,12 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static net.socialhub.service.bluesky.action.BlueskyMapper.formatDate;
 
 public class BlueskyAction extends AccountActionImpl implements MicroBlogAccountAction {
 
@@ -783,7 +786,8 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                 // Quote
                 if (req.getQuoteId() != null) {
                     String uri = (String) req.getQuoteId();
-                    BlueskyComment comment = (BlueskyComment) getComment(uri);
+                    Identify id = new Identify(getAccount().getService(), uri);
+                    BlueskyComment comment = (BlueskyComment) getComment(id);
 
                     EmbedRecord record = new EmbedRecord();
                     record.setRecord(new RepoStrongRef(uri, comment.getCid()));
@@ -1170,6 +1174,16 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
             Paging paging,
             List<String> types
     ) {
+
+        // 既読処理を別スレッドで実行
+        ExecutorService pool = Executors.newFixedThreadPool(1);
+        Future<Response<Void>> future = pool.submit(() ->
+                auth.getAccessor().notification().updateSeen(
+                        NotificationUpdateSeenRequest.builder()
+                                .accessJwt(getAccessJwt())
+                                .seenAt(formatDate(new Date()))
+                                .build()));
+
         List<NotificationListNotificationsNotification> notifications = new ArrayList<>();
 
         int limit = limit(paging);
@@ -1243,6 +1257,13 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
             if (stop || notifications.size() >= limit) {
                 break;
             }
+        }
+
+        try {
+            // 既読設定が完了するまで待機 (一秒でタイムアウト)
+            future.get(1L, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            handleException(e);
         }
 
         NotificationStructure model = new NotificationStructure();

@@ -398,12 +398,6 @@ public class MisskeyMapper {
 
             // ステータス情報
             if (notification.getNote() != null) {
-
-                // 通知にユーザーが含まれている場合は使用
-                if (notification.getUser() != null) {
-                    notification.getNote().setUser(notification.getUser());
-                }
-
                 model.setComments(Collections.singletonList(
                         comment(notification.getNote(), host, service)));
             }

@@ -10,6 +10,7 @@ import net.socialhub.core.model.Paging;
 import net.socialhub.core.model.Trend;
 import net.socialhub.core.model.group.CommentGroup;
 import net.socialhub.core.model.group.CommentsRequestGroup;
+import net.socialhub.logger.Logger;
 import net.socialhub.service.misskey.action.MisskeyAction;
 import net.socialhub.service.misskey.action.MisskeyRequest;
 import net.socialhub.service.misskey.model.MisskeyNotification;
@@ -33,8 +34,13 @@ public class MisskeyActionTest extends AbstractTimelineTest {
     public void getNotifications() {
         Account account = getMisskeyAccount();
         MisskeyAction action = (MisskeyAction) account.action();
-        Pageable<Notification> models = action.getNotification(new Paging(100L));
+        Logger.getLogger(null).setLogLevel(Logger.LogLevel.ERROR);
 
+        Pageable<Notification> models = action.getNotification(new Paging(10L));
+
+        System.out.println("========================");
+        System.out.println("> Now");
+        System.out.println("========================");
         for (Notification notification : models.getEntities()) {
             System.out.println("--------------------------");
             System.out.println("Type: " + notification.getType());
@@ -61,7 +67,9 @@ public class MisskeyActionTest extends AbstractTimelineTest {
         System.out.println("========================");
 
         for (Comment c : comments.getComments().getEntities()) {
-            System.out.println(c.getCreateAt().getTime() + ":" + c.getService().getType() + ": " + c.getText());
+            System.out.println(c.getCreateAt().getTime() + ":"
+                    + c.getService().getType() + ": "
+                    + c.getText().getDisplayText());
         }
 
         System.out.println("========================");
@@ -69,7 +77,9 @@ public class MisskeyActionTest extends AbstractTimelineTest {
         System.out.println("========================");
 
         for (Comment c : news.getComments().getEntities()) {
-            System.out.println(c.getCreateAt().getTime() + ":" + c.getService().getType() + ": " + c.getText());
+            System.out.println(c.getCreateAt().getTime() + ":"
+                    + c.getService().getType() + ": "
+                    + c.getText().getDisplayText());
         }
     }
 }

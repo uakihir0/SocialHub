@@ -426,6 +426,7 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
             // 取得する通知の種類を指定
             List<String> types = new ArrayList<>();
             types.add("reply");
+            types.add("quote");
 
             Paging pg = getCountLimitPaging(paging, 20);
             NotificationStructure model = getNotifications(pg, types);

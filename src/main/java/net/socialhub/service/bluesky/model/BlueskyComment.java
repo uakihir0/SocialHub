@@ -67,6 +67,20 @@ public class BlueskyComment extends MiniBlogComment {
         return form;
     }
 
+    /**
+     * Bluesky では handle をリプライの本文に含める必要はないため上書きする
+     * In Bluesky, there is no need to include the handle in the reply body.
+     */
+    @Override
+    public CommentForm getReplyForm() {
+        CommentForm form = new CommentForm();
+        form.text("");
+        form.replyId(getId());
+        form.message(false);
+        return form;
+    }
+
+
     // region
     public String getCid() {
         return cid;

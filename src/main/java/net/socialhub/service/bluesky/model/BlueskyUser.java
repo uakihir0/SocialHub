@@ -46,6 +46,13 @@ public class BlueskyUser extends MiniBlogUser {
         return "https://bsky.app/profile/" + handle;
     }
 
+    @Override
+    public String getIconImageUrl() {
+        // IconUrl が存在しない場合は空文字を返す
+        String url = super.getIconImageUrl();
+        return (url != null) ? url : "";
+    }
+
     // region
     public boolean isSimple() {
         return isSimple;

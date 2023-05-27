@@ -311,6 +311,12 @@ public class BlueskyMapper {
         if (embed instanceof EmbedRecordView) {
             embedRecord(model, (EmbedRecordView) embed, service);
         }
+
+        // Quote With Media
+        if (embed instanceof EmbedRecordWithMediaView) {
+            embed(model, ((EmbedRecordWithMediaView) embed).getMedia(), service);
+            embedRecord(model, ((EmbedRecordWithMediaView) embed).getRecord(), service);
+        }
     }
 
     private static void embedRecord(

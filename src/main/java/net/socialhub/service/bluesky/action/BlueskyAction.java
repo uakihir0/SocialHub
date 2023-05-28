@@ -118,6 +118,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static net.socialhub.service.bluesky.action.BlueskyMapper.formatDate;
 
@@ -649,11 +650,19 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                 return results;
             }
 
-            return BlueskyMapper.timelineByPosts(
-                    getPostViews(uris),
-                    paging,
-                    service
-            );
+            Pageable<Comment> results =
+                    BlueskyMapper.timelineByPosts(
+                            getPostViews(uris),
+                            paging,
+                            service
+                    );
+
+            // 検索は時間の順序が狂っているのでソートして修正
+            results.setEntities(results.getEntities().stream()
+                    .sorted(comparing(Comment::getCreateAt).reversed())
+                    .collect(toList()));
+
+            return results;
         });
     }
 

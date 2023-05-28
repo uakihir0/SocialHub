@@ -24,12 +24,12 @@ public class SearchTimelineTest extends AbstractTimelineTest {
         execPast(getBlueskyAccount());
     }
 
-    private void execPast(Account account){
+    private void execPast(Account account) {
         Paging paging = new Paging();
         paging.setCount(10L);
 
-        Pageable<Comment> comments = account.action().getSearchTimeLine("#NowPlaying", paging);
-        Pageable<Comment> pasts = account.action().getSearchTimeLine("#NowPlaying", comments.pastPage());
+        Pageable<Comment> comments = account.action().getSearchTimeLine("SocialHub", paging);
+        Pageable<Comment> pasts = account.action().getSearchTimeLine("SocialHub", comments.pastPage());
 
         printTimeline("Now", comments);
         printTimeline("Past", pasts);

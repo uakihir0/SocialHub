@@ -10,6 +10,8 @@ import bsky4j.api.entity.atproto.repo.RepoUploadBlobRequest;
 import bsky4j.api.entity.atproto.repo.RepoUploadBlobResponse;
 import bsky4j.api.entity.atproto.server.ServerCreateSessionRequest;
 import bsky4j.api.entity.atproto.server.ServerCreateSessionResponse;
+import bsky4j.api.entity.bsky.actor.ActorGetPreferencesRequest;
+import bsky4j.api.entity.bsky.actor.ActorGetPreferencesResponse;
 import bsky4j.api.entity.bsky.actor.ActorGetProfileRequest;
 import bsky4j.api.entity.bsky.actor.ActorGetProfileResponse;
 import bsky4j.api.entity.bsky.actor.ActorSearchActorsRequest;
@@ -19,6 +21,10 @@ import bsky4j.api.entity.bsky.feed.FeedDeletePostRequest;
 import bsky4j.api.entity.bsky.feed.FeedDeleteRepostRequest;
 import bsky4j.api.entity.bsky.feed.FeedGetAuthorFeedRequest;
 import bsky4j.api.entity.bsky.feed.FeedGetAuthorFeedResponse;
+import bsky4j.api.entity.bsky.feed.FeedGetFeedGeneratorsRequest;
+import bsky4j.api.entity.bsky.feed.FeedGetFeedGeneratorsResponse;
+import bsky4j.api.entity.bsky.feed.FeedGetFeedRequest;
+import bsky4j.api.entity.bsky.feed.FeedGetFeedResponse;
 import bsky4j.api.entity.bsky.feed.FeedGetLikesRequest;
 import bsky4j.api.entity.bsky.feed.FeedGetLikesResponse;
 import bsky4j.api.entity.bsky.feed.FeedGetPostThreadRequest;
@@ -50,6 +56,8 @@ import bsky4j.api.entity.bsky.undoc.UndocSearchFeedsResponse;
 import bsky4j.api.entity.share.Response;
 import bsky4j.model.atproto.repo.RepoListRecordsRecord;
 import bsky4j.model.atproto.repo.RepoStrongRef;
+import bsky4j.model.bsky.actor.ActorDefsPreferencesUnion;
+import bsky4j.model.bsky.actor.ActorDefsSavedFeedsPref;
 import bsky4j.model.bsky.actor.ActorDefsViewerState;
 import bsky4j.model.bsky.embed.EmbedImages;
 import bsky4j.model.bsky.embed.EmbedImagesImage;
@@ -77,6 +85,7 @@ import com.google.gson.reflect.TypeToken;
 import net.socialhub.core.action.AccountActionImpl;
 import net.socialhub.core.action.callback.EventCallback;
 import net.socialhub.core.model.Account;
+import net.socialhub.core.model.Channel;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Context;
 import net.socialhub.core.model.Error;
@@ -1110,6 +1119,95 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
             }
         }
     }
+    // ============================================================== //
+    // Channel (List) API
+    // ============================================================== //
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Channel> getChannels(Identify id, Paging paging) {
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+
+            // ページング指定があった場合結果は空
+            if (paging instanceof BlueskyPaging) {
+                BlueskyPaging pg = (BlueskyPaging) paging;
+
+                if (pg.getLatestRecord() != null || pg.getCursor() != null) {
+                    Pageable<Channel> results = new Pageable<>();
+                    results.setEntities(new ArrayList<>());
+                    results.setPaging(paging);
+                    return results;
+                }
+            }
+
+            Response<ActorGetPreferencesResponse> preferences =
+                    auth.getAccessor().actor().getPreferences(
+                            ActorGetPreferencesRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .build());
+
+            List<String> uris = new ArrayList<>();
+            System.out.println(preferences.get().getPreferences().get(0));
+
+            for (ActorDefsPreferencesUnion union :
+                    preferences.get().getPreferences()) {
+                if (union instanceof ActorDefsSavedFeedsPref) {
+                    System.out.println(union.getClass().toGenericString());
+                    uris.addAll(((ActorDefsSavedFeedsPref) union).getSaved());
+                }
+            }
+
+            // 結果が空の場合
+            if (uris.isEmpty()) {
+                Pageable<Channel> results = new Pageable<>();
+                results.setEntities(new ArrayList<>());
+                results.setPaging(paging);
+                return results;
+            }
+
+            Response<FeedGetFeedGeneratorsResponse> feeds =
+                    auth.getAccessor().feed().getFeedGenerators(
+                            FeedGetFeedGeneratorsRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .feeds(uris)
+                                    .build());
+
+            return BlueskyMapper.channels(
+                    feeds.get().getFeeds(),
+                    paging,
+                    service
+            );
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Pageable<Comment> getChannelTimeLine(Identify id, Paging paging) {
+
+        return proceed(() -> {
+            Service service = getAccount().getService();
+            Response<FeedGetFeedResponse> response =
+                    auth.getAccessor().feed().getFeed(
+                            FeedGetFeedRequest.builder()
+                                    .accessJwt(getAccessJwt())
+                                    .feed((String) id.getId())
+                                    .cursor(cursor(paging))
+                                    .limit(limit(paging))
+                                    .build());
+
+            return BlueskyMapper.timelineByFeeds(
+                    response.get().getFeed(),
+                    paging,
+                    service
+            );
+        });
+    }
 
     /**
      * {@inheritDoc}
@@ -1326,7 +1424,6 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
     // ============================================================== //
     // Other
     // ============================================================== //
-
 
     /**
      * Get Users who likes specified post

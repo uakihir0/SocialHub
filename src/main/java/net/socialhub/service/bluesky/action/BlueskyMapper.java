@@ -12,6 +12,7 @@ import bsky4j.model.bsky.embed.EmbedRecordViewUnion;
 import bsky4j.model.bsky.embed.EmbedRecordWithMediaView;
 import bsky4j.model.bsky.embed.EmbedViewUnion;
 import bsky4j.model.bsky.feed.FeedDefsFeedViewPost;
+import bsky4j.model.bsky.feed.FeedDefsGeneratorView;
 import bsky4j.model.bsky.feed.FeedDefsPostView;
 import bsky4j.model.bsky.feed.FeedDefsReasonRepost;
 import bsky4j.model.bsky.feed.FeedDefsReplyRef;
@@ -28,6 +29,7 @@ import bsky4j.model.bsky.richtext.RichtextFacetMention;
 import bsky4j.model.share.RecordUnion;
 import net.socialhub.core.define.MediaType;
 import net.socialhub.core.define.emoji.EmojiCategoryType;
+import net.socialhub.core.model.Channel;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Identify;
 import net.socialhub.core.model.Media;
@@ -45,6 +47,7 @@ import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.logger.Logger;
 import net.socialhub.service.bluesky.define.BlueskyNotificationType;
 import net.socialhub.service.bluesky.define.BlueskyReactionType;
+import net.socialhub.service.bluesky.model.BlueskyChannel;
 import net.socialhub.service.bluesky.model.BlueskyComment;
 import net.socialhub.service.bluesky.model.BlueskyPaging;
 import net.socialhub.service.bluesky.model.BlueskyUser;
@@ -559,6 +562,30 @@ public class BlueskyMapper {
         return candidates;
     }
 
+    /**
+     * チャンネルマッピング
+     */
+    public static Channel channel(
+            FeedDefsGeneratorView generator,
+            Service service
+    ) {
+        BlueskyChannel model = new BlueskyChannel(service);
+
+        model.setId(generator.getUri());
+        model.setCid(generator.getCid());
+        model.setPublic(true);
+
+        model.setName(generator.getDisplayName());
+        model.setDescription(generator.getDescription());
+        model.setCreateAt(parseDate(generator.getIndexedAt()));
+
+        model.setOwner(user(generator.getCreator(), service));
+        model.setLikeCount(generator.getLikeCount());
+        model.setIconUrl(generator.getAvatar());
+
+        return model;
+    }
+
     // ============================================================== //
     // List Object Mapper
     // ============================================================== //
@@ -698,6 +725,40 @@ public class BlueskyMapper {
         Pageable<Notification> model = new Pageable<>();
         model.setEntities(notifications.stream()
                 .map(n -> notification(n, postMap, service))
+                .collect(toList()));
+
+        model.setPaging(BlueskyPaging.fromPaging(paging));
+        return model;
+    }
+
+    /**
+     * チャンネル一覧マッピング
+     */
+    public static Pageable<Channel> channels(
+            List<FeedDefsGeneratorView> channels,
+            Paging paging,
+            Service service
+    ) {
+
+        if (paging instanceof BlueskyPaging) {
+            BlueskyPaging p = (BlueskyPaging) paging;
+            channels = takeUntil(channels, c -> {
+                Identify id = p.getLatestRecord();
+                return id != null && c.getUri().equals(id.getId());
+            });
+        }
+
+        // 空の場合
+        if (channels.isEmpty()) {
+            Pageable<Channel> model = new Pageable<>();
+            model.setEntities(new ArrayList<>());
+            model.setPaging(paging);
+            return model;
+        }
+
+        Pageable<Channel> model = new Pageable<>();
+        model.setEntities(channels.stream()
+                .map(c -> channel(c, service))
                 .collect(toList()));
 
         model.setPaging(BlueskyPaging.fromPaging(paging));

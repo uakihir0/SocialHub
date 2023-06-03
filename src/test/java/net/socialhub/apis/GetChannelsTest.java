@@ -8,8 +8,18 @@ import org.junit.Test;
 public class GetChannelsTest extends AbstractApiTest {
 
     @Test
-    public void testSlackListAll() {
+    public void testChannelListAll_Slack() {
         Account account = getSlackAccount();
+        Pageable<Channel> channels = account.action().getChannels(null, null);
+
+        for (Channel channel : channels.getEntities()) {
+            System.out.println(channel.getId() + ":" + channel.getName());
+        }
+    }
+
+    @Test
+    public void testChannelListAll_Bluesky() {
+        Account account = getBlueskyAccount();
         Pageable<Channel> channels = account.action().getChannels(null, null);
 
         for (Channel channel : channels.getEntities()) {

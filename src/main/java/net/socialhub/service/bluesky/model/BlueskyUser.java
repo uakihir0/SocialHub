@@ -36,6 +36,15 @@ public class BlueskyUser extends MiniBlogUser {
     }
 
     @Override
+    public String getName() {
+        // Bluesky では名前が空の場合も存在
+        if (super.getName() == null) {
+            return getScreenName();
+        }
+        return super.getName();
+    }
+
+    @Override
     public String getAccountIdentify() {
         return "@" + getScreenName();
     }

@@ -1,9 +1,12 @@
 package net.socialhub.core.action;
 
 import net.socialhub.core.action.callback.EventCallback;
+import net.socialhub.core.define.emoji.EmojiType;
+import net.socialhub.core.define.emoji.EmojiVariationType;
 import net.socialhub.core.model.Channel;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Context;
+import net.socialhub.core.model.Emoji;
 import net.socialhub.core.model.Identify;
 import net.socialhub.core.model.Pageable;
 import net.socialhub.core.model.Paging;
@@ -15,7 +18,11 @@ import net.socialhub.core.model.error.NotImplimentedException;
 import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.core.model.support.ReactionCandidate;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Account Actions
@@ -291,6 +298,27 @@ public interface AccountAction {
      */
     default Context getCommentContext(Identify id) {
         throw new NotImplimentedException();
+    }
+
+    /**
+     * Get Emojis
+     * 絵文字一覧を取得
+     */
+    default List<Emoji> getEmojis() {
+        List<Emoji> emojis = new ArrayList<>();
+
+        for (EmojiType emoji : EmojiType.values()) {
+            emojis.add(Emoji.fromEmojiType(emoji));
+        }
+        for (EmojiVariationType emoji : EmojiVariationType.values()) {
+            emojis.add(Emoji.fromEmojiVariationType(emoji));
+        }
+
+        return emojis.stream().sorted((a, b) -> {
+            Integer v1 = (a.getFrequentLevel() != null? a.getFrequentLevel() : Integer.MAX_VALUE);
+            Integer v2 = (b.getFrequentLevel() != null? b.getFrequentLevel() : Integer.MAX_VALUE);
+            return v1.compareTo(v2);
+        }).collect(toList());
     }
 
     // ============================================================== //

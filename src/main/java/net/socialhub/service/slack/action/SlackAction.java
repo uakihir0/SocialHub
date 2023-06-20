@@ -114,15 +114,15 @@ public class SlackAction extends AccountActionImpl {
     public User getUserMe() {
         return proceed(() -> {
             Service service = getAccount().getService();
-            AuthTestResponse test = auth.getAccessor().getSlack() //
-                    .methods().authTest(AuthTestRequest.builder() //
-                            .token(auth.getAccessor().getToken()) //
+            AuthTestResponse test = auth.getAccessor().getSlack()
+                    .methods().authTest(AuthTestRequest.builder()
+                            .token(auth.getAccessor().getToken())
                             .build());
 
-            UsersInfoResponse account = auth.getAccessor().getSlack() //
-                    .methods().usersInfo(UsersInfoRequest.builder() //
-                            .token(auth.getAccessor().getToken()) //
-                            .user(test.getUserId()) //
+            UsersInfoResponse account = auth.getAccessor().getSlack()
+                    .methods().usersInfo(UsersInfoRequest.builder()
+                            .token(auth.getAccessor().getToken())
+                            .user(test.getUserId())
                             .build());
 
             me = userCache(SlackMapper.user(account, getTeam(), service));
@@ -137,10 +137,10 @@ public class SlackAction extends AccountActionImpl {
     public User getUser(Identify id) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            UsersInfoResponse account = auth.getAccessor().getSlack() //
-                    .methods().usersInfo(UsersInfoRequest.builder() //
-                            .token(auth.getAccessor().getToken()) //
-                            .user((String) id.getId()) //
+            UsersInfoResponse account = auth.getAccessor().getSlack()
+                    .methods().usersInfo(UsersInfoRequest.builder()
+                            .token(auth.getAccessor().getToken())
+                            .user((String) id.getId())
                             .build());
 
             return userCache(SlackMapper.user(account, getTeam(), service));

@@ -1,8 +1,9 @@
 package net.socialhub.core.model.support;
 
+import net.socialhub.core.model.Emoji;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -11,37 +12,34 @@ import java.util.List;
  */
 public class ReactionCandidate {
 
+    /**
+     * リアクション名
+     */
     private String name;
 
-    private String emoji;
-
-    private String iconUrl;
-
-    private String category;
+    /**
+     * リアクション名のエイリアス
+     */
+    private List<String> nameAliases;
 
     /**
-     * Custom Reaction or Unicode Frequent level under 10.
-     * https://home.unicode.org/the-most-frequent-emoji/
+     * When Emoji Reaction
+     * 絵文字リアクションの場合
      */
-    private boolean isFrequentlyUsed;
-
-    /** Use for search */
-    private String searchWord;
-
-    private List<String> aliases;
+    private Emoji emoji;
 
     /**
      * Get All Names
      * エイリアスの返却処理
      */
     public List<String> getAllNames() {
-        if (aliases != null) {
-            List<String> results = new ArrayList<>(aliases);
-            results.add(name);
-            return results;
+        if (getEmoji() != null) {
+            return new ArrayList<>(getEmoji().getShortCodes());
         }
 
-        return Collections.singletonList(name);
+        List<String> results = new ArrayList<>(getNameAliases());
+        results.add(getName());
+        return results;
     }
 
     /**
@@ -49,14 +47,24 @@ public class ReactionCandidate {
      * エイリアスの追加処理
      */
     public void addAlias(List<String> aliases) {
-        if (this.aliases == null) {
-            this.aliases = new ArrayList<>();
-            this.aliases.add(name);
-        }
+        if (emoji != null) {
+            emoji.getShortCodes().addAll(aliases);
 
-        for (String alias : aliases) {
-            if (!this.aliases.contains(alias)) {
-                this.aliases.add(alias);
+            for (String alias : aliases) {
+                if (!emoji.getShortCodes().contains(alias)) {
+                    emoji.getShortCodes().add(alias);
+                }
+            }
+
+        } else {
+            if (nameAliases == null) {
+                nameAliases = new ArrayList<>();
+            }
+
+            for (String alias : aliases) {
+                if (!nameAliases.contains(alias)) {
+                    nameAliases.add(alias);
+                }
             }
         }
     }
@@ -71,6 +79,9 @@ public class ReactionCandidate {
 
     //region // Getter&Setter
     public String getName() {
+        if (emoji != null) {
+            return emoji.getShortCodes().get(0);
+        }
         return name;
     }
 
@@ -78,44 +89,23 @@ public class ReactionCandidate {
         this.name = name;
     }
 
-    public String getEmoji() {
+    public List<String> getNameAliases() {
+        if (nameAliases == null) {
+            return new ArrayList<>();
+        }
+        return nameAliases;
+    }
+
+    public void setNameAliases(List<String> nameAliases) {
+        this.nameAliases = nameAliases;
+    }
+
+    public Emoji getEmoji() {
         return emoji;
     }
 
-    public void setEmoji(String emoji) {
+    public void setEmoji(Emoji emoji) {
         this.emoji = emoji;
-    }
-
-    public String getIconUrl() {
-        return iconUrl;
-    }
-
-    public void setIconUrl(String iconUrl) {
-        this.iconUrl = iconUrl;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public boolean isFrequentlyUsed() {
-        return isFrequentlyUsed;
-    }
-
-    public void setFrequentlyUsed(boolean frequentlyUsed) {
-        isFrequentlyUsed = frequentlyUsed;
-    }
-
-    public String getSearchWord() {
-        return searchWord;
-    }
-
-    public void setSearchWord(String searchWord) {
-        this.searchWord = searchWord;
     }
     //endregion
 }

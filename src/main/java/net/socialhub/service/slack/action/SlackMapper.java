@@ -17,6 +17,7 @@ import net.socialhub.core.define.emoji.EmojiType;
 import net.socialhub.core.define.emoji.EmojiVariationType;
 import net.socialhub.core.model.Channel;
 import net.socialhub.core.model.Comment;
+import net.socialhub.core.model.Emoji;
 import net.socialhub.core.model.Media;
 import net.socialhub.core.model.Pageable;
 import net.socialhub.core.model.Paging;
@@ -287,8 +288,10 @@ public final class SlackMapper {
                     candidates.stream() //
                             .filter(c -> c.getName().equals(reaction.getName())) //
                             .findFirst().ifPresent(c -> {
-                                model.setIconUrl(c.getIconUrl());
-                                model.setEmoji(c.getEmoji());
+                                if (c.getEmoji() != null) {
+                                    model.setIconUrl(c.getEmoji().getImageUrl());
+                                    model.setEmoji(c.getEmoji().getEmoji());
+                                }
                             });
                 }
 
@@ -319,24 +322,16 @@ public final class SlackMapper {
             ReactionCandidate candidate = new ReactionCandidate();
             candidates.add(candidate);
 
-            candidate.setCategory(emoji.getCategory().getCode());
-            candidate.setEmoji(emoji.getEmoji());
-            candidate.setName(emoji.getName());
-
-            candidate.setSearchWord(emoji.getName());
-            candidate.setFrequentlyUsed((emoji.getLevel() != null) && (emoji.getLevel() <= 10));
+            Emoji model = Emoji.fromEmojiType(emoji);
+            candidate.setEmoji(model);
         }
 
         for (EmojiVariationType emoji : EmojiVariationType.values()) {
             ReactionCandidate candidate = new ReactionCandidate();
             candidates.add(candidate);
 
-            candidate.setCategory(emoji.getCategory().getCode());
-            candidate.setEmoji(emoji.getEmoji());
-            candidate.setName(emoji.getName());
-
-            candidate.setSearchWord(emoji.getName());
-            candidate.setFrequentlyUsed((emoji.getLevel() != null) && (emoji.getLevel() <= 10));
+            Emoji model = Emoji.fromEmojiVariationType(emoji);
+            candidate.setEmoji(model);
         }
 
         emojis.getEmoji().forEach((key, value) -> {
@@ -349,20 +344,18 @@ public final class SlackMapper {
                 ReactionCandidate candidate = new ReactionCandidate();
                 candidates.add(candidate);
 
-                candidate.setCategory(EmojiCategoryType.Custom.getCode());
-                candidate.setIconUrl(value);
-                candidate.setName(key);
-
-                candidate.setSearchWord(key);
-                candidate.setFrequentlyUsed(true);
+                Emoji model = new Emoji();
+                model.addShortCode(key);
+                model.setImageUrl(value);
+                model.setCategory(EmojiCategoryType.Custom.getCode());
             }
         });
 
         // エイリアスの処理を実行
         // FIXME: エイリアスのエイリアス？
         alias.forEach((key, value) -> {
-            candidates.stream() //
-                    .filter(c -> c.getName().equals(value)) //
+            candidates.stream()
+                    .filter(c -> c.getName().equals(value))
                     .findFirst().ifPresent(c -> c.addAlias(key));
         });
 

@@ -32,6 +32,7 @@ import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Channel;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Context;
+import net.socialhub.core.model.Emoji;
 import net.socialhub.core.model.Error;
 import net.socialhub.core.model.Identify;
 import net.socialhub.core.model.Notification;
@@ -52,7 +53,6 @@ import net.socialhub.core.model.paging.BorderPaging;
 import net.socialhub.core.model.paging.OffsetPaging;
 import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.core.model.request.PollForm;
-import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.core.utils.MapperUtil;
 import net.socialhub.logger.Logger;
 import net.socialhub.service.mastodon.define.MastodonNotificationType;
@@ -110,6 +110,9 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
     private static final Logger logger = Logger.getLogger(MastodonAction.class);
 
     private ServiceAuth<Mastodon> auth;
+
+    /** List of Emoji */
+    private List<Emoji> emojisCache;
 
     // ============================================================== //
     // Account
@@ -778,14 +781,6 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
      * {@inheritDoc}
      */
     @Override
-    public List<ReactionCandidate> getReactionCandidates() {
-        return MastodonMapper.reactionCandidates();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public Context getCommentContext(Identify id) {
         return proceed(() -> {
             Mastodon mastodon = auth.getAccessor();
@@ -808,6 +803,28 @@ public class MastodonAction extends AccountActionImpl implements MicroBlogAccoun
 
             MapperUtil.sortContext(context);
             return context;
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Emoji> getEmojis() {
+        if (emojisCache != null) {
+            return emojisCache;
+        }
+
+        return proceed(() -> {
+            Mastodon mastodon = auth.getAccessor();
+            Response<mastodon4j.entity.Emoji[]> emojis =
+                    mastodon.emoji().getCustomEmojis();
+
+            List<Emoji> model = new ArrayList<>();
+            model.addAll(MastodonMapper.emojis(emojis.get()));
+            model.addAll(super.getEmojis());
+            emojisCache = model;
+            return emojisCache;
         });
     }
 

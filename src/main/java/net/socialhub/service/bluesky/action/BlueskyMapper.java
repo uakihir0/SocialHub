@@ -43,7 +43,6 @@ import net.socialhub.core.model.common.AttributedElement;
 import net.socialhub.core.model.common.AttributedItem;
 import net.socialhub.core.model.common.AttributedKind;
 import net.socialhub.core.model.common.AttributedString;
-import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.logger.Logger;
 import net.socialhub.service.bluesky.define.BlueskyNotificationType;
 import net.socialhub.service.bluesky.define.BlueskyReactionType;
@@ -539,27 +538,6 @@ public class BlueskyMapper {
         }
 
         return model;
-    }
-
-    /**
-     * リアクション候補マッピング
-     */
-    public static List<ReactionCandidate> reactionCandidates() {
-        List<ReactionCandidate> candidates = new ArrayList<>();
-
-        ReactionCandidate like = new ReactionCandidate();
-        like.setCategory(EmojiCategoryType.Activities.getCode());
-        like.setName(BlueskyReactionType.Like.getCode().get(0));
-        like.addAlias(BlueskyReactionType.Like.getCode());
-        candidates.add(like);
-
-        ReactionCandidate share = new ReactionCandidate();
-        share.setCategory(EmojiCategoryType.Activities.getCode());
-        share.setName(BlueskyReactionType.Repost.getCode().get(0));
-        share.addAlias(BlueskyReactionType.Repost.getCode());
-        candidates.add(share);
-
-        return candidates;
     }
 
     /**

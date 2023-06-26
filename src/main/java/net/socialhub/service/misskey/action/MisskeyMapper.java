@@ -7,8 +7,6 @@ import misskey4j.entity.Message;
 import misskey4j.entity.Note;
 import misskey4j.entity.Relation;
 import net.socialhub.core.define.MediaType;
-import net.socialhub.core.define.emoji.EmojiType;
-import net.socialhub.core.define.emoji.EmojiVariationType;
 import net.socialhub.core.model.Channel;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Emoji;
@@ -27,7 +25,6 @@ import net.socialhub.core.model.common.AttributedFiled;
 import net.socialhub.core.model.common.AttributedString;
 import net.socialhub.core.model.support.Color;
 import net.socialhub.core.model.support.PollOption;
-import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.logger.Logger;
 import net.socialhub.service.misskey.define.MisskeyNotificationType;
 import net.socialhub.service.misskey.define.MisskeyVisibility;
@@ -272,20 +269,14 @@ public class MisskeyMapper {
             misskey4j.entity.Emoji emoji) {
 
         Emoji model = new Emoji();
-        model.setCode(emoji.getName());
-        model.setUrl(emoji.getUrl());
-        return model;
-    }
+        model.addShortCode(emoji.getName());
+        model.setImageUrl(emoji.getUrl());
+        model.setCategory(emoji.getCategory());
 
-    /**
-     * 絵文字マッピング
-     */
-    public static Emoji emoji(
-            ReactionCandidate candidate) {
+        if (emoji.getAliases() != null) {
+            emoji.getAliases().forEach(model::addShortCode);
+        }
 
-        Emoji model = new Emoji();
-        model.setCode(candidate.getName().replaceAll(":", ""));
-        model.setUrl(candidate.getIconUrl());
         return model;
     }
 
@@ -355,7 +346,7 @@ public class MisskeyMapper {
      */
     public static Notification notification(
             misskey4j.entity.Notification notification,
-            List<ReactionCandidate> reactions,
+            List<Emoji> emojis,
             String host,
             Service service) {
 
@@ -374,9 +365,9 @@ public class MisskeyMapper {
                     MisskeyNotificationType.of(notification.getType());
 
             // ローカルアイコンの取得
-            reactions.stream()
-                    .filter(e -> e.getAllNames().contains(notification.getReaction()))
-                    .findFirst().ifPresent(c -> model.setIconUrl(c.getIconUrl()));
+            emojis.stream()
+                    .filter(e -> e.getShortCodes().contains(notification.getReaction()))
+                    .findFirst().ifPresent(c -> model.setIconUrl(c.getImageUrl()));
 
             // リモートアイコンの取得
             String reaction = model.getReaction();
@@ -474,7 +465,7 @@ public class MisskeyMapper {
      */
     public static Comment message(
             Message message,
-            List<misskey4j.entity.Emoji> emojis,
+            List<Emoji> emojis,
             String host,
             Service service) {
 
@@ -492,10 +483,7 @@ public class MisskeyMapper {
 
             // 本文の設定
             model.setText(AttributedString.plain(message.getText()));
-            model.getText().addEmojiElement(selectEmojis(
-                    emojis,
-                    message.getText(),
-                    host));
+            model.getText().addEmojiElement(emojis);
 
             // メディアの設定
             model.setMedias(emptyList());
@@ -657,7 +645,7 @@ public class MisskeyMapper {
             Message[] messages,
             String host,
             Service service,
-            List<misskey4j.entity.Emoji> emojis,
+            List<Emoji> emojis,
             Paging paging) {
 
         Pageable<Comment> model = new Pageable<>();
@@ -773,67 +761,18 @@ public class MisskeyMapper {
      */
     public static Pageable<Notification> notifications(
             misskey4j.entity.Notification[] notifications,
-            List<ReactionCandidate> reactions,
+            List<Emoji> emojis,
             String host,
             Service service,
             Paging paging) {
 
         Pageable<Notification> model = new Pageable<>();
         model.setEntities(Stream.of(notifications)
-                .map(a -> notification(a, reactions, host, service))
+                .map(a -> notification(a, emojis, host, service))
                 .collect(toList()));
 
         model.setPaging(MisskeyPaging.fromPaging(paging));
         return model;
-    }
-
-    /**
-     * リアクション候補マッピング
-     * (Misskey のリアクション一覧には Like or Share は省く)
-     */
-    public static List<ReactionCandidate> reactionCandidates(
-            List<misskey4j.entity.Emoji> emojis) {
-
-        List<ReactionCandidate> candidates = new ArrayList<>();
-
-        // Misskey はカスタムが先
-        emojis.forEach(emoji -> {
-            ReactionCandidate candidate = new ReactionCandidate();
-            candidates.add(candidate);
-
-            candidate.setCategory(emoji.getCategory());
-            candidate.setIconUrl(emoji.getUrl());
-            candidate.setName(":" + emoji.getName() + ":");
-
-            candidate.setSearchWord(candidate.getName());
-            candidate.setFrequentlyUsed(true);
-        });
-
-        for (EmojiType emoji : EmojiType.values()) {
-            ReactionCandidate candidate = new ReactionCandidate();
-            candidates.add(candidate);
-
-            candidate.setCategory(emoji.getCategory().getCode());
-            candidate.setEmoji(emoji.getEmoji());
-            candidate.setName(emoji.getEmoji());
-
-            candidate.setSearchWord(emoji.getName());
-            candidate.setFrequentlyUsed((emoji.getLevel() != null) && (emoji.getLevel() <= 10));
-        }
-
-        for (EmojiVariationType emoji : EmojiVariationType.values()) {
-            ReactionCandidate candidate = new ReactionCandidate();
-            candidates.add(candidate);
-
-            candidate.setCategory(emoji.getCategory().getCode());
-            candidate.setEmoji(emoji.getEmoji());
-            candidate.setName(emoji.getEmoji());
-
-            candidate.setSearchWord(emoji.getName());
-            candidate.setFrequentlyUsed((emoji.getLevel() != null) && (emoji.getLevel() <= 10));
-        }
-
-        return candidates;
     }
 
     // ============================================================== //
@@ -891,8 +830,8 @@ public class MisskeyMapper {
             String code = found.replaceAll(":", "");
 
             Emoji emoji = new Emoji();
-            emoji.setUrl(getEmojiURL(host, code));
-            emoji.setCode(code);
+            emoji.setImageUrl(getEmojiURL(host, code));
+            emoji.addShortCode(code);
             results.add(emoji);
         }
 

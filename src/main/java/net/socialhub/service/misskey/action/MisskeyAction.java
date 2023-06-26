@@ -73,7 +73,6 @@ import misskey4j.api.response.users.UsersFollowingsResponse;
 import misskey4j.api.response.users.UsersRelationResponse;
 import misskey4j.api.response.users.UsersSearchResponse;
 import misskey4j.api.response.users.UsersShowResponse;
-import misskey4j.entity.Emoji;
 import misskey4j.entity.Error.ErrorDetail;
 import misskey4j.entity.Follow;
 import misskey4j.entity.Message;
@@ -105,6 +104,7 @@ import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Channel;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Context;
+import net.socialhub.core.model.Emoji;
 import net.socialhub.core.model.Error;
 import net.socialhub.core.model.Identify;
 import net.socialhub.core.model.Pageable;
@@ -123,7 +123,6 @@ import net.socialhub.core.model.paging.OffsetPaging;
 import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.core.model.request.MediaForm;
 import net.socialhub.core.model.request.PollForm;
-import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.core.utils.CollectionUtil;
 import net.socialhub.core.utils.HandlingUtil;
 import net.socialhub.core.utils.MapperUtil;
@@ -159,9 +158,6 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
     private static final Logger logger = Logger.getLogger(MisskeyAction.class);
 
     private ServiceAuth<Misskey> auth;
-
-    /** Reaction Candidate Cache */
-    private List<ReactionCandidate> reactionCandidate;
 
     /** List of Emoji */
     private List<Emoji> emojisCache;
@@ -869,21 +865,9 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ReactionCandidate> getReactionCandidates() {
-        if (this.reactionCandidate != null) {
-            return this.reactionCandidate;
-        }
-
-        this.reactionCandidate = MisskeyMapper.reactionCandidates(getEmojis());
-        return this.reactionCandidate;
-    }
-
-    /**
      * Get List of Emojis
      */
+    @Override
     public List<Emoji> getEmojis() {
         if (this.emojisCache != null) {
             return this.emojisCache;
@@ -897,14 +881,19 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                             .build());
 
             // V12 以前は meta エンドポイントから取得
-            this.emojisCache = metaResponse.get().getEmojis();
+            if (metaResponse.get().getEmojis() != null) {
+                this.emojisCache = MisskeyMapper.emojis(
+                        metaResponse.get().getEmojis());
+            }
 
+            // V13 からは emojis エンドポイントから取得
             if (this.emojisCache == null) {
-                // V13 からは emojis エンドポイントから取得
                 Response<EmojisResponse> emojisResponse =
                         misskey.meta().emojis(EmojisRequest.builder()
                                 .build());
-                this.emojisCache = emojisResponse.get().getEmojis();
+
+                this.emojisCache = MisskeyMapper.emojis(
+                        emojisResponse.get().getEmojis());
             }
 
             return this.emojisCache;
@@ -1331,8 +1320,8 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             Service service = getAccount().getService();
             ExecutorService pool = Executors.newCachedThreadPool();
 
-            Future<List<ReactionCandidate>> reactionFuture =
-                    pool.submit(this::getReactionCandidates);
+            Future<List<Emoji>> emojisFuture =
+                    pool.submit(this::getEmojis);
 
             INotificationsRequest.INotificationsRequestBuilder builder =
                     INotificationsRequest.builder();
@@ -1348,12 +1337,12 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
                     pool.submit(() -> misskey.accounts()
                             .iNotifications(builder.build()));
 
-            List<ReactionCandidate> reaction = reactionFuture.get();
+            List<Emoji> emojis = emojisFuture.get();
             Response<INotificationsResponse[]> response = responseFuture.get();
 
             return MisskeyMapper.notifications(
                     response.get(),
-                    reaction,
+                    emojis,
                     misskey.getHost(),
                     service,
                     paging);
@@ -1403,7 +1392,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
 
             MisskeyNotificationListener notificationListener =
                     new MisskeyNotificationListener(
-                            callback, getReactionCandidates(),
+                            callback, getEmojis(),
                             service, misskey.getHost(),
                             getUserMeWithCache());
 
@@ -1698,19 +1687,19 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
             NotificationCallback {
 
         private final EventCallback listener;
-        private final List<ReactionCandidate> reactions;
+        private final List<Emoji> emojis;
         private final Service service;
         private final String host;
         private final User me;
 
         MisskeyNotificationListener(
                 EventCallback listener,
-                List<ReactionCandidate> reactions,
+                List<Emoji> emojis,
                 Service service,
                 String host,
                 User me) {
             this.listener = listener;
-            this.reactions = reactions;
+            this.emojis = emojis;
             this.service = service;
             this.host = host;
             this.me = me;
@@ -1756,7 +1745,7 @@ public class MisskeyAction extends AccountActionImpl implements MicroBlogAccount
 
                 if (listener instanceof NotificationCommentCallback) {
                     net.socialhub.core.model.Notification model =
-                            MisskeyMapper.notification(notification, reactions, host, service);
+                            MisskeyMapper.notification(notification, emojis, host, service);
                     ((NotificationCommentCallback) listener).onNotification(new NotificationEvent(model));
                 }
             }

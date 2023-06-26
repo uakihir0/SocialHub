@@ -210,7 +210,7 @@ public class AttributedString {
             String text = element.getDisplayText();
 
             // プレーン文字列の場合にスキャンして走査
-            String regex = ":" + emoji.getCode() + ":";
+            String regex = ":" + emoji.getShortCode() + ":";
             Pattern p = Pattern.compile(regex);
             Matcher m = p.matcher(text);
 
@@ -233,7 +233,7 @@ public class AttributedString {
                     {
                         AttributedItem model = new AttributedItem();
                         model.setDisplayText(regex);
-                        model.setExpandedText(emoji.getUrl());
+                        model.setExpandedText(emoji.getImageUrl());
                         model.setKind(AttributedKind.EMOJI);
                         results.add(model);
                     }

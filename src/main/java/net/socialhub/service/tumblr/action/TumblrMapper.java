@@ -10,7 +10,6 @@ import com.tumblr.jumblr.types.Theme;
 import com.tumblr.jumblr.types.Trail;
 import com.tumblr.jumblr.types.VideoPost;
 import net.socialhub.core.define.MediaType;
-import net.socialhub.core.define.emoji.EmojiCategoryType;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Media;
 import net.socialhub.core.model.Pageable;
@@ -22,10 +21,8 @@ import net.socialhub.core.model.common.AttributedString;
 import net.socialhub.core.model.common.xml.XmlConvertRule;
 import net.socialhub.core.model.common.xml.XmlDocument;
 import net.socialhub.core.model.common.xml.XmlTag;
-import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.core.utils.XmlParseUtil;
 import net.socialhub.service.tumblr.define.TumblrIconSize;
-import net.socialhub.service.tumblr.define.TumblrReactionType;
 import net.socialhub.service.tumblr.model.TumblrComment;
 import net.socialhub.service.tumblr.model.TumblrPaging;
 import net.socialhub.service.tumblr.model.TumblrUser;
@@ -365,31 +362,6 @@ public class TumblrMapper {
 
         media.setPreviewUrl(video.getThumbnailUrl());
         return media;
-    }
-
-    // ============================================================== //
-    // Reactions
-    // ============================================================== //
-
-    /**
-     * リアクション候補マッピング
-     */
-    public static List<ReactionCandidate> reactionCandidates() {
-        List<ReactionCandidate> candidates = new ArrayList<>();
-
-        ReactionCandidate like = new ReactionCandidate();
-        like.setCategory(EmojiCategoryType.Activities.getCode());
-        like.setName(TumblrReactionType.Like.getCode().get(0));
-        like.addAlias(TumblrReactionType.Like.getCode());
-        candidates.add(like);
-
-        ReactionCandidate share = new ReactionCandidate();
-        share.setCategory(EmojiCategoryType.Activities.getCode());
-        share.setName(TumblrReactionType.Reblog.getCode().get(0));
-        share.addAlias(TumblrReactionType.Reblog.getCode());
-        candidates.add(share);
-
-        return candidates;
     }
 
     // ============================================================== //

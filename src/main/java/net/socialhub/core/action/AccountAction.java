@@ -16,11 +16,9 @@ import net.socialhub.core.model.Thread;
 import net.socialhub.core.model.User;
 import net.socialhub.core.model.error.NotImplimentedException;
 import net.socialhub.core.model.request.CommentForm;
-import net.socialhub.core.model.support.ReactionCandidate;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -281,14 +279,6 @@ public interface AccountAction {
      * 自分のコメントを削除
      */
     default void deleteComment(Identify id) {
-        throw new NotImplimentedException();
-    }
-
-    /**
-     * Get Reaction Candidates
-     * リアクション候補を取得
-     */
-    default List<ReactionCandidate> getReactionCandidates() {
         throw new NotImplimentedException();
     }
 

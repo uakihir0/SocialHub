@@ -41,6 +41,7 @@ import net.socialhub.core.model.Account;
 import net.socialhub.core.model.Channel;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Context;
+import net.socialhub.core.model.Emoji;
 import net.socialhub.core.model.Identify;
 import net.socialhub.core.model.Pageable;
 import net.socialhub.core.model.Paging;
@@ -53,7 +54,6 @@ import net.socialhub.core.model.paging.CursorPaging;
 import net.socialhub.core.model.paging.DatePaging;
 import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.core.model.request.MediaForm;
-import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.core.utils.LimitMap;
 import net.socialhub.core.utils.MapperUtil;
 import net.socialhub.service.slack.define.SlackFormKey;
@@ -100,8 +100,8 @@ public class SlackAction extends AccountActionImpl {
     private Map<String, User> userCache = Collections.synchronizedMap(new LimitMap<>(200));
     private Map<String, User> botCache = Collections.synchronizedMap(new LimitMap<>(10));
 
-    /** Reaction Candidate Cache */
-    private List<ReactionCandidate> reactionCandidate;
+    /** Emoji Cache */
+    private List<Emoji> emojisCache;
 
     // ============================================================== //
     // Account
@@ -226,25 +226,6 @@ public class SlackAction extends AccountActionImpl {
      * {@inheritDoc}
      */
     @Override
-    public List<ReactionCandidate> getReactionCandidates() {
-        if (this.reactionCandidate != null) {
-            return this.reactionCandidate;
-        }
-
-        return proceed(() -> {
-            EmojiListResponse response = auth.getAccessor().getSlack() //
-                    .methods().emojiList(EmojiListRequest.builder() //
-                            .token(auth.getAccessor().getToken()).build());
-
-            this.reactionCandidate = SlackMapper.reactionCandidates(response);
-            return this.reactionCandidate;
-        });
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public Context getCommentContext(Identify id) {
         return proceed(() -> {
             ExecutorService pool = Executors.newCachedThreadPool();
@@ -264,7 +245,7 @@ public class SlackAction extends AccountActionImpl {
                     }
                 }
 
-                return auth.getAccessor().getSlack() //
+                return auth.getAccessor().getSlack()
                         .methods().conversationsReplies(ConversationsRepliesRequest.builder()
                                 .token(auth.getAccessor().getToken())
                                 .channel(getChannelId(id))
@@ -272,8 +253,7 @@ public class SlackAction extends AccountActionImpl {
                                 .build());
             });
 
-            Future<List<ReactionCandidate>> candidatesFuture = //
-                    pool.submit(this::getReactionCandidates);
+            Future<List<Emoji>> emojisFuture = pool.submit(this::getEmojis);
 
             Future<User> userMeFuture = pool.submit(this::getUserMeWithCache);
 
@@ -282,7 +262,7 @@ public class SlackAction extends AccountActionImpl {
             // ------------------------------------------------ //
 
             ConversationsRepliesResponse response = responseFuture.get();
-            List<ReactionCandidate> candidates = candidatesFuture.get();
+            List<Emoji> emojis = emojisFuture.get();
             User userMe = userMeFuture.get();
 
             // ------------------------------------------------ //
@@ -296,8 +276,8 @@ public class SlackAction extends AccountActionImpl {
                     messages.stream().map(Message::getUser).filter(Objects::nonNull)
                             .distinct().collect(Collectors.toList());
 
-            Map<String, User> userMap = users.parallelStream() //
-                    .collect(Collectors.toMap(Function.identity(), //
+            Map<String, User> userMap = users.parallelStream()
+                    .collect(Collectors.toMap(Function.identity(),
                             (i) -> getUserWithCache(new Identify(service, i))));
 
             Context context = new Context();
@@ -312,7 +292,7 @@ public class SlackAction extends AccountActionImpl {
                 }
 
                 User user = userMap.get(m.getUser());
-                Comment comment = SlackMapper.comment(m, user, userMe, candidates, getChannelId(id), service);
+                Comment comment = SlackMapper.comment(m, user, userMe, emojis, getChannelId(id), service);
                 ((!isProceededMine) ? context.getAncestors() : context.getDescendants()).add(comment);
             }
 
@@ -323,6 +303,26 @@ public class SlackAction extends AccountActionImpl {
 
             MapperUtil.sortContext(context);
             return context;
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Emoji> getEmojis() {
+        if (this.emojisCache != null) {
+            return this.emojisCache;
+        }
+
+        return proceed(() -> {
+            EmojiListResponse response = auth.getAccessor().getSlack()
+                    .methods().emojiList(EmojiListRequest.builder()
+                            .token(auth.getAccessor().getToken()).build());
+
+            this.emojisCache = new ArrayList<>(SlackMapper.emojis(response));
+            this.emojisCache.addAll(super.getEmojis());
+            return this.emojisCache;
         });
     }
 
@@ -575,21 +575,16 @@ public class SlackAction extends AccountActionImpl {
             Future<List<Message>> messageFuture =
                     pool.submit(messageSupplier::get);
 
-            Future<SlackTeam> teamFuture =
-                    pool.submit(this::getTeam);
-
-            Future<User> userMeFuture =
-                    pool.submit(this::getUserMeWithCache);
-
-            Future<List<ReactionCandidate>> candidatesFuture =
-                    pool.submit(this::getReactionCandidates);
+            Future<SlackTeam> teamFuture = pool.submit(this::getTeam);
+            Future<User> userMeFuture = pool.submit(this::getUserMeWithCache);
+            Future<List<Emoji>> emojisFuture = pool.submit(this::getEmojis);
 
             // ------------------------------------------------ //
             // Await Request
             // ------------------------------------------------ //
 
             List<Message> messages = messageFuture.get();
-            List<ReactionCandidate> candidates = candidatesFuture.get();
+            List<Emoji> emojis = emojisFuture.get();
             User userMe = userMeFuture.get();
             teamFuture.get();
 
@@ -600,25 +595,25 @@ public class SlackAction extends AccountActionImpl {
             Service service = getAccount().getService();
 
             // USERS
-            List<String> users = messages.stream() //
-                    .filter((e) -> !SlackMessageSubType.BotMessage.getCode().equals(e.getSubtype())) //
-                    .map(Message::getUser).filter(Objects::nonNull) //
+            List<String> users = messages.stream()
+                    .filter((e) -> !SlackMessageSubType.BotMessage.getCode().equals(e.getSubtype()))
+                    .map(Message::getUser).filter(Objects::nonNull)
                     .distinct().collect(Collectors.toList());
-            Map<String, User> userMap = users.parallelStream() //
-                    .collect(Collectors.toMap(Function.identity(), //
+            Map<String, User> userMap = users.parallelStream()
+                    .collect(Collectors.toMap(Function.identity(),
                             (id) -> getUserWithCache(new Identify(service, id))));
 
             // BOTS
-            List<String> bots = messages.stream() //
-                    .filter((e) -> SlackMessageSubType.BotMessage.getCode().equals(e.getSubtype())) //
-                    .map(Message::getBotId).filter(Objects::nonNull) //
+            List<String> bots = messages.stream()
+                    .filter((e) -> SlackMessageSubType.BotMessage.getCode().equals(e.getSubtype()))
+                    .map(Message::getBotId).filter(Objects::nonNull)
                     .distinct().collect(Collectors.toList());
-            Map<String, User> botMap = bots.parallelStream() //
-                    .collect(Collectors.toMap(Function.identity(), //
+            Map<String, User> botMap = bots.parallelStream()
+                    .collect(Collectors.toMap(Function.identity(),
                             (id) -> getBotWithCache(new Identify(service, id))));
 
-            Pageable<Comment> pageable = SlackMapper.timeLine(messages, //
-                    userMap, botMap, userMe, candidates, channel, service, paging);
+            Pageable<Comment> pageable = SlackMapper.timeLine(messages,
+                    userMap, botMap, userMe, emojis, channel, service, paging);
 
             // スレッド対象外 or スレッド元のみ表示対象
             pageable.setPredicate((comment) -> {
@@ -659,31 +654,31 @@ public class SlackAction extends AccountActionImpl {
 
                         // 複数のファイルを先に個々にアップロード
                         // -> 最後にコメントを送信する形で表示
-                        FilesUploadRequestBuilder builder = //
-                                FilesUploadRequest.builder() //
-                                        .channels(singletonList(channel)) //
-                                        .filestream(new ByteArrayInputStream(media.getData())) //
+                        FilesUploadRequestBuilder builder =
+                                FilesUploadRequest.builder()
+                                        .channels(singletonList(channel))
+                                        .filestream(new ByteArrayInputStream(media.getData()))
                                         .filename(media.getName());
 
                         if (req.getReplyId() != null) {
                             builder.threadTs((String) req.getReplyId());
                         }
 
-                        auth.getAccessor().getSlack().methods() //
+                        auth.getAccessor().getSlack().methods()
                                 .filesUpload(builder.token(token).build());
                     }
                     {
                         // 最後にコメントを投稿
-                        ChatPostMessageRequestBuilder builder = //
-                                ChatPostMessageRequest.builder() //
-                                        .text(req.getText()) //
+                        ChatPostMessageRequestBuilder builder =
+                                ChatPostMessageRequest.builder()
+                                        .text(req.getText())
                                         .channel(channel);
 
                         if (req.getReplyId() != null) {
                             builder.threadTs((String) req.getReplyId());
                         }
 
-                        auth.getAccessor().getSlack().methods() //
+                        auth.getAccessor().getSlack().methods()
                                 .chatPostMessage(builder.token(token).build());
                     }
 
@@ -691,11 +686,11 @@ public class SlackAction extends AccountActionImpl {
 
                     // メディアは一つだけの場合はそれだけを投稿
                     MediaForm media = req.getImages().get(0);
-                    FilesUploadRequestBuilder builder = //
-                            FilesUploadRequest.builder() //
-                                    .initialComment(req.getText()) //
-                                    .channels(singletonList(channel)) //
-                                    .filestream(new ByteArrayInputStream(media.getData())) //
+                    FilesUploadRequestBuilder builder =
+                            FilesUploadRequest.builder()
+                                    .initialComment(req.getText())
+                                    .channels(singletonList(channel))
+                                    .filestream(new ByteArrayInputStream(media.getData()))
                                     .filename(media.getName());
 
                     if (req.getReplyId() != null) {
@@ -709,16 +704,16 @@ public class SlackAction extends AccountActionImpl {
             } else {
 
                 // コメントだけの場合
-                ChatPostMessageRequestBuilder builder = //
-                        ChatPostMessageRequest.builder() //
-                                .text(req.getText()) //
+                ChatPostMessageRequestBuilder builder =
+                        ChatPostMessageRequest.builder()
+                                .text(req.getText())
                                 .channel(channel);
 
                 if (req.getReplyId() != null) {
                     builder.threadTs((String) req.getReplyId());
                 }
 
-                auth.getAccessor().getSlack().methods() //
+                auth.getAccessor().getSlack().methods()
                         .chatPostMessage(builder.token(token).build());
             }
         });
@@ -795,9 +790,9 @@ public class SlackAction extends AccountActionImpl {
         }
 
         return proceed(() -> {
-            TeamInfoResponse team = auth.getAccessor().getSlack() //
-                    .methods().teamInfo(TeamInfoRequest.builder() //
-                            .token(auth.getAccessor().getToken()) //
+            TeamInfoResponse team = auth.getAccessor().getSlack()
+                    .methods().teamInfo(TeamInfoRequest.builder()
+                            .token(auth.getAccessor().getToken())
                             .build());
 
             this.team = SlackMapper.team(team);
@@ -812,10 +807,10 @@ public class SlackAction extends AccountActionImpl {
     public User getBots(Identify id) {
         return proceed(() -> {
             Service service = getAccount().getService();
-            BotsInfoResponse bots = auth.getAccessor().getSlack() //
-                    .methods().botsInfo(BotsInfoRequest.builder() //
-                            .token(auth.getAccessor().getToken()) //
-                            .bot((String) id.getId()) //
+            BotsInfoResponse bots = auth.getAccessor().getSlack()
+                    .methods().botsInfo(BotsInfoRequest.builder()
+                            .token(auth.getAccessor().getToken())
+                            .bot((String) id.getId())
                             .build());
 
             return botCache(SlackMapper.bots(bots, service));
@@ -868,8 +863,8 @@ public class SlackAction extends AccountActionImpl {
         List<String> userIds = SlackMapper.getReplayUserIds(comments);
 
         // ユーザー一覧を取得
-        Map<String, User> userMap = userIds.parallelStream() //
-                .collect(Collectors.toMap(Function.identity(), //
+        Map<String, User> userMap = userIds.parallelStream()
+                .collect(Collectors.toMap(Function.identity(),
                         (id) -> getUserWithCache(new Identify(service, id))));
 
         SlackMapper.setMentionName(comments, userMap);

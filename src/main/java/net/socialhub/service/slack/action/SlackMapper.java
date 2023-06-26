@@ -13,8 +13,6 @@ import com.github.seratch.jslack.api.model.User.Profile;
 import net.socialhub.core.action.AccountAction;
 import net.socialhub.core.define.MediaType;
 import net.socialhub.core.define.emoji.EmojiCategoryType;
-import net.socialhub.core.define.emoji.EmojiType;
-import net.socialhub.core.define.emoji.EmojiVariationType;
 import net.socialhub.core.model.Channel;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Emoji;
@@ -30,7 +28,6 @@ import net.socialhub.core.model.common.AttributedKind;
 import net.socialhub.core.model.common.AttributedString;
 import net.socialhub.core.model.paging.CursorPaging;
 import net.socialhub.core.model.paging.DatePaging;
-import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.logger.Logger;
 import net.socialhub.service.slack.define.SlackAttributedTypes;
 import net.socialhub.service.slack.define.SlackMessageSubType;
@@ -155,11 +152,11 @@ public final class SlackMapper {
      * コメントマッピング
      */
     public static Comment comment(
-            Message message, //
-            User user, //
-            User userMe, //
-            List<ReactionCandidate> candidates, //
-            String channel, //
+            Message message,
+            User user,
+            User userMe,
+            List<Emoji> emojis,
+            String channel,
             Service service) {
 
         SlackComment model = new SlackComment(service);
@@ -204,7 +201,7 @@ public final class SlackMapper {
         }
 
         // リアクションを追加で格納
-        model.setReactions(reactions(message, userMe, candidates));
+        model.setReactions(reactions(message, userMe, emojis));
 
         // Action オブジェクトを取得
         AccountAction action = service.getAccount().action();
@@ -264,12 +261,46 @@ public final class SlackMapper {
     }
 
     /**
+     * 絵文字一覧マッピング
+     */
+    public static List<Emoji> emojis(
+            EmojiListResponse customEmojis
+    ) {
+        List<Emoji> response = new ArrayList<>();
+        Map<String, String> alias = new HashMap<>();
+
+        // 先にカスタム絵文字を設定
+        customEmojis.getEmoji().forEach((key, value) -> {
+
+            // エイリアスは一旦スキップして処理
+            if (value.startsWith("alias")) {
+                alias.put(key, value.split(":")[1]);
+
+            } else {
+                Emoji model = new Emoji();
+                model.addShortCode(key);
+                model.setImageUrl(value);
+                model.setCategory(EmojiCategoryType.Custom.getCode());
+                response.add(model);
+            }
+        });
+
+        // エイリアスの処理を実行
+        alias.forEach((key, value) -> response.stream()
+                .filter(c -> c.getShortCodes().get(0).equals(value))
+                .findFirst().ifPresent(c -> c.addShortCode(key)));
+
+        // 通常の絵文字の追加処理
+        return response;
+    }
+
+    /**
      * リアクションマッピング
      */
     public static List<Reaction> reactions(
-            Message message, //
-            User userMe, //
-            List<ReactionCandidate> candidates) {
+            Message message,
+            User userMe,
+            List<Emoji> emojis) {
 
         List<Reaction> models = new ArrayList<>();
         List<com.github.seratch.jslack.api.model.Reaction> reactions = message.getReactions();
@@ -284,13 +315,13 @@ public final class SlackMapper {
                 model.setReacting(reaction.getUsers().contains((String) userMe.getId()));
 
                 // 絵文字や URL を注入
-                if (candidates != null) {
-                    candidates.stream() //
-                            .filter(c -> c.getName().equals(reaction.getName())) //
+                if (emojis != null) {
+                    emojis.stream()
+                            .filter(c -> c.getShortCodes().get(0).equals(reaction.getName()))
                             .findFirst().ifPresent(c -> {
                                 if (c.getEmoji() != null) {
-                                    model.setIconUrl(c.getEmoji().getImageUrl());
-                                    model.setEmoji(c.getEmoji().getEmoji());
+                                    model.setIconUrl(c.getImageUrl());
+                                    model.setEmoji(c.getEmoji());
                                 }
                             });
                 }
@@ -310,80 +341,27 @@ public final class SlackMapper {
     }
 
     /**
-     * リアクション候補マッピング
-     */
-    public static List<ReactionCandidate> reactionCandidates(
-            EmojiListResponse emojis) {
-
-        List<ReactionCandidate> candidates = new ArrayList<>();
-        Map<String, String> alias = new HashMap<>();
-
-        for (EmojiType emoji : EmojiType.values()) {
-            ReactionCandidate candidate = new ReactionCandidate();
-            candidates.add(candidate);
-
-            Emoji model = Emoji.fromEmojiType(emoji);
-            candidate.setEmoji(model);
-        }
-
-        for (EmojiVariationType emoji : EmojiVariationType.values()) {
-            ReactionCandidate candidate = new ReactionCandidate();
-            candidates.add(candidate);
-
-            Emoji model = Emoji.fromEmojiVariationType(emoji);
-            candidate.setEmoji(model);
-        }
-
-        emojis.getEmoji().forEach((key, value) -> {
-
-            // エイリアスは一旦スキップして処理
-            if (value.startsWith("alias")) {
-                alias.put(key, value.split(":")[1]);
-
-            } else {
-                ReactionCandidate candidate = new ReactionCandidate();
-                candidates.add(candidate);
-
-                Emoji model = new Emoji();
-                model.addShortCode(key);
-                model.setImageUrl(value);
-                model.setCategory(EmojiCategoryType.Custom.getCode());
-            }
-        });
-
-        // エイリアスの処理を実行
-        // FIXME: エイリアスのエイリアス？
-        alias.forEach((key, value) -> {
-            candidates.stream()
-                    .filter(c -> c.getName().equals(value))
-                    .findFirst().ifPresent(c -> c.addAlias(key));
-        });
-
-        return candidates;
-    }
-
-    /**
      * タイムラインマッピング
      */
     public static Pageable<Comment> timeLine(
-            List<Message> messages, //
-            Map<String, User> userMap, //
-            Map<String, User> botMap, //
-            User userMe, //
-            List<ReactionCandidate> candidates, //
-            String channel, //
-            Service service, //
+            List<Message> messages,
+            Map<String, User> userMap,
+            Map<String, User> botMap,
+            User userMe,
+            List<Emoji> emojis,
+            String channel,
+            Service service,
             Paging paging) {
 
         Pageable<Comment> model = new Pageable<>();
-        model.setEntities(messages.stream() //
+        model.setEntities(messages.stream()
                 .map(e -> {
                     // BOT の投稿かどうかで分岐
                     User user = BotMessage.getCode().equals(e.getSubtype()) ?
                             botMap.get(e.getBotId()) : userMap.get(e.getUser());
-                    return comment(e, user, userMe, candidates, channel, service);
-                }) //
-                .sorted(Comparator.comparing(Comment::getCreateAt).reversed()) //
+                    return comment(e, user, userMe, emojis, channel, service);
+                })
+                .sorted(Comparator.comparing(Comment::getCreateAt).reversed())
                 .collect(toList()));
 
         model.setPaging(DatePaging.fromPaging(paging));
@@ -490,14 +468,14 @@ public final class SlackMapper {
         return comments.stream().map(c -> {
 
                     // 特定のコメントについて含まれるメンションを取得
-                    return c.getText().getElements().stream() //
+                    return c.getText().getElements().stream()
                             .filter(a -> a.getKind() == AttributedKind.ACCOUNT)
                             .map(a -> a.getDisplayText().substring(1))
-                            .filter(n -> !n.equals("here")) //
-                            .filter(n -> !n.equals("all")) //
+                            .filter(n -> !n.equals("here"))
+                            .filter(n -> !n.equals("all"))
                             .collect(toList());
 
-                }).flatMap(Collection::stream).distinct() //
+                }).flatMap(Collection::stream).distinct()
                 .collect(toList());
     }
 

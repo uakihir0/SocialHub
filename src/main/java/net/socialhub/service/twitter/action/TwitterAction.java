@@ -35,7 +35,6 @@ import net.socialhub.core.model.event.NotificationEvent;
 import net.socialhub.core.model.paging.CursorPaging;
 import net.socialhub.core.model.paging.IndexPaging;
 import net.socialhub.core.model.request.CommentForm;
-import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.core.model.support.TrendComment;
 import net.socialhub.core.model.support.TrendCountry;
 import net.socialhub.core.model.support.TrendCountry.TrendLocation;
@@ -794,14 +793,6 @@ public class TwitterAction extends AccountActionImpl {
             Service service = getAccount().getService();
             service.getRateLimit().addInfo(DeleteComment, rateLimit(status));
         });
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ReactionCandidate> getReactionCandidates() {
-        return TwitterMapper.reactionCandidates();
     }
 
     /**

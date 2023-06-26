@@ -21,7 +21,6 @@ import net.socialhub.core.model.error.NotSupportedException;
 import net.socialhub.core.model.error.SocialHubException;
 import net.socialhub.core.model.request.CommentForm;
 import net.socialhub.core.model.request.MediaForm;
-import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.core.model.support.TupleIdentify;
 import net.socialhub.service.tumblr.define.TumblrIconSize;
 import net.socialhub.service.tumblr.define.TumblrReactionType;
@@ -440,14 +439,6 @@ public class TumblrAction extends AccountActionImpl {
                 throw new NotSupportedException("TumblrComment (id, blog n ame only) required.");
             }
         });
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ReactionCandidate> getReactionCandidates() {
-        return TumblrMapper.reactionCandidates();
     }
 
     // ============================================================== //

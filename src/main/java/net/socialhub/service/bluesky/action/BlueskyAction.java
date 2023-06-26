@@ -102,7 +102,6 @@ import net.socialhub.core.model.error.NotImplimentedException;
 import net.socialhub.core.model.error.NotSupportedException;
 import net.socialhub.core.model.error.SocialHubException;
 import net.socialhub.core.model.request.CommentForm;
-import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.core.utils.MapperUtil;
 import net.socialhub.logger.Logger;
 import net.socialhub.service.bluesky.define.BlueskyReactionType;
@@ -1054,14 +1053,6 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                             .uri((String) id.getId())
                             .build());
         });
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ReactionCandidate> getReactionCandidates() {
-        return BlueskyMapper.reactionCandidates();
     }
 
     /**

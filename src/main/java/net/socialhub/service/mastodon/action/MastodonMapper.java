@@ -10,7 +10,6 @@ import mastodon4j.entity.share.Link;
 import mastodon4j.entity.share.Response;
 import net.socialhub.core.define.MediaType;
 import net.socialhub.core.define.ServiceType;
-import net.socialhub.core.define.emoji.EmojiCategoryType;
 import net.socialhub.core.model.Application;
 import net.socialhub.core.model.Channel;
 import net.socialhub.core.model.Comment;
@@ -31,11 +30,9 @@ import net.socialhub.core.model.common.AttributedKind;
 import net.socialhub.core.model.common.AttributedString;
 import net.socialhub.core.model.common.xml.XmlConvertRule;
 import net.socialhub.core.model.support.PollOption;
-import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.logger.Logger;
 import net.socialhub.service.mastodon.define.MastodonMediaType;
 import net.socialhub.service.mastodon.define.MastodonNotificationType;
-import net.socialhub.service.mastodon.define.MastodonReactionType;
 import net.socialhub.service.mastodon.model.MastodonComment;
 import net.socialhub.service.mastodon.model.MastodonPaging;
 import net.socialhub.service.mastodon.model.MastodonPoll;
@@ -128,7 +125,7 @@ public class MastodonMapper {
         model.setProfileUrl(AttributedString.plain(account.getUrl()));
 
         model.setFields(new ArrayList<>());
-        if ((account.getFields() != null) &&  //
+        if ((account.getFields() != null) &&
                 (account.getFields().length > 0)) {
 
             for (Field field : account.getFields()) {
@@ -404,27 +401,6 @@ public class MastodonMapper {
         return model;
     }
 
-    /**
-     * リアクション候補マッピング
-     */
-    public static List<ReactionCandidate> reactionCandidates() {
-        List<ReactionCandidate> candidates = new ArrayList<>();
-
-        ReactionCandidate like = new ReactionCandidate();
-        like.setCategory(EmojiCategoryType.Activities.getCode());
-        like.setName(MastodonReactionType.Favorite.getCode().get(0));
-        like.addAlias(MastodonReactionType.Favorite.getCode());
-        candidates.add(like);
-
-        ReactionCandidate share = new ReactionCandidate();
-        share.setCategory(EmojiCategoryType.Activities.getCode());
-        share.setName(MastodonReactionType.Reblog.getCode().get(0));
-        share.addAlias(MastodonReactionType.Reblog.getCode());
-        candidates.add(share);
-
-        return candidates;
-    }
-
     // ============================================================== //
     // List Object Mapper
     // ============================================================== //
@@ -522,8 +498,8 @@ public class MastodonMapper {
             mastodon4j.entity.Emoji emoji) {
 
         Emoji model = new Emoji();
-        model.setCode(emoji.getShortcode());
-        model.setUrl(emoji.getStaticUrl());
+        model.addShortCode(emoji.getShortcode());
+        model.setImageUrl(emoji.getStaticUrl());
         return model;
     }
 

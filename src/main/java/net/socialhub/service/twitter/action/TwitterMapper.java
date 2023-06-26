@@ -21,7 +21,6 @@ import net.socialhub.core.model.common.AttributedString;
 import net.socialhub.core.model.paging.BorderPaging;
 import net.socialhub.core.model.paging.CursorPaging;
 import net.socialhub.core.model.paging.IndexPaging;
-import net.socialhub.core.model.support.ReactionCandidate;
 import net.socialhub.service.twitter.define.TwitterIconSize;
 import net.socialhub.service.twitter.define.TwitterMediaType;
 import net.socialhub.service.twitter.define.TwitterReactionType;
@@ -386,27 +385,6 @@ public class TwitterMapper {
         channel.setPublic(list.isPublic());
 
         return channel;
-    }
-
-    /**
-     * リアクション候補マッピング
-     */
-    public static List<ReactionCandidate> reactionCandidates() {
-        List<ReactionCandidate> candidates = new ArrayList<>();
-
-        ReactionCandidate like = new ReactionCandidate();
-        like.setCategory(EmojiCategoryType.Activities.getCode());
-        like.setName(TwitterReactionType.Favorite.getCode().get(0));
-        like.addAlias(TwitterReactionType.Favorite.getCode());
-        candidates.add(like);
-
-        ReactionCandidate share = new ReactionCandidate();
-        share.setCategory(EmojiCategoryType.Activities.getCode());
-        share.setName(TwitterReactionType.Retweet.getCode().get(0));
-        share.addAlias(TwitterReactionType.Retweet.getCode());
-        candidates.add(share);
-
-        return candidates;
     }
 
     /**

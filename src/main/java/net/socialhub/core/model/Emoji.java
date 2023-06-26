@@ -61,6 +61,10 @@ public class Emoji {
         getShortCodes().add(shortCode);
     }
 
+    public String getShortCode() {
+        return getShortCodes().get(0);
+    }
+
     // region // Getter&Setter
     public String getEmoji() {
         return emoji;

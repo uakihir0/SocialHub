@@ -28,7 +28,6 @@ import bsky4j.model.bsky.richtext.RichtextFacetLink;
 import bsky4j.model.bsky.richtext.RichtextFacetMention;
 import bsky4j.model.share.RecordUnion;
 import net.socialhub.core.define.MediaType;
-import net.socialhub.core.define.emoji.EmojiCategoryType;
 import net.socialhub.core.model.Channel;
 import net.socialhub.core.model.Comment;
 import net.socialhub.core.model.Identify;
@@ -45,7 +44,6 @@ import net.socialhub.core.model.common.AttributedKind;
 import net.socialhub.core.model.common.AttributedString;
 import net.socialhub.logger.Logger;
 import net.socialhub.service.bluesky.define.BlueskyNotificationType;
-import net.socialhub.service.bluesky.define.BlueskyReactionType;
 import net.socialhub.service.bluesky.model.BlueskyChannel;
 import net.socialhub.service.bluesky.model.BlueskyComment;
 import net.socialhub.service.bluesky.model.BlueskyPaging;
@@ -403,7 +401,7 @@ public class BlueskyMapper {
                         byte[] beforeBytes = copyOfRange(bytes, 0, len);
 
                         readIndex = index.getByteStart();
-                        int afterLen = (bytes.length - len);
+                        int afterLen = Math.max(0, bytes.length - len);
                         bytes = copyOfRange(bytes, len, len + afterLen);
 
                         String str = new String(beforeBytes, StandardCharsets.UTF_8);
@@ -412,6 +410,10 @@ public class BlueskyMapper {
                         element.setExpandedText(str);
                         element.setDisplayText(str);
                         elements.add(element);
+
+                        if (bytes.length == 0) {
+                            break;
+                        }
                     }
 
                     // Facet の部分を切り出して作成
@@ -419,7 +421,7 @@ public class BlueskyMapper {
                     byte[] targetByte = copyOfRange(bytes, 0, len);
 
                     readIndex = index.getByteEnd();
-                    int afterLen = (bytes.length - len);
+                    int afterLen = Math.max(0, bytes.length - len);
                     bytes = copyOfRange(bytes, len, len + afterLen);
 
                     if (union instanceof RichtextFacetMention) {
@@ -448,6 +450,10 @@ public class BlueskyMapper {
                         element.setExpandedText(str);
                         element.setDisplayText(str);
                         elements.add(element);
+                    }
+
+                    if (bytes.length == 0) {
+                        break;
                     }
                 }
             }

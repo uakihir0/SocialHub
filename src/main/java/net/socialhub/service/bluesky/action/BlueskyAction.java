@@ -10,68 +10,20 @@ import bsky4j.api.entity.atproto.repo.RepoUploadBlobRequest;
 import bsky4j.api.entity.atproto.repo.RepoUploadBlobResponse;
 import bsky4j.api.entity.atproto.server.ServerCreateSessionRequest;
 import bsky4j.api.entity.atproto.server.ServerCreateSessionResponse;
-import bsky4j.api.entity.bsky.actor.ActorGetPreferencesRequest;
-import bsky4j.api.entity.bsky.actor.ActorGetPreferencesResponse;
-import bsky4j.api.entity.bsky.actor.ActorGetProfileRequest;
-import bsky4j.api.entity.bsky.actor.ActorGetProfileResponse;
-import bsky4j.api.entity.bsky.actor.ActorSearchActorsRequest;
-import bsky4j.api.entity.bsky.actor.ActorSearchActorsResponse;
-import bsky4j.api.entity.bsky.feed.FeedDeleteLikeRequest;
-import bsky4j.api.entity.bsky.feed.FeedDeletePostRequest;
-import bsky4j.api.entity.bsky.feed.FeedDeleteRepostRequest;
-import bsky4j.api.entity.bsky.feed.FeedGetAuthorFeedRequest;
-import bsky4j.api.entity.bsky.feed.FeedGetAuthorFeedResponse;
-import bsky4j.api.entity.bsky.feed.FeedGetFeedGeneratorsRequest;
-import bsky4j.api.entity.bsky.feed.FeedGetFeedGeneratorsResponse;
-import bsky4j.api.entity.bsky.feed.FeedGetFeedRequest;
-import bsky4j.api.entity.bsky.feed.FeedGetFeedResponse;
-import bsky4j.api.entity.bsky.feed.FeedGetLikesRequest;
-import bsky4j.api.entity.bsky.feed.FeedGetLikesResponse;
-import bsky4j.api.entity.bsky.feed.FeedGetPostThreadRequest;
-import bsky4j.api.entity.bsky.feed.FeedGetPostThreadResponse;
-import bsky4j.api.entity.bsky.feed.FeedGetPostsRequest;
-import bsky4j.api.entity.bsky.feed.FeedGetPostsResponse;
-import bsky4j.api.entity.bsky.feed.FeedGetRepostedByRequest;
-import bsky4j.api.entity.bsky.feed.FeedGetRepostedByResponse;
-import bsky4j.api.entity.bsky.feed.FeedGetTimelineRequest;
-import bsky4j.api.entity.bsky.feed.FeedGetTimelineResponse;
-import bsky4j.api.entity.bsky.feed.FeedLikeRequest;
-import bsky4j.api.entity.bsky.feed.FeedPostRequest;
-import bsky4j.api.entity.bsky.feed.FeedRepostRequest;
-import bsky4j.api.entity.bsky.graph.GraphBlockRequest;
-import bsky4j.api.entity.bsky.graph.GraphDeleteBlockRequest;
-import bsky4j.api.entity.bsky.graph.GraphDeleteFollowRequest;
-import bsky4j.api.entity.bsky.graph.GraphFollowRequest;
-import bsky4j.api.entity.bsky.graph.GraphGetFollowersRequest;
-import bsky4j.api.entity.bsky.graph.GraphGetFollowersResponse;
-import bsky4j.api.entity.bsky.graph.GraphGetFollowsRequest;
-import bsky4j.api.entity.bsky.graph.GraphGetFollowsResponse;
-import bsky4j.api.entity.bsky.graph.GraphMuteActorRequest;
-import bsky4j.api.entity.bsky.graph.GraphUnmuteActorRequest;
+import bsky4j.api.entity.bsky.actor.*;
+import bsky4j.api.entity.bsky.feed.*;
+import bsky4j.api.entity.bsky.graph.*;
 import bsky4j.api.entity.bsky.notification.NotificationListNotificationsRequest;
 import bsky4j.api.entity.bsky.notification.NotificationListNotificationsResponse;
 import bsky4j.api.entity.bsky.notification.NotificationUpdateSeenRequest;
-import bsky4j.api.entity.bsky.undoc.UndocSearchFeedsRequest;
-import bsky4j.api.entity.bsky.undoc.UndocSearchFeedsResponse;
 import bsky4j.api.entity.share.Response;
 import bsky4j.model.atproto.repo.RepoListRecordsRecord;
 import bsky4j.model.atproto.repo.RepoStrongRef;
 import bsky4j.model.bsky.actor.ActorDefsPreferencesUnion;
 import bsky4j.model.bsky.actor.ActorDefsSavedFeedsPref;
 import bsky4j.model.bsky.actor.ActorDefsViewerState;
-import bsky4j.model.bsky.embed.EmbedImages;
-import bsky4j.model.bsky.embed.EmbedImagesImage;
-import bsky4j.model.bsky.embed.EmbedRecord;
-import bsky4j.model.bsky.embed.EmbedRecordWithMedia;
-import bsky4j.model.bsky.embed.EmbedUnion;
-import bsky4j.model.bsky.feed.FeedDefsFeedViewPost;
-import bsky4j.model.bsky.feed.FeedDefsPostView;
-import bsky4j.model.bsky.feed.FeedDefsThreadUnion;
-import bsky4j.model.bsky.feed.FeedDefsThreadViewPost;
-import bsky4j.model.bsky.feed.FeedGetLikesLike;
-import bsky4j.model.bsky.feed.FeedLike;
-import bsky4j.model.bsky.feed.FeedPost;
-import bsky4j.model.bsky.feed.FeedPostReplyRef;
+import bsky4j.model.bsky.embed.*;
+import bsky4j.model.bsky.feed.*;
 import bsky4j.model.bsky.notification.NotificationListNotificationsNotification;
 import bsky4j.model.bsky.richtext.RichtextFacet;
 import bsky4j.model.share.RecordUnion;
@@ -84,20 +36,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import net.socialhub.core.action.AccountActionImpl;
 import net.socialhub.core.action.callback.EventCallback;
-import net.socialhub.core.model.Account;
-import net.socialhub.core.model.Channel;
-import net.socialhub.core.model.Comment;
-import net.socialhub.core.model.Context;
 import net.socialhub.core.model.Error;
-import net.socialhub.core.model.Identify;
-import net.socialhub.core.model.Notification;
-import net.socialhub.core.model.Pageable;
-import net.socialhub.core.model.Paging;
-import net.socialhub.core.model.Relationship;
-import net.socialhub.core.model.Service;
-import net.socialhub.core.model.Stream;
-import net.socialhub.core.model.Trend;
-import net.socialhub.core.model.User;
+import net.socialhub.core.model.*;
 import net.socialhub.core.model.error.NotImplimentedException;
 import net.socialhub.core.model.error.NotSupportedException;
 import net.socialhub.core.model.error.SocialHubException;
@@ -112,13 +52,7 @@ import net.socialhub.service.microblog.action.MicroBlogAccountAction;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -126,7 +60,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
-import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static net.socialhub.service.bluesky.action.BlueskyMapper.formatDate;
 
@@ -639,38 +572,28 @@ public class BlueskyAction extends AccountActionImpl implements MicroBlogAccount
                 }
             }
 
-            Response<List<UndocSearchFeedsResponse>> response =
-                    auth.getAccessor().undoc().searchFeeds(
-                            UndocSearchFeedsRequest.builder()
+            Response<FeedSearchPostsResponse> response =
+                    auth.getAccessor().feed().searchPosts(
+                            FeedSearchPostsRequest.builder()
+                                    .accessJwt(getAccessJwt())
                                     .q(query)
                                     .build());
 
-            List<String> uris = response.get().stream()
-                    // tid と User did から at-uri を復元して投稿を取得
-                    .map(i -> "at://" + i.getUser().getDid() + "/" + i.getTid())
-                    .collect(toList());
+            List<FeedDefsPostView> posts = response.get().getPosts();
 
             // 結果が空の場合
-            if (uris.isEmpty()) {
+            if (posts.isEmpty()) {
                 Pageable<Comment> results = new Pageable<>();
                 results.setEntities(new ArrayList<>());
                 results.setPaging(paging);
                 return results;
             }
 
-            Pageable<Comment> results =
-                    BlueskyMapper.timelineByPosts(
-                            getPostViews(uris),
-                            paging,
-                            service
-                    );
-
-            // 検索は時間の順序が狂っているのでソートして修正
-            results.setEntities(results.getEntities().stream()
-                    .sorted(comparing(Comment::getCreateAt).reversed())
-                    .collect(toList()));
-
-            return results;
+            return BlueskyMapper.timelineByPosts(
+                    posts,
+                    paging,
+                    service
+            );
         });
     }
 
